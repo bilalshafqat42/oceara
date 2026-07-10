@@ -45,7 +45,6 @@ export default function Amenities() {
       const sticky = stickyRef.current;
       const imagePanel = imagePanelRef.current;
       const contentPanel = contentPanelRef.current;
-
       const items = itemRefs.current.filter(Boolean);
 
       if (
@@ -93,7 +92,15 @@ export default function Amenities() {
             return;
           }
 
-          const travelDistance = mobile ? 84 : 120;
+          /*
+           * Premium motion settings.
+           * Adjust only these values later if needed.
+           */
+          const travelDistance = mobile ? 64 : 88;
+          const readingHold = mobile ? 0.2 : 0.26;
+          const exitDuration = mobile ? 0.4 : 0.46;
+          const emptyGap = mobile ? 0.04 : 0.06;
+          const enterDuration = mobile ? 0.56 : 0.64;
 
           /*
            * Reveal the complete Amenities scene
@@ -117,14 +124,14 @@ export default function Amenities() {
           });
 
           /*
-           * Subtle image movement during the
-           * initial section appearance.
+           * Subtle image movement while the
+           * section enters the viewport.
            */
           gsap.fromTo(
             imagePanel,
             {
-              yPercent: mobile ? 7 : 10,
-              scale: 1.04,
+              yPercent: mobile ? 6 : 9,
+              scale: 1.035,
             },
             {
               yPercent: 0,
@@ -142,13 +149,12 @@ export default function Amenities() {
           );
 
           /*
-           * The content panel settles upward as
-           * the section enters the viewport.
+           * Right panel settles gently into position.
            */
           gsap.fromTo(
             contentPanel,
             {
-              y: mobile ? 30 : 48,
+              y: mobile ? 28 : 42,
             },
             {
               y: 0,
@@ -165,10 +171,8 @@ export default function Amenities() {
           );
 
           /*
-           * Only the first text item starts in
-           * the vertical centre.
-           *
-           * All following items wait below.
+           * Only the first item starts visible.
+           * The rest wait below the center.
            */
           items.forEach((item, index) => {
             gsap.set(item, {
@@ -185,20 +189,15 @@ export default function Amenities() {
               start: "top top",
               end: "bottom bottom",
 
-              scrub: mobile ? 0.55 : 0.8,
+              scrub: mobile ? 0.6 : 0.9,
               invalidateOnRefresh: true,
 
-              /*
-               * Snap to the exact timeline labels.
-               * Each label represents one text item
-               * positioned clearly in the centre.
-               */
               snap: {
                 snapTo: "labelsDirectional",
 
                 duration: {
-                  min: 0.28,
-                  max: mobile ? 0.5 : 0.7,
+                  min: 0.35,
+                  max: mobile ? 0.6 : 0.8,
                 },
 
                 delay: mobile ? 0.16 : 0.12,
@@ -209,61 +208,43 @@ export default function Amenities() {
           });
 
           /*
-           * First readable state.
+           * First stable reading state.
            */
           timeline.addLabel("item-0", 0);
 
           /*
-           * Each transition has four phases:
-           *
-           * 1. Reading hold in the centre.
-           * 2. Current item exits toward the top.
-           * 3. Short empty gap.
-           * 4. Next item enters from below.
+           * Each transition:
+           * 1. brief reading hold
+           * 2. old text exits upward smoothly
+           * 3. tiny empty gap
+           * 4. new text rises from below and settles
            */
           for (let index = 0; index < items.length - 1; index += 1) {
             const currentItem = items[index];
             const nextItem = items[index + 1];
 
-            /*
-             * Keep the current item readable
-             * before beginning its exit.
-             */
             timeline.to(
               {},
               {
-                duration: mobile ? 0.16 : 0.22,
+                duration: readingHold,
               },
             );
 
-            /*
-             * Current text moves clearly above
-             * the centre and fades away.
-             */
             timeline.to(currentItem, {
               autoAlpha: 0,
               y: -travelDistance,
               pointerEvents: "none",
-              duration: mobile ? 0.28 : 0.32,
-              ease: "power2.in",
+              duration: exitDuration,
+              ease: "power2.inOut",
             });
 
-            /*
-             * Intentional breathing space.
-             * This prevents both texts from
-             * overlapping in the centre.
-             */
             timeline.to(
               {},
               {
-                duration: mobile ? 0.1 : 0.14,
+                duration: emptyGap,
               },
             );
 
-            /*
-             * Next text begins below the centre
-             * and rises into its reading position.
-             */
             timeline.fromTo(
               nextItem,
               {
@@ -275,25 +256,22 @@ export default function Amenities() {
                 autoAlpha: 1,
                 y: 0,
                 pointerEvents: "auto",
-                duration: mobile ? 0.38 : 0.44,
+                duration: enterDuration,
                 ease: "power3.out",
               },
             );
 
-            /*
-             * Snap destination for this item.
-             */
             timeline.addLabel(`item-${index + 1}`);
           }
 
           /*
-           * Give the final item a little scroll
-           * distance before the sticky scene releases.
+           * Let the final item remain readable
+           * before the sticky section releases.
            */
           timeline.to(
             {},
             {
-              duration: mobile ? 0.18 : 0.24,
+              duration: mobile ? 0.22 : 0.28,
             },
           );
         },
