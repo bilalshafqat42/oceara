@@ -13,6 +13,7 @@ import Gallery from "@/components/Gallery";
 import Payment from "@/components/Payment";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer/Footer";
+import ContactPopup from "@/components/ContactPopup";
 
 import { gsap, useGSAP } from "@/lib/gsap";
 
@@ -80,17 +81,10 @@ export default function Home() {
             return;
           }
 
-          /*
-           * About stays fixed in place.
-           * Only its visible area is revealed upward.
-           */
           gsap.set(aboutLayer, {
             clipPath: "inset(100% 0% 0% 0%)",
           });
 
-          /*
-           * Keep Hero stationary behind About.
-           */
           gsap.set(heroLayer, {
             scale: 1,
             y: 0,
@@ -101,10 +95,6 @@ export default function Home() {
             y: mobile ? 24 : 36,
           });
 
-          /*
-           * Small internal image offset adds depth,
-           * but the About panel itself never slides.
-           */
           gsap.set(aboutImage, {
             scale: 1.08,
             yPercent: 8,
@@ -135,10 +125,6 @@ export default function Home() {
           });
 
           timeline
-            /*
-             * Straight vertical wipe:
-             * bottom edge rises toward the top.
-             */
             .to(
               aboutLayer,
               {
@@ -148,11 +134,6 @@ export default function Home() {
               },
               0,
             )
-
-            /*
-             * Very subtle Hero zoom only.
-             * No upward movement.
-             */
             .to(
               heroLayer,
               {
@@ -162,11 +143,6 @@ export default function Home() {
               },
               0,
             )
-
-            /*
-             * Internal image parallax makes
-             * the reveal feel scroll-driven.
-             */
             .to(
               aboutImage,
               {
@@ -177,11 +153,6 @@ export default function Home() {
               },
               0,
             )
-
-            /*
-             * Text appears after enough of the
-             * section has been revealed.
-             */
             .to(
               aboutContent.children,
               {
@@ -233,6 +204,8 @@ export default function Home() {
         <Contact />
         <Footer />
       </main>
+
+      <ContactPopup />
     </>
   );
 }

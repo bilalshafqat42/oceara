@@ -285,7 +285,7 @@ export default function Header() {
             <span className={styles.logoMark} aria-hidden="true" />
           </a>
 
-          <a href="#contact" className={styles.callback}>
+          <a href="#contact" className={styles.callback} data-contact-popup>
             Request Callback
           </a>
         </div>

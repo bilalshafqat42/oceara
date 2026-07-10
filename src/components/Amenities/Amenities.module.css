@@ -150,6 +150,7 @@
 
   color: #18191b;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .requestLink::before,

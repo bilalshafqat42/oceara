@@ -331,9 +331,16 @@ export default function Amenities() {
             ))}
           </div>
 
-          <a href="#contact" className={styles.requestLink}>
+          {/* <a href="#contact" className={styles.requestLink}>
             Submit Request
-          </a>
+          </a> */}
+          <button
+            type="button"
+            className={styles.requestLink}
+            data-contact-popup
+          >
+            Submit Request
+          </button>
 
           <div className={styles.progress} aria-hidden="true">
             {amenitiesData.map((item) => (

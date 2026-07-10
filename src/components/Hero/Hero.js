@@ -185,9 +185,13 @@ export default function Hero() {
           Life Shaped By Sea And Serenity
         </h1>
 
-        <a href="#about" className={styles.discoverLink} onClick={revealAbout}>
-          <span>Discover More</span>
-        </a>
+       <a
+  href="#contact"
+  className={styles.discoverLink}
+  data-contact-popup
+>
+  <span>Discover More</span>
+</a>
       </div>
 
       <a
