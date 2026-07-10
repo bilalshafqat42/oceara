@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Amenities from "@/components/Amenities";
+import Project from "@/components/Project";
 import { gsap, useGSAP } from "@/lib/gsap";
 
 import styles from "./page.module.css";
@@ -217,6 +218,8 @@ export default function Home() {
         </section>
 
         <Amenities />
+        <Project />
+
         <section id="location" className={styles.standardSection}>
           <h2>Location</h2>
         </section>
