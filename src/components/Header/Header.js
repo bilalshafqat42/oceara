@@ -14,6 +14,8 @@ const menuItems = [
   { label: "Contact", href: "#contact" },
 ];
 
+const HEADER_CHANGE_PROGRESS = 0.88;
+
 export default function Header() {
   const headerRef = useRef(null);
   const menuRef = useRef(null);
@@ -23,8 +25,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   /*
-   * Header entrance animation
-   * and scroll-based color state.
+   * Header entrance and scroll colour state.
    */
   useGSAP(
     () => {
@@ -74,17 +75,57 @@ export default function Header() {
           "-=0.55",
         );
 
-      const scrollTrigger = ScrollTrigger.create({
-        start: 80,
-        end: "max",
+      const heroScene = document.getElementById("hero-about-scene");
 
-        onUpdate: (self) => {
-          header.dataset.scrolled = self.scroll() > 80 ? "true" : "false";
-        },
-      });
+      let scrollTrigger;
+
+      if (heroScene) {
+        scrollTrigger = ScrollTrigger.create({
+          trigger: heroScene,
+          start: "top top",
+          end: "bottom bottom",
+
+          onUpdate: (self) => {
+            header.dataset.scrolled =
+              self.progress >= HEADER_CHANGE_PROGRESS ? "true" : "false";
+          },
+
+          onLeave: () => {
+            header.dataset.scrolled = "true";
+          },
+
+          onEnterBack: (self) => {
+            header.dataset.scrolled =
+              self.progress >= HEADER_CHANGE_PROGRESS ? "true" : "false";
+          },
+
+          onLeaveBack: () => {
+            header.dataset.scrolled = "false";
+          },
+
+          onRefresh: (self) => {
+            header.dataset.scrolled =
+              self.progress >= HEADER_CHANGE_PROGRESS ? "true" : "false";
+          },
+        });
+      } else {
+        /*
+         * Safe fallback if the Hero/About scene
+         * is temporarily removed during development.
+         */
+        scrollTrigger = ScrollTrigger.create({
+          start: 80,
+          end: "max",
+
+          onUpdate: (self) => {
+            header.dataset.scrolled = self.scroll() > 80 ? "true" : "false";
+          },
+        });
+      }
 
       return () => {
-        scrollTrigger.kill();
+        introTimeline.kill();
+        scrollTrigger?.kill();
       };
     },
     {
@@ -94,8 +135,10 @@ export default function Header() {
 
   /*
    * Full-screen menu reveal.
-   * The menu stays fixed in place and is revealed
-   * from left to right using clip-path.
+   *
+   * The menu remains fixed in position while clip-path
+   * reveals it from left to right. Reversing the same
+   * timeline closes it from right to left.
    */
   useGSAP(
     () => {
@@ -192,7 +235,6 @@ export default function Header() {
     document.body.style.overflow = "hidden";
 
     setMenuOpen(true);
-
     menuTimelineRef.current?.play();
   }, [menuOpen]);
 
