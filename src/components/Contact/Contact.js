@@ -36,23 +36,21 @@ export default function Contact() {
 
       matchMedia.add(
         {
-          mobile: "(max-width: 767px)",
+          mobile: "(max-width: 900px)",
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
           const { mobile, reduceMotion } = context.conditions;
 
-          const animatedElements = [
-            ...intro.children,
-            ...form.children,
-          ];
+          const introChildren = Array.from(intro.children);
+          const formChildren = Array.from(form.children);
 
           if (reduceMotion) {
             gsap.set(viewport, {
               clipPath: "none",
             });
 
-            gsap.set(animatedElements, {
+            gsap.set([...introChildren, ...formChildren], {
               clearProps: "all",
               opacity: 1,
             });
@@ -60,10 +58,6 @@ export default function Contact() {
             return;
           }
 
-          /*
-           * Reveal the complete Contact section
-           * vertically from the bottom.
-           */
           gsap.fromTo(
             viewport,
             {
@@ -77,56 +71,48 @@ export default function Contact() {
                 trigger: section,
                 start: "top bottom",
                 end: "top top",
-                scrub: mobile ? 0.55 : 0.75,
+                scrub: mobile ? 0.5 : 0.7,
                 invalidateOnRefresh: true,
               },
             },
           );
 
-          /*
-           * Left description entrance.
-           */
           gsap.fromTo(
-            intro.children,
+            introChildren,
             {
               opacity: 0,
-              y: mobile ? 30 : 48,
+              y: mobile ? 28 : 40,
             },
             {
               opacity: 1,
               y: 0,
-              duration: mobile ? 0.75 : 0.95,
-              stagger: 0.1,
+              duration: 0.85,
               ease: "power3.out",
 
               scrollTrigger: {
                 trigger: section,
-                start: "top 58%",
+                start: "top 60%",
                 once: true,
               },
             },
           );
 
-          /*
-           * Right heading and form fields enter
-           * gently one after another.
-           */
           gsap.fromTo(
-            form.children,
+            formChildren,
             {
               opacity: 0,
-              y: mobile ? 26 : 42,
+              y: mobile ? 24 : 34,
             },
             {
               opacity: 1,
               y: 0,
-              duration: mobile ? 0.7 : 0.9,
-              stagger: 0.08,
+              duration: 0.8,
+              stagger: 0.07,
               ease: "power3.out",
 
               scrollTrigger: {
                 trigger: section,
-                start: "top 52%",
+                start: "top 56%",
                 once: true,
               },
             },
@@ -150,15 +136,15 @@ export default function Contact() {
       ...current,
       [name]: value,
     }));
+
+    if (status) {
+      setStatus("");
+    }
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    /*
-     * Temporary front-end submission.
-     * Replace this with the approved CRM/API endpoint later.
-     */
     setStatus("Thank you. Your request has been received.");
     setFormData(initialForm);
   };
@@ -180,11 +166,7 @@ export default function Contact() {
           </p>
         </div>
 
-        <form
-          ref={formRef}
-          className={styles.form}
-          onSubmit={handleSubmit}
-        >
+        <form ref={formRef} className={styles.form} onSubmit={handleSubmit}>
           <header className={styles.headingGroup}>
             <p className={styles.eyebrow}>Reach Out</p>
 
@@ -255,7 +237,7 @@ export default function Contact() {
               value={formData.message}
               onChange={handleChange}
               className={styles.textarea}
-              rows={2}
+              rows={1}
               required
             />
           </div>
@@ -264,11 +246,7 @@ export default function Contact() {
             <span>Submit A Request</span>
           </button>
 
-          <p
-            className={styles.status}
-            aria-live="polite"
-            aria-atomic="true"
-          >
+          <p className={styles.status} aria-live="polite" aria-atomic="true">
             {status}
           </p>
         </form>
