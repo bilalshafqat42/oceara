@@ -1,17 +1,19 @@
 .header {
-  --header-background: #ffffff;
-  --header-foreground: #18191b;
-  --header-divider: rgba(24, 25, 27, 0.25);
+  --header-background: transparent;
+  --header-foreground: #ffffff;
+  --header-divider: rgba(255, 255, 255, 0.35);
 
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0 0 auto;
   z-index: 100;
 
   width: 100%;
 
-  background: var(--header-background);
+  background-color: var(--header-background);
   color: var(--header-foreground);
+
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
 
   transition:
     background-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -20,26 +22,18 @@
     box-shadow 600ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/*
-  Temporary scroll state.
-
-  At the top:
-  white background + dark content.
-
-  After 80px:
-  dark background + white content.
-*/
 .header[data-scrolled="true"] {
-  --header-background: rgba(24, 25, 27, 0.94);
-  --header-foreground: #ffffff;
-  --header-divider: rgba(255, 255, 255, 0.28);
+  --header-background: rgba(255, 255, 255, 0.94);
+  --header-foreground: #18191b;
+  --header-divider: rgba(24, 25, 27, 0.22);
 
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: 0 1px 0 rgba(24, 25, 27, 0.06);
 }
+
+/* Header layout */
 
 .inner {
   position: relative;
@@ -49,12 +43,12 @@
   align-items: center;
 
   width: 100%;
-  height: 74px;
+  height: 90px;
 
   padding-inline: clamp(28px, 3.1vw, 60px);
 }
 
-/* Left menu */
+/* Left menu control */
 
 .menuControl {
   grid-column: 1;
@@ -78,8 +72,8 @@
 .menuIcon {
   display: block;
 
-  width: 31px;
-  height: 12px;
+  width: 48px;
+  height: 8px;
 
   background-color: currentColor;
 
@@ -98,7 +92,7 @@
 
 .menuText {
   font-family: var(--font-body);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 500;
   line-height: 1;
 
@@ -107,7 +101,7 @@
   white-space: nowrap;
 }
 
-/* Centred logo */
+/* Centred header logo */
 
 .logo {
   grid-column: 2;
@@ -123,8 +117,8 @@
 .logoMark {
   display: block;
 
-  width: clamp(88px, 6.2vw, 112px);
-  aspect-ratio: 112 / 34;
+  width: 147px;
+  aspect-ratio: 147 / 40;
 
   background-color: currentColor;
 
@@ -141,7 +135,7 @@
   mask-size: contain;
 }
 
-/* Right callback */
+/* Request callback */
 
 .callback {
   grid-column: 3;
@@ -153,7 +147,7 @@
   align-items: center;
 
   font-family: var(--font-body);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 500;
   line-height: 1;
 
@@ -180,8 +174,7 @@
   transform: scaleX(0);
   transform-origin: right center;
 
-  transition:
-    transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .callback:hover::after,
@@ -190,23 +183,20 @@
   transform-origin: left center;
 }
 
-/* Divider */
+/* Header divider */
 
 .divider {
-  width: calc(
-    100% - (clamp(28px, 3.1vw, 60px) * 2)
-  );
+  width: calc(100% - (clamp(28px, 3.1vw, 60px) * 2));
 
   height: 1px;
   margin-inline: auto;
 
   background: var(--header-divider);
 
-  transition:
-    background-color 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 600ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Accessibility */
+/* Keyboard focus */
 
 .menuControl:focus-visible,
 .logo:focus-visible,
@@ -215,7 +205,319 @@
   outline-offset: 6px;
 }
 
-/* Tablet and mobile */
+/* Full-screen menu overlay */
+
+.menuOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: grid;
+  grid-template-columns: 50vw 50vw;
+
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+
+  margin: 0;
+  padding: 0;
+
+  color: #ffffff;
+  background: transparent;
+
+  visibility: hidden;
+  pointer-events: none;
+
+  overflow: hidden;
+
+  clip-path: inset(0 100% 0 0);
+
+  will-change: clip-path;
+}
+
+/* Left gradient menu panel */
+
+.menuBluePanel {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 50vw;
+  min-width: 0;
+  height: 100%;
+
+  margin: 0;
+
+  padding: clamp(32px, 4vw, 64px) clamp(40px, 7vw, 110px)
+    clamp(60px, 7vw, 110px);
+
+  background: linear-gradient(180deg, #0d78a6 0%, #073d61 100%);
+
+  overflow: hidden;
+}
+
+/* Right menu image */
+
+.menuImagePanel {
+  position: relative;
+
+  width: 50vw;
+  min-width: 0;
+  height: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  background-image: url("/images/sea.jpg");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+
+  overflow: hidden;
+}
+
+.menuImagePanel::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(90deg, rgba(7, 61, 97, 0.1) 0%, transparent 20%);
+
+  pointer-events: none;
+}
+
+/* Close control */
+
+.closeButton {
+  position: absolute;
+  top: clamp(30px, 4vw, 54px);
+  left: clamp(34px, 6.8vw, 96px);
+
+  display: grid;
+  place-items: center;
+
+  width: 48px;
+  height: 48px;
+
+  padding: 0;
+  border: 0;
+
+  background: transparent;
+  color: #ffffff;
+
+  cursor: pointer;
+}
+
+.closeIcon {
+  display: block;
+
+  width: 38px;
+  height: 38px;
+
+  background-color: currentColor;
+
+  -webkit-mask-image: url("/icons/cross.svg");
+  mask-image: url("/icons/cross.svg");
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.closeButton:hover .closeIcon,
+.closeButton:focus-visible .closeIcon {
+  transform: rotate(90deg);
+}
+
+/* Logo centred on the desktop 50/50 split */
+
+.menuLogo {
+  position: absolute;
+  top: clamp(28px, 3vw, 50px);
+  left: 100%;
+  z-index: 3;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+
+  transform: translateX(-50%);
+}
+
+.menuLogoMark {
+  display: block;
+
+  width: clamp(120px, 10.5vw, 165px);
+  aspect-ratio: 147 / 40;
+
+  background-color: currentColor;
+
+  -webkit-mask-image: url("/logos/oceara-logo.svg");
+  mask-image: url("/logos/oceara-logo.svg");
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* Menu navigation */
+
+.menuNavigation {
+  display: flex;
+  align-items: center;
+
+  height: 100%;
+  padding-top: 80px;
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+
+  gap: clamp(14px, 2vw, 28px);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.menuItem {
+  overflow: hidden;
+}
+
+.menuLink {
+  position: relative;
+
+  display: inline-block;
+
+  font-family: var(--font-heading);
+  font-size: clamp(44px, 4.4vw, 68px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+
+  color: rgba(255, 255, 255, 0.24);
+
+  transition:
+    color 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menuLink::before {
+  content: "";
+
+  position: absolute;
+  top: 50%;
+  left: -34px;
+
+  width: 18px;
+  height: 1px;
+
+  background: currentColor;
+
+  opacity: 0;
+
+  transform: translateY(-50%) scaleX(0);
+
+  transform-origin: right center;
+
+  transition:
+    opacity 400ms ease,
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menuLink:hover,
+.menuLink:focus-visible,
+.menuLinkActive {
+  color: #ffffff;
+
+  transform: translateX(8px);
+}
+
+.menuLink:hover::before,
+.menuLink:focus-visible::before,
+.menuLinkActive::before {
+  opacity: 1;
+
+  transform: translateY(-50%) scaleX(1);
+}
+
+/* Tablet and mobile full-screen menu */
+
+@media (max-width: 900px) {
+  .menuOverlay {
+    display: block;
+
+    width: 100vw;
+    height: 100dvh;
+
+    background: #073d61;
+  }
+
+  .menuBluePanel {
+    width: 100vw;
+    height: 100dvh;
+
+    padding: 28px 24px 56px;
+
+    background: linear-gradient(180deg, #0d78a6 0%, #073d61 100%);
+  }
+
+  .menuImagePanel {
+    display: none;
+  }
+
+  .closeButton {
+    top: 20px;
+    left: 18px;
+  }
+
+  .closeIcon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .menuLogo {
+    top: 24px;
+    left: 50%;
+  }
+
+  .menuLogoMark {
+    width: 96px;
+  }
+
+  .menuNavigation {
+    height: 100%;
+    padding-top: 96px;
+  }
+
+  .menuList {
+    gap: 18px;
+  }
+
+  .menuLink {
+    font-size: clamp(42px, 12vw, 64px);
+  }
+}
+
+/* Header tablet/mobile */
 
 @media (max-width: 767px) {
   .inner {
@@ -251,6 +553,8 @@
   }
 }
 
+/* Small mobile */
+
 @media (max-width: 480px) {
   .menuText {
     display: none;
@@ -264,342 +568,20 @@
     font-size: 6px;
     letter-spacing: 0.12em;
   }
-}
-
-.menuOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-
-  display: grid;
-  grid-template-columns: 50vw 50vw;
-
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-
-  margin: 0;
-  padding: 0;
-
-  color: #ffffff;
-  background: transparent;
-
-  visibility: hidden;
-  pointer-events: none;
-
-  overflow: hidden;
-
-  clip-path: inset(0 100% 0 0);
-  will-change: clip-path;
-}
-
-.menuBluePanel {
-  position: relative;
-
-  display: flex;
-  flex-direction: column;
-
-  width: 50vw;
-  height: 100%;
-
-  margin: 0;
-  padding:
-    clamp(32px, 4vw, 64px)
-    clamp(40px, 7vw, 110px)
-    clamp(60px, 7vw, 110px);
-
-  background:
-    linear-gradient(
-      180deg,
-      #0d78a6 0%,
-      #073d61 100%
-    );
-
-  overflow: hidden;
-}
-
-.menuImagePanel {
-  position: relative;
-
-  width: 50vw;
-  height: 100%;
-
-  margin: 0;
-  padding: 0;
-
-  background-image: url("/images/sea.jpg");
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
-
-  overflow: hidden;
-}
-
-.closeButton {
-  position: absolute;
-  top: clamp(30px, 4vw, 54px);
-  left: clamp(34px, 6.8vw, 96px);
-
-  display: grid;
-  place-items: center;
-
-  width: 48px;
-  height: 48px;
-
-  color: #ffffff;
-  cursor: pointer;
-}
-
-.closeIcon {
-  display: block;
-
-  width: 38px;
-  height: 38px;
-
-  background-color: currentColor;
-
-  -webkit-mask-image:
-    url("/icons/cross.svg");
-  mask-image:
-    url("/icons/cross.svg");
-
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-
-  -webkit-mask-position: center;
-  mask-position: center;
-
-  -webkit-mask-size: contain;
-  mask-size: contain;
-
-  transition:
-    transform 500ms
-    cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.closeButton:hover .closeIcon {
-  transform: rotate(90deg);
-}
-
-.menuLogo {
-  position: fixed;
-  top: clamp(28px, 3vw, 50px);
-  left: 50%;
-  z-index: 3;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #ffffff;
-
-  transform: translateX(-50%);
-}
-
-.menuLogoMark {
-  display: block;
-
-  width: clamp(120px, 10.5vw, 165px);
-  aspect-ratio: 112 / 34;
-
-  background-color: currentColor;
-
-  -webkit-mask-image:
-    url("/logos/oceara-logo.svg");
-  mask-image:
-    url("/logos/oceara-logo.svg");
-
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-
-  -webkit-mask-position: center;
-  mask-position: center;
-
-  -webkit-mask-size: contain;
-  mask-size: contain;
-}
-
-.menuNavigation {
-  display: flex;
-  align-items: center;
-
-  height: 100%;
-  padding-top: 80px;
-}
-
-.menuList {
-  display: flex;
-  flex-direction: column;
-
-  gap: clamp(14px, 2vw, 28px);
-
-  margin: 0;
-  padding: 0;
-
-  list-style: none;
-}
-
-.menuItem {
-  overflow: hidden;
-}
-
-.menuLink {
-  position: relative;
-
-  display: inline-block;
-
-  font-family: var(--font-heading);
-  font-size:
-    clamp(44px, 4.4vw, 68px);
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -0.025em;
-
-  color: rgba(255, 255, 255, 0.24);
-
-  transition:
-    color 500ms
-    cubic-bezier(0.16, 1, 0.3, 1),
-    transform 500ms
-    cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.menuLink::before {
-  content: "";
-
-  position: absolute;
-  top: 50%;
-  left: -34px;
-
-  width: 18px;
-  height: 1px;
-
-  background: currentColor;
-
-  opacity: 0;
-
-  transform: translateY(-50%)
-    scaleX(0);
-
-  transform-origin: right center;
-
-  transition:
-    opacity 400ms ease,
-    transform 500ms
-    cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.menuLink:hover,
-.menuLink:focus-visible,
-.menuLinkActive {
-  color: #ffffff;
-  transform: translateX(8px);
-}
-
-.menuLink:hover::before,
-.menuLink:focus-visible::before,
-.menuLinkActive::before {
-  opacity: 1;
-  transform:
-    translateY(-50%)
-    scaleX(1);
-}
-
-.menuImagePanel {
-  position: relative;
-
-  width: 100%;
-  height: 100%;
-
-  background-image:
-    url("/images/sea.jpg");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-
-  transform-origin: left center;
-  overflow: hidden;
-}
-
-/* .menuImagePanel::after {
-  content: "";
-
-  position: absolute;
-  inset: 0;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(4, 64, 92, 0.08),
-      transparent 35%
-    );
-
-  pointer-events: none;
-} */
-.menuImagePanel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(7, 61, 97, 0.1) 0%,
-      transparent 20%
-    );
-
-  pointer-events: none;
-}
-
-@media (max-width: 900px) {
-  .menuOverlay {
-    grid-template-columns: 100%;
-  }
-
-  .menuBluePanel {
-    padding:
-      28px 24px
-      56px;
-  }
-
-  .menuImagePanel {
-    position: absolute;
-    inset: 0;
-
-    z-index: -1;
-
-    opacity: 0.18;
-  }
-
-  .closeButton {
-    top: 20px;
-    left: 18px;
-  }
-
-  .closeIcon {
-    width: 30px;
-    height: 30px;
-  }
-
-  .menuLogo {
-    top: 24px;
-    left: 50%;
-  }
 
   .menuLogoMark {
-    width: 96px;
+    width: 88px;
   }
+}
 
-  .menuNavigation {
-    padding-top: 96px;
-  }
+/* Reduced motion */
 
-  .menuList {
-    gap: 18px;
-  }
-
-  .menuLink {
-    font-size:
-      clamp(42px, 12vw, 64px);
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .callback::after,
+  .closeIcon,
+  .menuLink,
+  .menuLink::before {
+    transition-duration: 0.01ms !important;
   }
 }
