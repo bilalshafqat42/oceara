@@ -1,11 +1,11 @@
 "use client";
-
-import { useEffect, useRef, useState } from "react";
 import {
-  gsap,
-  ScrollTrigger,
-  useGSAP,
-} from "@/lib/gsap";
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import styles from "./Header.module.css";
 
 const menuItems = [
@@ -19,8 +19,6 @@ const menuItems = [
 export default function Header() {
   const headerRef = useRef(null);
   const menuRef = useRef(null);
-  // const bluePanelRef = useRef(null);
-  // const imagePanelRef = useRef(null);
   const menuTimelineRef = useRef(null);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,7 +48,7 @@ export default function Header() {
             y: -14,
             duration: 0.9,
           },
-          "-=0.7"
+          "-=0.7",
         )
         .from(
           `.${styles.callback}`,
@@ -59,7 +57,7 @@ export default function Header() {
             y: -14,
             duration: 0.9,
           },
-          "-=0.7"
+          "-=0.7",
         )
         .from(
           `.${styles.divider}`,
@@ -68,15 +66,14 @@ export default function Header() {
             transformOrigin: "left center",
             duration: 1.2,
           },
-          "-=0.55"
+          "-=0.55",
         );
 
       const scrollTrigger = ScrollTrigger.create({
         start: 80,
         end: "max",
         onUpdate: (self) => {
-          header.dataset.scrolled =
-            self.scroll() > 80 ? "true" : "false";
+          header.dataset.scrolled = self.scroll() > 80 ? "true" : "false";
         },
       });
 
@@ -86,128 +83,122 @@ export default function Header() {
     },
     {
       scope: headerRef,
-    }
+    },
   );
 
   useGSAP(
-  () => {
-    const menu = menuRef.current;
+    () => {
+      const menu = menuRef.current;
 
-    if (!menu) return;
+      if (!menu) return;
 
-    gsap.set(menu, {
-      clipPath: "inset(0 100% 0 0)",
-      visibility: "visible",
-      pointerEvents: "none",
-    });
+      gsap.set(menu, {
+        clipPath: "inset(0 100% 0 0)",
+        visibility: "visible",
+        pointerEvents: "none",
+      });
 
-    const timeline = gsap.timeline({
-      paused: true,
-      defaults: {
-        ease: "power4.inOut",
-      },
-      onStart: () => {
-        gsap.set(menu, {
-          pointerEvents: "auto",
-        });
-      },
-      onReverseComplete: () => {
-        gsap.set(menu, {
-          pointerEvents: "none",
-        });
-
-        setMenuOpen(false);
-      },
-    });
-
-    timeline
-      .to(menu, {
-        clipPath: "inset(0 0% 0 0)",
-        duration: 1.15,
-      })
-      .from(
-        `.${styles.closeButton}`,
-        {
-          opacity: 0,
-          rotate: -45,
-          duration: 0.6,
-          ease: "power3.out",
+      const timeline = gsap.timeline({
+        paused: true,
+        defaults: {
+          ease: "power4.inOut",
         },
-        0.45
-      )
-      .from(
-        `.${styles.menuLogo}`,
-        {
-          opacity: 0,
-          y: -16,
-          duration: 0.7,
-          ease: "power3.out",
+        onStart: () => {
+          gsap.set(menu, {
+            pointerEvents: "auto",
+          });
         },
-        0.45
-      )
-      .from(
-        `.${styles.menuItem}`,
-        {
-          opacity: 0,
-          x: -28,
-          duration: 0.7,
-          stagger: 0.07,
-          ease: "power3.out",
+        onReverseComplete: () => {
+          gsap.set(menu, {
+            pointerEvents: "none",
+          });
+
+          setMenuOpen(false);
         },
-        0.5
-      );
+      });
 
-    menuTimelineRef.current = timeline;
+      timeline
+        .to(menu, {
+          clipPath: "inset(0 0% 0 0)",
+          duration: 1.15,
+        })
+        .from(
+          `.${styles.closeButton}`,
+          {
+            opacity: 0,
+            rotate: -45,
+            duration: 0.6,
+            ease: "power3.out",
+          },
+          0.45,
+        )
+        .from(
+          `.${styles.menuLogo}`,
+          {
+            opacity: 0,
+            y: -16,
+            duration: 0.7,
+            ease: "power3.out",
+          },
+          0.45,
+        )
+        .from(
+          `.${styles.menuItem}`,
+          {
+            opacity: 0,
+            x: -28,
+            duration: 0.7,
+            stagger: 0.07,
+            ease: "power3.out",
+          },
+          0.5,
+        );
 
-    return () => {
-      timeline.kill();
-      menuTimelineRef.current = null;
-    };
-  },
-  {
-    scope: menuRef,
-  }
-);
+      menuTimelineRef.current = timeline;
 
-  useEffect(() => {
-    const handleEscape = (event) => {
-      if (event.key === "Escape" && menuOpen) {
-        closeMenu();
-      }
-    };
+      return () => {
+        timeline.kill();
+        menuTimelineRef.current = null;
+      };
+    },
+    {
+      scope: menuRef,
+    },
+  );
+ const openMenu = useCallback(() => {
+  setMenuOpen(true);
+  document.body.style.overflow = "hidden";
 
-    window.addEventListener("keydown", handleEscape);
+  menuTimelineRef.current?.play();
+}, []);
 
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "";
-    };
-  }, [menuOpen]);
+const closeMenu = useCallback(() => {
+  document.body.style.overflow = "";
 
-  const openMenu = () => {
-    setMenuOpen(true);
-    document.body.style.overflow = "hidden";
+  menuTimelineRef.current?.reverse();
+}, []);
 
-    menuTimelineRef.current?.play();
+const handleMenuLinkClick = useCallback(() => {
+  closeMenu();
+}, [closeMenu]);
+
+useEffect(() => {
+  const handleEscape = (event) => {
+    if (event.key === "Escape" && menuOpen) {
+      closeMenu();
+    }
   };
 
-  const closeMenu = () => {
+  window.addEventListener("keydown", handleEscape);
+
+  return () => {
+    window.removeEventListener("keydown", handleEscape);
     document.body.style.overflow = "";
-
-    menuTimelineRef.current?.reverse();
   };
-
-  const handleMenuLinkClick = () => {
-    closeMenu();
-  };
-
+}, [menuOpen, closeMenu]);
   return (
     <>
-      <header
-        ref={headerRef}
-        className={styles.header}
-        data-scrolled="false"
-      >
+      <header ref={headerRef} className={styles.header} data-scrolled="false">
         <div className={styles.inner}>
           <button
             type="button"
@@ -217,31 +208,16 @@ export default function Header() {
             aria-controls="oceara-menu"
             onClick={openMenu}
           >
-            <span
-              className={styles.menuIcon}
-              aria-hidden="true"
-            />
+            <span className={styles.menuIcon} aria-hidden="true" />
 
-            <span className={styles.menuText}>
-              Menu
-            </span>
+            <span className={styles.menuText}>Menu</span>
           </button>
 
-          <a
-            href="#home"
-            className={styles.logo}
-            aria-label="Oceara home"
-          >
-            <span
-              className={styles.logoMark}
-              aria-hidden="true"
-            />
+          <a href="#home" className={styles.logo} aria-label="Oceara home">
+            <span className={styles.logoMark} aria-hidden="true" />
           </a>
 
-          <a
-            href="#contact"
-            className={styles.callback}
-          >
+          <a href="#contact" className={styles.callback}>
             Request Callback
           </a>
         </div>
@@ -265,10 +241,7 @@ export default function Header() {
             aria-label="Close navigation menu"
             onClick={closeMenu}
           >
-            <span
-              className={styles.closeIcon}
-              aria-hidden="true"
-            />
+            <span className={styles.closeIcon} aria-hidden="true" />
           </button>
 
           <a
@@ -277,28 +250,17 @@ export default function Header() {
             aria-label="Oceara home"
             onClick={handleMenuLinkClick}
           >
-            <span
-              className={styles.menuLogoMark}
-              aria-hidden="true"
-            />
+            <span className={styles.menuLogoMark} aria-hidden="true" />
           </a>
 
-          <nav
-            className={styles.menuNavigation}
-            aria-label="Main navigation"
-          >
+          <nav className={styles.menuNavigation} aria-label="Main navigation">
             <ul className={styles.menuList}>
               {menuItems.map((item, index) => (
-                <li
-                  key={item.href}
-                  className={styles.menuItem}
-                >
+                <li key={item.href} className={styles.menuItem}>
                   <a
                     href={item.href}
                     className={`${styles.menuLink} ${
-                      index === 0
-                        ? styles.menuLinkActive
-                        : ""
+                      index === 0 ? styles.menuLinkActive : ""
                     }`}
                     onClick={handleMenuLinkClick}
                   >
