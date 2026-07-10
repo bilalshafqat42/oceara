@@ -1,35 +1,88 @@
+import Header from "@/components/layout/Header";
+
 export default function Home() {
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        alignContent: "center",
-        gap: "24px",
-        padding: "40px",
-      }}
-    >
-      <p>Inter body font</p>
+    <>
+      <Header />
 
-      <h1
-        className="font-heading"
-        style={{
-          fontSize: "80px",
-          fontWeight: 400,
-          lineHeight: 1,
-        }}
-      >
-        Minerva Modern Heading
-      </h1>
+      <main>
+        <section
+          id="home"
+          style={{
+            minHeight: "100svh",
+            display: "grid",
+            placeItems: "center",
+            padding: "120px 40px 40px",
+            background: "#1f5f6f",
+            color: "#ffffff",
+          }}
+        >
+          <h1
+            className="font-heading"
+            style={{
+              maxWidth: "1000px",
+              fontSize: "clamp(56px, 8vw, 120px)",
+              fontWeight: 400,
+              lineHeight: 0.95,
+              textAlign: "center",
+            }}
+          >
+            A Life Shaped by Sea and Serenity
+          </h1>
+        </section>
 
-      <p
-        className="font-curve"
-        style={{
-          fontSize: "48px",
-        }}
-      >
-        Kinan Decorative Text
-      </p>
-    </main>
+        <section
+          id="overview"
+          style={{
+            minHeight: "100vh",
+            padding: "160px 40px",
+          }}
+        >
+          <h2 className="font-heading">Overview</h2>
+        </section>
+
+        <section
+          id="residences"
+          style={{
+            minHeight: "100vh",
+            padding: "160px 40px",
+          }}
+        >
+          <h2 className="font-heading">Residences</h2>
+        </section>
+
+        <section
+          id="location"
+          style={{
+            minHeight: "100vh",
+            padding: "160px 40px",
+          }}
+        >
+          <h2 className="font-heading">Location</h2>
+        </section>
+
+        <section
+          id="amenities"
+          style={{
+            minHeight: "100vh",
+            padding: "160px 40px",
+          }}
+        >
+          <h2 className="font-heading">Amenities</h2>
+        </section>
+
+        <section
+          id="contact"
+          style={{
+            minHeight: "100vh",
+            padding: "160px 40px",
+            background: "#006f91",
+            color: "#ffffff",
+          }}
+        >
+          <h2 className="font-heading">Contact</h2>
+        </section>
+      </main>
+    </>
   );
 }
