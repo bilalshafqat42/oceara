@@ -8,6 +8,7 @@ import About from "@/components/About";
 import Amenities from "@/components/Amenities";
 import Project from "@/components/Project";
 import Location from "@/components/Location";
+import SeaSection from "@/components/SeaSection";
 
 import { gsap, useGSAP } from "@/lib/gsap";
 
@@ -222,6 +223,8 @@ export default function Home() {
         <Amenities />
         <Project />
         <Location />
+        <SeaSection />
+
         <section id="location" className={styles.standardSection}>
           <h2>Location</h2>
         </section>
