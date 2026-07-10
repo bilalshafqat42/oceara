@@ -2,15 +2,18 @@
   position: relative;
 
   width: 100%;
-  height: 115vh;
-  height: 115svh;
 
-  overflow: visible;
+  /*
+   * Extra scroll distance gives the image enough
+   * room to reveal from bottom to top.
+   */
+  height: 200vh;
+  height: 200svh;
 
-  background: #063d5a;
+  background: #f2ede5;
 }
 
-.viewport {
+.stickyViewport {
   position: sticky;
   top: 0;
 
@@ -19,18 +22,35 @@
   height: 100svh;
 
   overflow: hidden;
+  isolation: isolate;
+
+  background: #f2ede5;
+}
+
+/*
+ * The whole image composition moves vertically.
+ * It begins at yPercent: 100 through GSAP.
+ */
+.reveal {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
 
   background: #063d5a;
 
-  will-change: clip-path;
+  will-change: transform;
 }
 
 .imageLayer {
   position: absolute;
-  inset: -7% 0;
+  inset: -6% 0;
 
   width: 100%;
-  height: 114%;
+  height: 112%;
 
   overflow: hidden;
 
@@ -48,19 +68,20 @@
   inset: 0;
   z-index: 1;
 
-  background: linear-gradient(0deg, rgba(1, 26, 42, 0.1) 0%, transparent 40%);
+  background: linear-gradient(0deg, rgba(1, 26, 42, 0.1) 0%, transparent 42%);
 
   pointer-events: none;
 }
 
 @media (max-width: 767px) {
   .seaSection {
-    height: 110svh;
+    height: 180svh;
   }
 
   .imageLayer {
-    inset: -5% 0;
-    height: 110%;
+    inset: -4% 0;
+
+    height: 108%;
   }
 
   .image {
@@ -79,11 +100,11 @@
     height: 100svh;
   }
 
-  .viewport {
+  .stickyViewport {
     position: relative;
-    clip-path: none !important;
   }
 
+  .reveal,
   .imageLayer {
     transform: none !important;
   }

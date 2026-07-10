@@ -9,6 +9,8 @@ import Amenities from "@/components/Amenities";
 import Project from "@/components/Project";
 import Location from "@/components/Location";
 import SeaSection from "@/components/SeaSection";
+import Gallery from "@/components/Gallery";
+import Payment from "@/components/Payment";
 
 import { gsap, useGSAP } from "@/lib/gsap";
 
@@ -224,15 +226,8 @@ export default function Home() {
         <Project />
         <Location />
         <SeaSection />
-
-        <section id="location" className={styles.standardSection}>
-          <h2>Location</h2>
-        </section>
-
-        <section id="payment-plan" className={styles.standardSection}>
-          <h2>Payment Plan</h2>
-        </section>
-
+        <Gallery />
+        <Payment />
         <section id="contact" className={styles.standardSection}>
           <h2>Contact</h2>
         </section>
