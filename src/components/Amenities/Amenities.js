@@ -53,7 +53,7 @@ export default function Amenities() {
         !sticky ||
         !imagePanel ||
         !contentPanel ||
-        !items.length
+        items.length === 0
       ) {
         return;
       }
@@ -74,20 +74,30 @@ export default function Amenities() {
               clearProps: "clipPath",
             });
 
+            gsap.set(imagePanel, {
+              clearProps: "transform",
+            });
+
+            gsap.set(contentPanel, {
+              clearProps: "transform",
+            });
+
             gsap.set(items, {
               position: "relative",
-              opacity: 1,
-              visibility: "visible",
+              autoAlpha: 1,
               y: 0,
+              pointerEvents: "auto",
+              clearProps: "transform",
             });
 
             return;
           }
 
+          const travelDistance = mobile ? 84 : 120;
+
           /*
-           * Initial section reveal.
-           * The complete Amenities viewport rises
-           * cleanly from the bottom.
+           * Reveal the complete Amenities scene
+           * vertically from the bottom.
            */
           gsap.set(sticky, {
             clipPath: "inset(100% 0% 0% 0%)",
@@ -101,19 +111,19 @@ export default function Amenities() {
               trigger: section,
               start: "top bottom",
               end: "top top",
-              scrub: 0.7,
+              scrub: mobile ? 0.55 : 0.75,
               invalidateOnRefresh: true,
             },
           });
 
           /*
-           * Small internal movement makes the section
-           * feel scroll-driven without moving the fixed layout.
+           * Subtle image movement during the
+           * initial section appearance.
            */
           gsap.fromTo(
             imagePanel,
             {
-              yPercent: mobile ? 8 : 12,
+              yPercent: mobile ? 7 : 10,
               scale: 1.04,
             },
             {
@@ -125,16 +135,20 @@ export default function Amenities() {
                 trigger: section,
                 start: "top bottom",
                 end: "top top",
-                scrub: 0.7,
+                scrub: mobile ? 0.55 : 0.75,
                 invalidateOnRefresh: true,
               },
             },
           );
 
+          /*
+           * The content panel settles upward as
+           * the section enters the viewport.
+           */
           gsap.fromTo(
             contentPanel,
             {
-              y: mobile ? 34 : 56,
+              y: mobile ? 30 : 48,
             },
             {
               y: 0,
@@ -144,21 +158,24 @@ export default function Amenities() {
                 trigger: section,
                 start: "top bottom",
                 end: "top top",
-                scrub: 0.7,
+                scrub: mobile ? 0.55 : 0.75,
                 invalidateOnRefresh: true,
               },
             },
           );
 
           /*
-           * Prepare the text slides.
-           * Only the first item is visible initially.
+           * Only the first text item starts in
+           * the vertical centre.
+           *
+           * All following items wait below.
            */
           items.forEach((item, index) => {
             gsap.set(item, {
               autoAlpha: index === 0 ? 1 : 0,
-              y: index === 0 ? 0 : 70,
+              y: index === 0 ? 0 : travelDistance,
               pointerEvents: index === 0 ? "auto" : "none",
+              force3D: true,
             });
           });
 
@@ -172,14 +189,16 @@ export default function Amenities() {
               invalidateOnRefresh: true,
 
               /*
-               * Snaps to each text item after scrolling stops.
+               * Snap to the exact timeline labels.
+               * Each label represents one text item
+               * positioned clearly in the centre.
                */
               snap: {
-                snapTo: 1 / (amenitiesData.length - 1),
+                snapTo: "labelsDirectional",
 
                 duration: {
-                  min: 0.3,
-                  max: mobile ? 0.55 : 0.75,
+                  min: 0.28,
+                  max: mobile ? 0.5 : 0.7,
                 },
 
                 delay: mobile ? 0.16 : 0.12,
@@ -190,38 +209,93 @@ export default function Amenities() {
           });
 
           /*
-           * Each step:
-           * 1. Current item exits upward.
-           * 2. Next item enters from below.
+           * First readable state.
+           */
+          timeline.addLabel("item-0", 0);
+
+          /*
+           * Each transition has four phases:
+           *
+           * 1. Reading hold in the centre.
+           * 2. Current item exits toward the top.
+           * 3. Short empty gap.
+           * 4. Next item enters from below.
            */
           for (let index = 0; index < items.length - 1; index += 1) {
             const currentItem = items[index];
             const nextItem = items[index + 1];
 
-            timeline
-              .to(currentItem, {
+            /*
+             * Keep the current item readable
+             * before beginning its exit.
+             */
+            timeline.to(
+              {},
+              {
+                duration: mobile ? 0.16 : 0.22,
+              },
+            );
+
+            /*
+             * Current text moves clearly above
+             * the centre and fades away.
+             */
+            timeline.to(currentItem, {
+              autoAlpha: 0,
+              y: -travelDistance,
+              pointerEvents: "none",
+              duration: mobile ? 0.28 : 0.32,
+              ease: "power2.in",
+            });
+
+            /*
+             * Intentional breathing space.
+             * This prevents both texts from
+             * overlapping in the centre.
+             */
+            timeline.to(
+              {},
+              {
+                duration: mobile ? 0.1 : 0.14,
+              },
+            );
+
+            /*
+             * Next text begins below the centre
+             * and rises into its reading position.
+             */
+            timeline.fromTo(
+              nextItem,
+              {
                 autoAlpha: 0,
-                y: -70,
+                y: travelDistance,
                 pointerEvents: "none",
-                duration: 0.45,
-                ease: "power2.in",
-              })
-              .fromTo(
-                nextItem,
-                {
-                  autoAlpha: 0,
-                  y: 70,
-                },
-                {
-                  autoAlpha: 1,
-                  y: 0,
-                  pointerEvents: "auto",
-                  duration: 0.55,
-                  ease: "power3.out",
-                },
-                "<0.12",
-              );
+              },
+              {
+                autoAlpha: 1,
+                y: 0,
+                pointerEvents: "auto",
+                duration: mobile ? 0.38 : 0.44,
+                ease: "power3.out",
+              },
+            );
+
+            /*
+             * Snap destination for this item.
+             */
+            timeline.addLabel(`item-${index + 1}`);
           }
+
+          /*
+           * Give the final item a little scroll
+           * distance before the sticky scene releases.
+           */
+          timeline.to(
+            {},
+            {
+              duration: mobile ? 0.18 : 0.24,
+            },
+          );
         },
       );
 
@@ -284,14 +358,8 @@ export default function Amenities() {
           </a>
 
           <div className={styles.progress} aria-hidden="true">
-            {amenitiesData.map((item, index) => (
-              <span
-                key={item.title}
-                className={styles.progressLine}
-                style={{
-                  "--progress-index": index,
-                }}
-              />
+            {amenitiesData.map((item) => (
+              <span key={item.title} className={styles.progressLine} />
             ))}
           </div>
         </div>
