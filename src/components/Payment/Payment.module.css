@@ -26,7 +26,7 @@
   will-change: clip-path;
 }
 
-/* Left panel */
+/* Left content panel */
 
 .contentPanel {
   position: relative;
@@ -75,7 +75,7 @@
   color: #18191b;
 }
 
-/* Payment numbers */
+/* Payment plan */
 
 .plan {
   width: min(100%, 430px);
@@ -85,46 +85,42 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: baseline;
-  font-family: var(--font-heading);
-  font-size: clamp(112px, 10vw, 160px);
-  font-weight: 400;
-  width: 100%;
-  line-height: 0.9;
-}
 
-.number,
-.divider {
+  width: 100%;
+
   font-family: var(--font-heading);
-  /* font-size: clamp(112px, 10vw, 190px); */
   font-size: clamp(112px, 10vw, 160px);
   font-weight: 400;
-  line-height: 0.82;
+  line-height: 0.88;
   letter-spacing: -0.055em;
 
   color: #18191b;
+  white-space: nowrap;
 }
 
-.number:first-child {
+.planNumber:first-child {
   text-align: left;
 }
 
-.number:last-child {
+.planNumber:last-child {
   text-align: right;
 }
 
-.divider {
-  padding-inline: clamp(4px, 0.6vw, 12px);
+.planDivider {
+  padding-inline: clamp(2px, 0.35vw, 8px);
 }
 
 .planLabels {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: clamp(26px, 4vw, 70px);
-  margin-top: none;
+
+  margin-top: 12px;
 }
 
 .planLabel {
   margin: 0;
+
   font-family: var(--font-heading);
   font-size: 20px;
   font-weight: 400;
@@ -189,8 +185,7 @@
     margin-bottom: 100px;
   }
 
-  .number,
-  .divider {
+  .planNumbers {
     font-size: clamp(92px, 11vw, 140px);
   }
 
@@ -238,11 +233,10 @@
   }
 
   .plan {
-    max-width: 430px;
+    width: min(100%, 430px);
   }
 
-  .number,
-  .divider {
+  .planNumbers {
     font-size: clamp(84px, 25vw, 118px);
   }
 
@@ -261,6 +255,7 @@
 
   .imageLayer {
     inset: -4% 0;
+
     height: 108%;
   }
 
@@ -276,9 +271,12 @@
     padding-inline: 18px;
   }
 
-  .number,
-  .divider {
+  .planNumbers {
     font-size: clamp(70px, 23vw, 96px);
+  }
+
+  .planLabels {
+    gap: 12px;
   }
 
   .planLabel {

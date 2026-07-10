@@ -51,7 +51,8 @@ export default function Payment() {
           }
 
           /*
-           * Reveal the complete section from bottom to top.
+           * Reveal the complete payment section
+           * vertically from bottom to top.
            */
           gsap.fromTo(
             viewport,
@@ -73,7 +74,8 @@ export default function Payment() {
           );
 
           /*
-           * Subtle image movement during the reveal.
+           * Subtle image depth movement while
+           * the payment section is revealed.
            */
           gsap.fromTo(
             imageLayer,
@@ -97,7 +99,8 @@ export default function Payment() {
           );
 
           /*
-           * Text appears after the section is partially visible.
+           * Payment text enters after the section
+           * is sufficiently visible.
            */
           gsap.fromTo(
             content.children,
@@ -150,11 +153,18 @@ export default function Payment() {
             </div>
 
             <div className={styles.plan}>
-              <div className={styles.planNumbers}>20/80</div>
-              {/* <span className={styles.number}>20</span>
-                <span className={styles.divider}>/</span>
-                <span className={styles.number}>80</span>
-              </div> */}
+              <div
+                className={styles.planNumbers}
+                aria-label="20 percent during construction and 80 percent after handover"
+              >
+                <span className={styles.planNumber}>20</span>
+
+                <span className={styles.planDivider} aria-hidden="true">
+                  /
+                </span>
+
+                <span className={styles.planNumber}>80</span>
+              </div>
 
               <div className={styles.planLabels}>
                 <p className={styles.planLabel}>During Construction</p>
