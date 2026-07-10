@@ -1,0 +1,320 @@
+.footer {
+  position: relative;
+
+  width: 100%;
+
+  background: #18191b;
+  color: #ffffff;
+}
+
+.inner {
+  position: relative;
+
+  display: grid;
+  grid-template-columns:
+    minmax(260px, 1.4fr)
+    minmax(150px, 0.65fr)
+    minmax(250px, 1fr);
+  grid-template-rows:
+    auto
+    1fr
+    auto;
+  column-gap: clamp(70px, 8vw, 150px);
+  row-gap: clamp(80px, 13vh, 150px);
+
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+
+  padding: clamp(105px, 13vh, 145px) clamp(70px, 8vw, 116px)
+    clamp(70px, 9vh, 92px);
+}
+
+/* Logo */
+
+.logo {
+  grid-column: 1;
+  grid-row: 1;
+
+  align-self: start;
+  justify-self: start;
+
+  display: inline-flex;
+
+  color: #ffffff;
+}
+
+.logoMark {
+  display: block;
+
+  width: clamp(205px, 17vw, 250px);
+  aspect-ratio: 147 / 40;
+
+  background-color: currentColor;
+
+  -webkit-mask-image: url("/logos/oceara-logo.svg");
+  mask-image: url("/logos/oceara-logo.svg");
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* Shared contact blocks */
+
+.contactBlock {
+  min-width: 0;
+}
+
+.telephone {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.tollFree {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.email {
+  grid-column: 2;
+  grid-row: 2;
+
+  align-self: center;
+}
+
+.address {
+  grid-column: 3;
+  grid-row: 2;
+
+  align-self: center;
+}
+
+.label {
+  margin: 0 0 10px;
+
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1;
+
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.value {
+  margin: 0;
+
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.45;
+
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  font-style: normal;
+
+  transition: color 300ms ease;
+}
+
+a.value:hover,
+a.value:focus-visible {
+  color: #ffffff;
+}
+
+a.value:focus-visible,
+.logo:focus-visible,
+.cookiesButton:focus-visible {
+  outline: 1px solid #ffffff;
+  outline-offset: 6px;
+}
+
+/* Footer bottom */
+
+.copyright {
+  grid-column: 1;
+  grid-row: 3;
+
+  align-self: end;
+
+  margin: 0;
+
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.cookiesButton {
+  grid-column: 2;
+  grid-row: 3;
+
+  align-self: end;
+  justify-self: start;
+
+  padding: 0;
+  border: 0;
+
+  background: transparent;
+  color: rgba(255, 255, 255, 0.42);
+
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+
+  cursor: pointer;
+
+  transition: color 300ms ease;
+}
+
+.cookiesButton:hover,
+.cookiesButton:focus-visible {
+  color: #ffffff;
+}
+
+/* Medium desktop */
+
+@media (max-width: 1180px) {
+  .inner {
+    grid-template-columns:
+      minmax(230px, 1.2fr)
+      minmax(140px, 0.7fr)
+      minmax(230px, 1fr);
+
+    column-gap: 60px;
+
+    padding-inline: 60px;
+  }
+
+  .logoMark {
+    width: 210px;
+  }
+
+  .value {
+    font-size: 15px;
+  }
+}
+
+/* Short desktop screens */
+
+@media (max-height: 760px) and (min-width: 901px) {
+  .inner {
+    min-height: 760px;
+
+    padding-top: 90px;
+    padding-bottom: 64px;
+
+    row-gap: 74px;
+  }
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+  .inner {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto auto;
+
+    min-height: auto;
+
+    padding: 90px 32px 64px;
+
+    column-gap: 48px;
+    row-gap: 64px;
+  }
+
+  .logo {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .telephone {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .tollFree {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .email {
+    grid-column: 1;
+    grid-row: 3;
+
+    align-self: start;
+  }
+
+  .address {
+    grid-column: 2;
+    grid-row: 3;
+
+    align-self: start;
+  }
+
+  .copyright {
+    grid-column: 1;
+    grid-row: 4;
+  }
+
+  .cookiesButton {
+    grid-column: 2;
+    grid-row: 4;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .inner {
+    display: flex;
+    flex-direction: column;
+
+    padding: 76px 22px 54px;
+
+    gap: 44px;
+  }
+
+  .logoMark {
+    width: 190px;
+  }
+
+  .contactBlock {
+    width: 100%;
+  }
+
+  .label {
+    font-size: 12px;
+  }
+
+  .value {
+    font-size: 15px;
+  }
+
+  .copyright {
+    margin-top: 30px;
+  }
+
+  .cookiesButton {
+    align-self: flex-start;
+  }
+}
+
+/* Reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .inner > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

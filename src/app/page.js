@@ -12,6 +12,7 @@ import SeaSection from "@/components/SeaSection";
 import Gallery from "@/components/Gallery";
 import Payment from "@/components/Payment";
 import Contact from "@/components/Contact";
+import Footer from "@/components/Footer/Footer";
 
 import { gsap, useGSAP } from "@/lib/gsap";
 
@@ -230,9 +231,7 @@ export default function Home() {
         <Gallery />
         <Payment />
         <Contact />
-        <section id="contact" className={styles.standardSection}>
-          <h2>Contact</h2>
-        </section>
+        <Footer />
       </main>
     </>
   );
