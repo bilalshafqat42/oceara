@@ -1,11 +1,9 @@
 "use client";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+
 import styles from "./Header.module.css";
 
 const menuItems = [
@@ -20,14 +18,21 @@ export default function Header() {
   const headerRef = useRef(null);
   const menuRef = useRef(null);
   const menuTimelineRef = useRef(null);
+  const previousOverflowRef = useRef("");
 
   const [menuOpen, setMenuOpen] = useState(false);
 
+  /*
+   * Header entrance animation
+   * and scroll-based color state.
+   */
   useGSAP(
     () => {
       const header = headerRef.current;
 
-      if (!header) return;
+      if (!header) {
+        return;
+      }
 
       const introTimeline = gsap.timeline({
         defaults: {
@@ -72,6 +77,7 @@ export default function Header() {
       const scrollTrigger = ScrollTrigger.create({
         start: 80,
         end: "max",
+
         onUpdate: (self) => {
           header.dataset.scrolled = self.scroll() > 80 ? "true" : "false";
         },
@@ -86,11 +92,18 @@ export default function Header() {
     },
   );
 
+  /*
+   * Full-screen menu reveal.
+   * The menu stays fixed in place and is revealed
+   * from left to right using clip-path.
+   */
   useGSAP(
     () => {
       const menu = menuRef.current;
 
-      if (!menu) return;
+      if (!menu) {
+        return;
+      }
 
       gsap.set(menu, {
         clipPath: "inset(0 100% 0 0)",
@@ -100,14 +113,17 @@ export default function Header() {
 
       const timeline = gsap.timeline({
         paused: true,
+
         defaults: {
           ease: "power4.inOut",
         },
+
         onStart: () => {
           gsap.set(menu, {
             pointerEvents: "auto",
           });
         },
+
         onReverseComplete: () => {
           gsap.set(menu, {
             pointerEvents: "none",
@@ -165,37 +181,47 @@ export default function Header() {
       scope: menuRef,
     },
   );
- const openMenu = useCallback(() => {
-  setMenuOpen(true);
-  document.body.style.overflow = "hidden";
 
-  menuTimelineRef.current?.play();
-}, []);
-
-const closeMenu = useCallback(() => {
-  document.body.style.overflow = "";
-
-  menuTimelineRef.current?.reverse();
-}, []);
-
-const handleMenuLinkClick = useCallback(() => {
-  closeMenu();
-}, [closeMenu]);
-
-useEffect(() => {
-  const handleEscape = (event) => {
-    if (event.key === "Escape" && menuOpen) {
-      closeMenu();
+  const openMenu = useCallback(() => {
+    if (menuOpen) {
+      return;
     }
-  };
 
-  window.addEventListener("keydown", handleEscape);
+    previousOverflowRef.current = document.body.style.overflow;
 
-  return () => {
-    window.removeEventListener("keydown", handleEscape);
-    document.body.style.overflow = "";
-  };
-}, [menuOpen, closeMenu]);
+    document.body.style.overflow = "hidden";
+
+    setMenuOpen(true);
+
+    menuTimelineRef.current?.play();
+  }, [menuOpen]);
+
+  const closeMenu = useCallback(() => {
+    document.body.style.overflow = previousOverflowRef.current;
+
+    menuTimelineRef.current?.reverse();
+  }, []);
+
+  const handleMenuLinkClick = useCallback(() => {
+    closeMenu();
+  }, [closeMenu]);
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape" && menuOpen) {
+        closeMenu();
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+
+      document.body.style.overflow = previousOverflowRef.current;
+    };
+  }, [menuOpen, closeMenu]);
+
   return (
     <>
       <header ref={headerRef} className={styles.header} data-scrolled="false">
@@ -231,10 +257,7 @@ useEffect(() => {
         className={styles.menuOverlay}
         aria-hidden={!menuOpen}
       >
-        <div
-          // ref={bluePanelRef}
-          className={styles.menuBluePanel}
-        >
+        <div className={styles.menuBluePanel}>
           <button
             type="button"
             className={styles.closeButton}
@@ -272,11 +295,7 @@ useEffect(() => {
           </nav>
         </div>
 
-        <div
-          // ref={imagePanelRef}
-          className={styles.menuImagePanel}
-          aria-hidden="true"
-        />
+        <div className={styles.menuImagePanel} aria-hidden="true" />
       </div>
     </>
   );
