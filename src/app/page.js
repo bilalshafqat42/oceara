@@ -1,4 +1,12 @@
-import Header from "@/components/layout/Header";
+import Header from "@/components/Header";
+
+const sections = [
+  "about",
+  "location",
+  "amenities",
+  "payment-plan",
+  "contact",
+];
 
 export default function Home() {
   return (
@@ -10,78 +18,35 @@ export default function Home() {
           id="home"
           style={{
             minHeight: "100svh",
-            display: "grid",
-            placeItems: "center",
-            padding: "120px 40px 40px",
-            background: "#1f5f6f",
-            color: "#ffffff",
+            background: "#ffffff",
           }}
-        >
-          <h1
-            className="font-heading"
+        />
+
+        {sections.map((section) => (
+          <section
+            key={section}
+            id={section}
             style={{
-              maxWidth: "1000px",
-              fontSize: "clamp(56px, 8vw, 120px)",
-              fontWeight: 400,
-              lineHeight: 0.95,
-              textAlign: "center",
+              minHeight: "100svh",
+              padding: "140px 40px",
+              background:
+                section === "contact"
+                  ? "#0d78a6"
+                  : "#f2ede5",
             }}
           >
-            A Life Shaped by Sea and Serenity
-          </h1>
-        </section>
-
-        <section
-          id="overview"
-          style={{
-            minHeight: "100vh",
-            padding: "160px 40px",
-          }}
-        >
-          <h2 className="font-heading">Overview</h2>
-        </section>
-
-        <section
-          id="residences"
-          style={{
-            minHeight: "100vh",
-            padding: "160px 40px",
-          }}
-        >
-          <h2 className="font-heading">Residences</h2>
-        </section>
-
-        <section
-          id="location"
-          style={{
-            minHeight: "100vh",
-            padding: "160px 40px",
-          }}
-        >
-          <h2 className="font-heading">Location</h2>
-        </section>
-
-        <section
-          id="amenities"
-          style={{
-            minHeight: "100vh",
-            padding: "160px 40px",
-          }}
-        >
-          <h2 className="font-heading">Amenities</h2>
-        </section>
-
-        <section
-          id="contact"
-          style={{
-            minHeight: "100vh",
-            padding: "160px 40px",
-            background: "#006f91",
-            color: "#ffffff",
-          }}
-        >
-          <h2 className="font-heading">Contact</h2>
-        </section>
+            <h2
+              className="font-heading"
+              style={{
+                fontSize: "64px",
+                fontWeight: 400,
+                textTransform: "capitalize",
+              }}
+            >
+              {section.replace("-", " ")}
+            </h2>
+          </section>
+        ))}
       </main>
     </>
   );

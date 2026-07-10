@@ -37,9 +37,9 @@ button {
   background: transparent;
   color: inherit;
   font: inherit;
-  cursor: pointer;
 }
 
-section[id] {
-  scroll-margin-top: 96px;
+img {
+  display: block;
+  max-width: 100%;
 }

@@ -1,139 +1,321 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { useEffect, useRef, useState } from "react";
+import {
+  gsap,
+  ScrollTrigger,
+  useGSAP,
+} from "@/lib/gsap";
 import styles from "./Header.module.css";
 
-const navigation = [
-  {
-    label: "Overview",
-    href: "#overview",
-  },
-  {
-    label: "Residences",
-    href: "#residences",
-  },
-  {
-    label: "Location",
-    href: "#location",
-  },
-  {
-    label: "Amenities",
-    href: "#amenities",
-  },
+const menuItems = [
+  { label: "About", href: "#about" },
+  { label: "Location", href: "#location" },
+  { label: "Amenities", href: "#amenities" },
+  { label: "Payment Plan", href: "#payment-plan" },
+  { label: "Contact", href: "#contact" },
 ];
 
 export default function Header() {
   const headerRef = useRef(null);
+  const menuRef = useRef(null);
+  // const bluePanelRef = useRef(null);
+  // const imagePanelRef = useRef(null);
+  const menuTimelineRef = useRef(null);
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   useGSAP(
     () => {
       const header = headerRef.current;
 
-      if (!header) {
-        return;
-      }
+      if (!header) return;
 
-      const entranceTimeline = gsap.timeline({
+      const introTimeline = gsap.timeline({
         defaults: {
           ease: "power3.out",
         },
       });
 
-      entranceTimeline
-        .from(styles.logo ? `.${styles.logo}` : null, {
+      introTimeline
+        .from(`.${styles.menuControl}`, {
           opacity: 0,
-          y: -20,
-          duration: 1,
+          y: -14,
+          duration: 0.9,
         })
         .from(
-          `.${styles.navigationItem}`,
+          `.${styles.logo}`,
           {
             opacity: 0,
-            y: -16,
-            duration: 0.8,
-            stagger: 0.08,
+            y: -14,
+            duration: 0.9,
           },
-          "-=0.65",
+          "-=0.7"
         )
         .from(
-          `.${styles.enquire}`,
+          `.${styles.callback}`,
           {
             opacity: 0,
-            y: -16,
-            duration: 0.8,
+            y: -14,
+            duration: 0.9,
           },
-          "-=0.6",
+          "-=0.7"
+        )
+        .from(
+          `.${styles.divider}`,
+          {
+            scaleX: 0,
+            transformOrigin: "left center",
+            duration: 1.2,
+          },
+          "-=0.55"
         );
 
-      ScrollTrigger.create({
+      const scrollTrigger = ScrollTrigger.create({
         start: 80,
         end: "max",
         onUpdate: (self) => {
-          header.dataset.scrolled = self.scroll() > 80 ? "true" : "false";
+          header.dataset.scrolled =
+            self.scroll() > 80 ? "true" : "false";
         },
       });
+
+      return () => {
+        scrollTrigger.kill();
+      };
     },
     {
       scope: headerRef,
-    },
+    }
   );
 
+  useGSAP(
+  () => {
+    const menu = menuRef.current;
+
+    if (!menu) return;
+
+    gsap.set(menu, {
+      clipPath: "inset(0 100% 0 0)",
+      visibility: "visible",
+      pointerEvents: "none",
+    });
+
+    const timeline = gsap.timeline({
+      paused: true,
+      defaults: {
+        ease: "power4.inOut",
+      },
+      onStart: () => {
+        gsap.set(menu, {
+          pointerEvents: "auto",
+        });
+      },
+      onReverseComplete: () => {
+        gsap.set(menu, {
+          pointerEvents: "none",
+        });
+
+        setMenuOpen(false);
+      },
+    });
+
+    timeline
+      .to(menu, {
+        clipPath: "inset(0 0% 0 0)",
+        duration: 1.15,
+      })
+      .from(
+        `.${styles.closeButton}`,
+        {
+          opacity: 0,
+          rotate: -45,
+          duration: 0.6,
+          ease: "power3.out",
+        },
+        0.45
+      )
+      .from(
+        `.${styles.menuLogo}`,
+        {
+          opacity: 0,
+          y: -16,
+          duration: 0.7,
+          ease: "power3.out",
+        },
+        0.45
+      )
+      .from(
+        `.${styles.menuItem}`,
+        {
+          opacity: 0,
+          x: -28,
+          duration: 0.7,
+          stagger: 0.07,
+          ease: "power3.out",
+        },
+        0.5
+      );
+
+    menuTimelineRef.current = timeline;
+
+    return () => {
+      timeline.kill();
+      menuTimelineRef.current = null;
+    };
+  },
+  {
+    scope: menuRef,
+  }
+);
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape" && menuOpen) {
+        closeMenu();
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  const openMenu = () => {
+    setMenuOpen(true);
+    document.body.style.overflow = "hidden";
+
+    menuTimelineRef.current?.play();
+  };
+
   const closeMenu = () => {
-    setMenuOpen(false);
+    document.body.style.overflow = "";
+
+    menuTimelineRef.current?.reverse();
+  };
+
+  const handleMenuLinkClick = () => {
+    closeMenu();
   };
 
   return (
-    <header ref={headerRef} className={styles.header} data-scrolled="false">
-      <div className={styles.inner}>
-        <a
-          href="#home"
-          className={styles.logo}
-          aria-label="Oceara home"
-          onClick={closeMenu}
-        >
-          Oceara
-        </a>
+    <>
+      <header
+        ref={headerRef}
+        className={styles.header}
+        data-scrolled="false"
+      >
+        <div className={styles.inner}>
+          <button
+            type="button"
+            className={styles.menuControl}
+            aria-label="Open navigation menu"
+            aria-expanded={menuOpen}
+            aria-controls="oceara-menu"
+            onClick={openMenu}
+          >
+            <span
+              className={styles.menuIcon}
+              aria-hidden="true"
+            />
 
-        <nav
-          className={`${styles.navigation} ${
-            menuOpen ? styles.navigationOpen : ""
-          }`}
-          aria-label="Main navigation"
+            <span className={styles.menuText}>
+              Menu
+            </span>
+          </button>
+
+          <a
+            href="#home"
+            className={styles.logo}
+            aria-label="Oceara home"
+          >
+            <span
+              className={styles.logoMark}
+              aria-hidden="true"
+            />
+          </a>
+
+          <a
+            href="#contact"
+            className={styles.callback}
+          >
+            Request Callback
+          </a>
+        </div>
+
+        <div className={styles.divider} />
+      </header>
+
+      <div
+        ref={menuRef}
+        id="oceara-menu"
+        className={styles.menuOverlay}
+        aria-hidden={!menuOpen}
+      >
+        <div
+          // ref={bluePanelRef}
+          className={styles.menuBluePanel}
         >
-          <ul className={styles.navigationList}>
-            {navigation.map((item) => (
-              <li key={item.href} className={styles.navigationItem}>
-                <a
-                  href={item.href}
-                  className={styles.navigationLink}
-                  onClick={closeMenu}
+          <button
+            type="button"
+            className={styles.closeButton}
+            aria-label="Close navigation menu"
+            onClick={closeMenu}
+          >
+            <span
+              className={styles.closeIcon}
+              aria-hidden="true"
+            />
+          </button>
+
+          <a
+            href="#home"
+            className={styles.menuLogo}
+            aria-label="Oceara home"
+            onClick={handleMenuLinkClick}
+          >
+            <span
+              className={styles.menuLogoMark}
+              aria-hidden="true"
+            />
+          </a>
+
+          <nav
+            className={styles.menuNavigation}
+            aria-label="Main navigation"
+          >
+            <ul className={styles.menuList}>
+              {menuItems.map((item, index) => (
+                <li
+                  key={item.href}
+                  className={styles.menuItem}
                 >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+                  <a
+                    href={item.href}
+                    className={`${styles.menuLink} ${
+                      index === 0
+                        ? styles.menuLinkActive
+                        : ""
+                    }`}
+                    onClick={handleMenuLinkClick}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
 
-        <a href="#contact" className={styles.enquire} onClick={closeMenu}>
-          Enquire
-        </a>
-
-        <button
-          type="button"
-          className={`${styles.menuButton} ${
-            menuOpen ? styles.menuButtonOpen : ""
-          }`}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((current) => !current)}
-        >
-          <span />
-          <span />
-        </button>
+        <div
+          // ref={imagePanelRef}
+          className={styles.menuImagePanel}
+          aria-hidden="true"
+        />
       </div>
-    </header>
+    </>
   );
 }
