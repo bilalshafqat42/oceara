@@ -43,45 +43,43 @@ export default function SeaSection() {
             return;
           }
 
-          gsap.fromTo(
-            viewport,
-            {
-              clipPath: "inset(100% 0% 0% 0%)",
+          const timeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top bottom",
+              end: "top top",
+              scrub: mobile ? 0.55 : 0.8,
+              invalidateOnRefresh: true,
             },
-            {
-              clipPath: "inset(0% 0% 0% 0%)",
-              ease: "none",
+          });
 
-              scrollTrigger: {
-                trigger: section,
-                start: "top bottom",
-                end: "top top",
-                scrub: mobile ? 0.55 : 0.75,
-                invalidateOnRefresh: true,
+          timeline
+            .fromTo(
+              viewport,
+              {
+                clipPath: "inset(100% 0% 0% 0%)",
               },
-            },
-          );
-
-          gsap.fromTo(
-            imageLayer,
-            {
-              scale: mobile ? 1.05 : 1.09,
-              yPercent: mobile ? 4 : 7,
-            },
-            {
-              scale: 1,
-              yPercent: 0,
-              ease: "none",
-
-              scrollTrigger: {
-                trigger: section,
-                start: "top bottom",
-                end: "top top",
-                scrub: mobile ? 0.55 : 0.75,
-                invalidateOnRefresh: true,
+              {
+                clipPath: "inset(0% 0% 0% 0%)",
+                duration: 1,
+                ease: "none",
               },
-            },
-          );
+              0,
+            )
+            .fromTo(
+              imageLayer,
+              {
+                yPercent: mobile ? 10 : 14,
+                scale: mobile ? 1.06 : 1.1,
+              },
+              {
+                yPercent: 0,
+                scale: 1,
+                duration: 1,
+                ease: "none",
+              },
+              0,
+            );
         },
       );
 
