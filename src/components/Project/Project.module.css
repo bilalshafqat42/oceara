@@ -2,11 +2,11 @@
   position: relative;
 
   /*
-   * Three compositions require three viewport heights.
-   * The sticky scene remains fixed while this height
-   * provides the scroll distance.
+   * One viewport for the full image reveal,
+   * followed by three viewports for the text cards.
    */
-  height: calc(var(--project-slide-count) * 100svh);
+  width: 100%;
+  height: calc((var(--project-slide-count) + 1) * 100svh);
 
   background: #f2ede5;
 }
@@ -25,15 +25,19 @@
   background: #d9e4eb;
 
   clip-path: inset(100% 0% 0% 0%);
+
   will-change: clip-path;
 }
 
-/* Fixed full-screen background */
+/* Fixed full-screen project image */
 
 .background {
   position: absolute;
   inset: 0;
   z-index: 0;
+
+  width: 100%;
+  height: 100%;
 
   overflow: hidden;
 }
@@ -42,7 +46,8 @@
   object-fit: cover;
   object-position: center center;
 
-  transform-origin: center;
+  transform-origin: center center;
+
   will-change: transform;
 }
 
@@ -51,18 +56,23 @@
   inset: 0;
 
   background:
-    linear-gradient(90deg, rgba(4, 31, 44, 0.04) 0%, transparent 42%),
-    linear-gradient(0deg, rgba(6, 31, 42, 0.12) 0%, transparent 40%);
+    linear-gradient(90deg, rgba(4, 31, 44, 0.035) 0%, transparent 42%),
+    linear-gradient(0deg, rgba(6, 31, 42, 0.14) 0%, transparent 46%);
 
   pointer-events: none;
+
+  will-change: opacity;
 }
 
-/* Slides layer */
+/* Cards layer */
 
 .slides {
   position: absolute;
   inset: 0;
   z-index: 2;
+
+  width: 100%;
+  height: 100%;
 
   pointer-events: none;
 }
@@ -77,14 +87,20 @@
   visibility: hidden;
   opacity: 0;
 
+  pointer-events: none;
+
   will-change: transform, opacity;
 }
 
-/* First composition */
-
+/*
+ * First card:
+ *
+ * Anchored directly to the bottom-left corner.
+ */
 .intro {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: flex-start;
 }
 
 .introCard {
@@ -92,12 +108,13 @@
   flex-direction: column;
   justify-content: space-between;
 
-  width: min(50vw, 780px);
-  min-height: min(58vh, 580px);
+  width: min(48vw, 720px);
+  min-height: min(46vh, 470px);
 
-  margin-top: 8vh;
-  padding: clamp(80px, 10vw, 150px) clamp(52px, 8vw, 130px)
-    clamp(64px, 8vw, 110px);
+  margin: 0;
+
+  padding: clamp(58px, 7vw, 108px) clamp(48px, 7vw, 112px)
+    clamp(50px, 6vw, 86px);
 
   background: #f2ede5;
   color: #18191b;
@@ -176,39 +193,46 @@
   transform-origin: left center;
 }
 
-/* Second composition */
+.requestLink:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 6px;
+}
 
+/*
+ * Second card:
+ *
+ * Bottom aligned but inset from the right edge.
+ */
 .descriptionRight {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
 
-  padding: 100px clamp(60px, 11vw, 200px);
+  padding: 100px clamp(60px, 10vw, 180px) clamp(72px, 10vh, 112px);
 }
 
-.descriptionRight .description {
-  margin-top: 20vh;
-}
-
-/* Third composition */
-
+/*
+ * Third card:
+ *
+ * Bottom aligned and inset from the left edge.
+ */
 .descriptionLeft {
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
 
-  padding: 100px clamp(60px, 11vw, 200px) clamp(90px, 13vh, 150px);
+  padding: 100px clamp(60px, 10vw, 180px) clamp(72px, 10vh, 112px);
 }
 
 .descriptionLeft .description {
-  margin-left: clamp(80px, 11vw, 190px);
+  margin-left: clamp(70px, 10vw, 170px);
 }
 
 .description {
-  max-width: 510px;
+  width: min(100%, 510px);
   margin: 0;
 
-  padding: 40px 50px;
+  padding: 38px 46px;
 
   font-family: var(--font-body);
   font-size: 18px;
@@ -216,10 +240,12 @@
   line-height: 1.65;
 
   color: #18191b;
-  background: #f2ede5;
+  background: rgba(242, 237, 229, 0.96);
 
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow: 0 16px 50px rgba(24, 25, 27, 0.06);
 
   pointer-events: auto;
 }
@@ -229,11 +255,13 @@
 .progress {
   position: absolute;
   right: clamp(28px, 4vw, 64px);
-  bottom: clamp(32px, 5vh, 64px);
+  bottom: clamp(28px, 4vh, 52px);
   z-index: 3;
 
   display: flex;
   gap: 7px;
+
+  pointer-events: none;
 }
 
 .progressLine {
@@ -242,10 +270,10 @@
   width: 20px;
   height: 1px;
 
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.58);
 }
 
-/* Accessible hidden heading */
+/* Accessible hidden title */
 
 .visuallyHidden {
   position: absolute !important;
@@ -253,33 +281,45 @@
   width: 1px !important;
   height: 1px !important;
 
-  padding: 0 !important;
   margin: -1px !important;
+  padding: 0 !important;
 
   overflow: hidden !important;
+
   white-space: nowrap !important;
 
   border: 0 !important;
 
   clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
 }
 
 /* Tablet */
 
 @media (max-width: 1024px) {
   .introCard {
-    width: 58vw;
+    width: 56vw;
+    min-height: 44vh;
 
-    padding: 90px 60px 70px;
+    padding: 66px 54px 54px;
   }
 
   .descriptionRight,
   .descriptionLeft {
-    padding-inline: 60px;
+    padding-inline: 52px;
+    padding-bottom: 72px;
   }
 
   .descriptionLeft .description {
-    margin-left: 40px;
+    margin-left: 30px;
+  }
+
+  .description {
+    max-width: 470px;
+
+    padding: 32px 38px;
+
+    font-size: 17px;
   }
 }
 
@@ -287,7 +327,7 @@
 
 @media (max-width: 767px) {
   .project {
-    height: calc(var(--project-slide-count) * 90svh);
+    height: calc((var(--project-slide-count) + 1) * 90svh);
   }
 
   .backgroundImage {
@@ -297,22 +337,18 @@
   .backgroundOverlay {
     background: linear-gradient(
       0deg,
-      rgba(5, 33, 45, 0.44) 0%,
+      rgba(5, 33, 45, 0.42) 0%,
       rgba(5, 33, 45, 0.04) 68%
     );
   }
 
-  .intro {
-    align-items: flex-end;
-  }
-
   .introCard {
     width: calc(100% - 36px);
-    min-height: 46svh;
+    min-height: 43svh;
 
-    margin: 0 18px 24px;
+    margin: 0 18px 22px;
 
-    padding: 58px 26px 42px;
+    padding: 52px 25px 38px;
   }
 
   .eyebrow {
@@ -321,6 +357,7 @@
 
   .title {
     max-width: 340px;
+
     font-size: 34px;
   }
 
@@ -333,28 +370,30 @@
     align-items: flex-end;
     justify-content: flex-start;
 
-    padding: 90px 18px 54px;
+    padding: 90px 18px 52px;
   }
 
-  .descriptionRight .description,
   .descriptionLeft .description {
-    margin: 0;
+    margin-left: 0;
   }
 
   .description {
+    width: 100%;
     max-width: 100%;
 
-    padding: 24px;
+    padding: 25px;
 
     font-size: 15px;
     line-height: 1.6;
 
-    background: rgba(242, 237, 229, 0.94);
+    background: rgba(242, 237, 229, 0.95);
+
+    box-shadow: 0 12px 36px rgba(24, 25, 27, 0.08);
   }
 
   .progress {
     right: 22px;
-    bottom: 22px;
+    bottom: 21px;
   }
 }
 
@@ -367,6 +406,7 @@
 
   .stickyViewport {
     position: relative;
+    top: auto;
 
     height: auto;
     min-height: 100svh;
@@ -374,11 +414,15 @@
     clip-path: none !important;
   }
 
+  .background {
+    position: absolute;
+  }
+
   .slides {
     position: relative;
 
     display: grid;
-    gap: 32px;
+    gap: 28px;
 
     padding: 100px 22px;
   }
@@ -390,15 +434,35 @@
     visibility: visible;
     opacity: 1;
 
+    width: 100%;
     height: auto;
 
     transform: none !important;
+
+    pointer-events: auto;
   }
 
-  .introCard,
-  .descriptionRight,
-  .descriptionLeft {
+  .introCard {
     width: 100%;
     margin: 0;
+  }
+
+  .descriptionRight,
+  .descriptionLeft {
+    display: block;
+
+    padding: 0;
+  }
+
+  .descriptionLeft .description {
+    margin-left: 0;
+  }
+
+  .description {
+    width: 100%;
+  }
+
+  .progress {
+    display: none;
   }
 }

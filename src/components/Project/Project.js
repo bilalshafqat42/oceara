@@ -42,8 +42,14 @@ export default function Project() {
       const overlay = overlayRef.current;
       const slides = slideRefs.current.filter(Boolean);
 
-      if (!section || !sticky || !image || !overlay || slides.length === 0) {
-        return;
+      if (
+        !section ||
+        !sticky ||
+        !image ||
+        !overlay ||
+        slides.length !== projectSlides.length
+      ) {
+        return undefined;
       }
 
       const matchMedia = gsap.matchMedia();
@@ -55,15 +61,16 @@ export default function Project() {
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { mobile, reduceMotion } = context.conditions;
+          const { mobile = false, reduceMotion = false } =
+            context.conditions ?? {};
 
           if (reduceMotion) {
             gsap.set(sticky, {
-              clearProps: "clipPath",
+              clipPath: "none",
             });
 
-            gsap.set(image, {
-              clearProps: "transform",
+            gsap.set([image, overlay], {
+              clearProps: "all",
             });
 
             gsap.set(slides, {
@@ -73,116 +80,123 @@ export default function Project() {
               pointerEvents: "auto",
             });
 
-            return;
+            return undefined;
           }
 
           /*
-           * Premium transition settings.
-           * These control the text movement only.
+           * Text movement and pacing settings.
+           *
+           * Increase slideTravel to create more distance
+           * between the entering and exiting cards.
+           *
+           * Increase readingHold to leave each card visible longer.
            */
-          const travelDistance = mobile ? 68 : 96;
-          const readingHold = mobile ? 0.24 : 0.32;
-          const exitDuration = mobile ? 0.42 : 0.5;
-          const emptyGap = mobile ? 0.04 : 0.06;
-          const enterDuration = mobile ? 0.58 : 0.68;
+          const slideTravel = mobile ? 74 : 110;
+          const entranceDuration = mobile ? 0.65 : 0.82;
+          const readingHold = mobile ? 0.42 : 0.58;
+          const exitDuration = mobile ? 0.52 : 0.68;
+          const transitionGap = mobile ? 0.08 : 0.12;
 
           /*
-           * Reveal the complete Project scene
-           * vertically from the bottom.
+           * Initial state:
+           *
+           * The entire project viewport is hidden below.
+           * All text cards are also hidden.
            */
           gsap.set(sticky, {
             clipPath: "inset(100% 0% 0% 0%)",
           });
 
-          gsap.to(sticky, {
-            clipPath: "inset(0% 0% 0% 0%)",
-            ease: "none",
-
-            scrollTrigger: {
-              trigger: section,
-              start: "top bottom",
-              end: "top top",
-              scrub: mobile ? 0.55 : 0.75,
-              invalidateOnRefresh: true,
-            },
+          gsap.set(image, {
+            scale: mobile ? 1.06 : 1.1,
+            yPercent: mobile ? 5 : 8,
+            transformOrigin: "center center",
           });
 
-          /*
-           * Subtle internal background movement.
-           * The image remains fixed while its content
-           * gently settles into place.
-           */
-          gsap.fromTo(
-            image,
-            {
-              scale: 1.08,
-              yPercent: mobile ? 4 : 7,
-            },
-            {
-              scale: 1,
-              yPercent: 0,
-              ease: "none",
+          gsap.set(overlay, {
+            opacity: 0.4,
+          });
 
-              scrollTrigger: {
-                trigger: section,
-                start: "top bottom",
-                end: "top top",
-                scrub: mobile ? 0.55 : 0.75,
-                invalidateOnRefresh: true,
-              },
-            },
-          );
-
-          gsap.fromTo(
-            overlay,
-            {
-              opacity: 0.45,
-            },
-            {
-              opacity: 1,
-              ease: "none",
-
-              scrollTrigger: {
-                trigger: section,
-                start: "top bottom",
-                end: "top top",
-                scrub: mobile ? 0.55 : 0.75,
-              },
-            },
-          );
-
-          /*
-           * Only the first composition starts visible.
-           * The remaining compositions wait below.
-           */
-          slides.forEach((slide, index) => {
+          slides.forEach((slide) => {
             gsap.set(slide, {
-              autoAlpha: index === 0 ? 1 : 0,
-              y: index === 0 ? 0 : travelDistance,
-              pointerEvents: index === 0 ? "auto" : "none",
+              autoAlpha: 0,
+              y: slideTravel,
+              pointerEvents: "none",
               force3D: true,
             });
           });
 
-          const timeline = gsap.timeline({
+          /*
+           * Phase 1:
+           *
+           * Reveal the complete background from bottom to top.
+           *
+           * This finishes before the text-card timeline starts.
+           */
+          const revealTimeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top bottom",
+              end: "top top",
+
+              scrub: mobile ? 0.55 : 0.8,
+              invalidateOnRefresh: true,
+            },
+          });
+
+          revealTimeline
+            .to(
+              sticky,
+              {
+                clipPath: "inset(0% 0% 0% 0%)",
+                duration: 1,
+                ease: "none",
+              },
+              0,
+            )
+            .to(
+              image,
+              {
+                scale: 1,
+                yPercent: 0,
+                duration: 1,
+                ease: "none",
+              },
+              0,
+            )
+            .to(
+              overlay,
+              {
+                opacity: 1,
+                duration: 1,
+                ease: "none",
+              },
+              0,
+            );
+
+          /*
+           * Phase 2:
+           *
+           * This timeline begins only after the background
+           * has fully reached the top of the viewport.
+           *
+           * One text composition is shown at a time.
+           */
+          const slidesTimeline = gsap.timeline({
             scrollTrigger: {
               trigger: section,
               start: "top top",
               end: "bottom bottom",
 
-              scrub: mobile ? 0.65 : 0.95,
+              scrub: mobile ? 0.7 : 1,
               invalidateOnRefresh: true,
 
-              /*
-               * Each label represents a stable,
-               * fully readable composition.
-               */
               snap: {
                 snapTo: "labelsDirectional",
 
                 duration: {
                   min: 0.35,
-                  max: mobile ? 0.6 : 0.82,
+                  max: mobile ? 0.65 : 0.9,
                 },
 
                 delay: mobile ? 0.16 : 0.12,
@@ -192,78 +206,93 @@ export default function Project() {
             },
           });
 
-          timeline.addLabel("project-slide-0", 0);
-
-          for (let index = 0; index < slides.length - 1; index += 1) {
-            const currentSlide = slides[index];
-            const nextSlide = slides[index + 1];
-
-            /*
-             * Hold the current composition briefly
-             * in its readable position.
-             */
-            timeline.to(
-              {},
-              {
-                duration: readingHold,
-              },
-            );
-
-            /*
-             * Current composition exits upward.
-             */
-            timeline.to(currentSlide, {
-              autoAlpha: 0,
-              y: -travelDistance,
-              pointerEvents: "none",
-              duration: exitDuration,
-              ease: "power2.inOut",
-            });
-
-            /*
-             * Very short empty interval prevents
-             * text overlap without feeling disconnected.
-             */
-            timeline.to(
-              {},
-              {
-                duration: emptyGap,
-              },
-            );
-
-            /*
-             * Next composition rises from below
-             * and settles in its designed position.
-             */
-            timeline.fromTo(
-              nextSlide,
+          /*
+           * First card enters only after the image
+           * has completed its full-screen reveal.
+           */
+          slidesTimeline
+            .fromTo(
+              slides[0],
               {
                 autoAlpha: 0,
-                y: travelDistance,
+                y: slideTravel,
                 pointerEvents: "none",
               },
               {
                 autoAlpha: 1,
                 y: 0,
                 pointerEvents: "auto",
-                duration: enterDuration,
+                duration: entranceDuration,
                 ease: "power3.out",
               },
-            );
+            )
+            .addLabel("project-slide-0");
 
-            timeline.addLabel(`project-slide-${index + 1}`);
+          /*
+           * Each card:
+           *
+           * 1. Remains readable.
+           * 2. Moves upward and fades out.
+           * 3. Leaves a small empty transition.
+           * 4. Allows the next card to rise from below.
+           */
+          for (let index = 0; index < slides.length - 1; index += 1) {
+            const currentSlide = slides[index];
+            const nextSlide = slides[index + 1];
+
+            slidesTimeline
+              .to(
+                {},
+                {
+                  duration: readingHold,
+                },
+              )
+              .to(currentSlide, {
+                autoAlpha: 0,
+                y: -slideTravel,
+                pointerEvents: "none",
+                duration: exitDuration,
+                ease: "power2.inOut",
+              })
+              .to(
+                {},
+                {
+                  duration: transitionGap,
+                },
+              )
+              .fromTo(
+                nextSlide,
+                {
+                  autoAlpha: 0,
+                  y: slideTravel,
+                  pointerEvents: "none",
+                },
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  pointerEvents: "auto",
+                  duration: entranceDuration,
+                  ease: "power3.out",
+                },
+              )
+              .addLabel(`project-slide-${index + 1}`);
           }
 
           /*
-           * Allow the final paragraph to remain
-           * readable before the scene releases.
+           * Keep the final paragraph visible before
+           * releasing the sticky section.
            */
-          timeline.to(
+          slidesTimeline.to(
             {},
             {
-              duration: mobile ? 0.25 : 0.32,
+              duration: mobile ? 0.45 : 0.62,
             },
           );
+
+          return () => {
+            revealTimeline.kill();
+            slidesTimeline.kill();
+          };
         },
       );
 
@@ -331,7 +360,11 @@ export default function Project() {
                       <h3 className={styles.title}>{slide.title}</h3>
                     </div>
 
-                    <a href={slide.href} className={styles.requestLink}>
+                    <a
+                      href={slide.href}
+                      className={styles.requestLink}
+                      data-contact-popup
+                    >
                       {slide.linkLabel}
                     </a>
                   </div>
