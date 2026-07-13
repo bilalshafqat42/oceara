@@ -19,8 +19,6 @@ import { gsap, useGSAP } from "@/lib/gsap";
 
 import styles from "./page.module.css";
 
-const SNAP_THRESHOLD = 0.45;
-
 export default function Home() {
   const sceneRef = useRef(null);
   const heroLayerRef = useRef(null);
@@ -36,18 +34,16 @@ export default function Home() {
         return;
       }
 
+      const leftPanel = aboutLayer.querySelector("[data-about-left]");
+      const rightPanel = aboutLayer.querySelector("[data-about-right]");
       const aboutContent = aboutLayer.querySelector("[data-about-content]");
+      const aboutImage = rightPanel?.querySelector("img");
 
-      const aboutMedia = aboutLayer.querySelector("[data-about-media]");
-
-      const aboutImage = aboutMedia?.querySelector("img");
-
-      if (!aboutContent || !aboutMedia || !aboutImage) {
+      if (!leftPanel || !rightPanel || !aboutContent || !aboutImage) {
         return;
       }
 
-      const aboutContentChildren = Array.from(aboutContent.children);
-
+      const contentChildren = Array.from(aboutContent.children);
       const matchMedia = gsap.matchMedia();
 
       matchMedia.add(
@@ -64,26 +60,22 @@ export default function Home() {
           } = context.conditions ?? {};
 
           /*
-           * Accessibility fallback:
-           * remove scroll-driven transitions when the
-           * visitor prefers reduced motion.
+           * Accessible fallback:
+           * display the Hero and About content without
+           * animated clipping when reduced motion is enabled.
            */
           if (reduceMotion) {
-            gsap.set(aboutLayer, {
+            gsap.set([leftPanel, rightPanel], {
               clipPath: "none",
             });
 
-            gsap.set(heroLayer, {
-              clearProps: "transform",
-            });
-
-            gsap.set(aboutContentChildren, {
-              opacity: 1,
+            gsap.set(contentChildren, {
+              autoAlpha: 1,
+              x: 0,
               y: 0,
-              clearProps: "transform",
             });
 
-            gsap.set(aboutImage, {
+            gsap.set([heroLayer, aboutImage], {
               clearProps: "transform",
             });
 
@@ -91,13 +83,24 @@ export default function Home() {
           }
 
           /*
-           * Initial Hero/About scene state.
+           * Initial state:
            *
-           * About already covers the same viewport as Hero,
-           * but clip-path hides it below the screen.
+           * 1. Hero is fully visible.
+           * 2. Beige panel is hidden horizontally.
+           * 3. Green panel is hidden vertically.
            */
-          gsap.set(aboutLayer, {
+          gsap.set(leftPanel, {
+            clipPath: "inset(0% 100% 0% 0%)",
+          });
+
+          gsap.set(rightPanel, {
             clipPath: "inset(100% 0% 0% 0%)",
+          });
+
+          gsap.set(contentChildren, {
+            autoAlpha: 0,
+            x: mobile ? -24 : -42,
+            y: 0,
           });
 
           gsap.set(heroLayer, {
@@ -105,21 +108,24 @@ export default function Home() {
             transformOrigin: "center center",
           });
 
-          gsap.set(aboutContentChildren, {
-            autoAlpha: 0,
-            y: mobile ? 24 : 36,
-          });
-
-          /*
-           * Internal image offset creates subtle depth while
-           * the About section itself remains stationary.
-           */
           gsap.set(aboutImage, {
-            scale: 1.08,
-            yPercent: 8,
+            scale: mobile ? 1.05 : 1.08,
+            yPercent: mobile ? 5 : 8,
             transformOrigin: "center center",
           });
 
+          /*
+           * Three-stage scroll sequence:
+           *
+           * 0%:
+           * Full Hero.
+           *
+           * 50%:
+           * Beige About panel covers the left half.
+           *
+           * 100%:
+           * Green image panel completes the About section.
+           */
           const timeline = gsap.timeline({
             defaults: {
               ease: "none",
@@ -130,24 +136,33 @@ export default function Home() {
               start: "top top",
               end: "bottom bottom",
 
-              scrub: mobile ? 0.5 : 0.75,
-
+              scrub: mobile ? 0.55 : 0.8,
               invalidateOnRefresh: true,
-              fastScrollEnd: true,
 
               snap: {
                 /*
-                 * Below 45% returns to Hero.
-                 * At 45% or above completes About.
+                 * 0%–24% returns to the Hero.
+                 * 25%–74% settles on the beige-half state.
+                 * 75%–100% completes the About section.
                  */
-                snapTo: (progress) => (progress < SNAP_THRESHOLD ? 0 : 1),
+                snapTo: (progress) => {
+                  if (progress < 0.25) {
+                    return 0;
+                  }
+
+                  if (progress < 0.75) {
+                    return 0.5;
+                  }
+
+                  return 1;
+                },
 
                 duration: {
                   min: 0.3,
-                  max: mobile ? 0.55 : 0.75,
+                  max: mobile ? 0.6 : 0.8,
                 },
 
-                delay: mobile ? 0.16 : 0.12,
+                delay: mobile ? 0.15 : 0.1,
                 ease: "power2.inOut",
                 inertia: false,
               },
@@ -156,64 +171,83 @@ export default function Home() {
 
           timeline
             /*
-             * About is revealed vertically from bottom to top.
-             * No x movement, margin or rounded clipping.
+             * Stage 1 → Stage 2:
+             * Beige panel opens from left to right.
              */
             .to(
-              aboutLayer,
+              leftPanel,
               {
                 clipPath: "inset(0% 0% 0% 0%)",
-                duration: 1,
+                duration: 0.5,
               },
               0,
             )
 
             /*
-             * Hero stays fixed behind About and receives
-             * only a very subtle depth scale.
+             * About text appears as the beige panel
+             * approaches its fully open position.
+             */
+            .to(
+              contentChildren,
+              {
+                autoAlpha: 1,
+                x: 0,
+                duration: 0.18,
+                stagger: 0.05,
+                ease: "power2.out",
+              },
+              0.27,
+            )
+
+            /*
+             * Subtle Hero depth while the beige panel opens.
              */
             .to(
               heroLayer,
               {
-                scale: desktop ? 1.018 : 1.008,
-                duration: 1,
+                scale: desktop ? 1.012 : 1.006,
+                duration: 0.5,
               },
               0,
             )
 
             /*
-             * The About image settles into its final position
-             * while the section is revealed.
+             * Stage 2 → Stage 3:
+             * Green panel opens from bottom to top.
+             */
+            .to(
+              rightPanel,
+              {
+                clipPath: "inset(0% 0% 0% 0%)",
+                duration: 0.5,
+              },
+              0.5,
+            )
+
+            /*
+             * The image moves subtly inside its fixed panel.
              */
             .to(
               aboutImage,
               {
                 scale: 1,
                 yPercent: 0,
-                duration: 1,
+                duration: 0.5,
               },
-              0,
+              0.5,
             )
 
             /*
-             * About text appears after most of the panel
-             * has already entered the viewport.
+             * Final subtle Hero depth adjustment.
              */
             .to(
-              aboutContentChildren,
+              heroLayer,
               {
-                autoAlpha: 1,
-                y: 0,
-                stagger: 0.08,
-                duration: 0.3,
-                ease: "power2.out",
+                scale: desktop ? 1.018 : 1.008,
+                duration: 0.5,
               },
-              0.58,
+              0.5,
             );
-
-          return () => {
-            timeline.kill();
-          };
         },
       );
 
@@ -247,12 +281,19 @@ export default function Home() {
         </section>
 
         <Amenities />
+
         <Project />
+
         <Location />
+
         <SeaSection />
+
         <Gallery />
+
         <Payment />
+
         <Contact />
+
         <Footer />
       </main>
 

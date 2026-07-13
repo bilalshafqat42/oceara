@@ -2,11 +2,16 @@
   position: relative;
 
   /*
-   * One viewport remains visible while the second
-   * viewport provides the animation scroll distance.
+   * The sticky screen remains one viewport tall.
+   *
+   * The complete scene uses three viewport heights:
+   *
+   * 1. Hero state
+   * 2. Beige left-panel state
+   * 3. Complete About state
    */
   width: 100%;
-  height: 200svh;
+  height: 300svh;
 
   background: #073d61;
 }
@@ -16,6 +21,7 @@
   top: 0;
 
   width: 100%;
+
   height: 100vh;
   height: 100svh;
 
@@ -25,9 +31,6 @@
   background: #073d61;
 }
 
-/*
- * Hero remains underneath the About reveal.
- */
 .heroLayer {
   position: absolute;
   inset: 0;
@@ -41,10 +44,6 @@
   will-change: transform;
 }
 
-/*
- * About occupies the exact same viewport.
- * GSAP reveals it vertically using clip-path.
- */
 .aboutLayer {
   position: absolute;
   inset: 0;
@@ -56,25 +55,56 @@
   margin: 0;
   padding: 0;
 
-  clip-path: inset(100% 0% 0% 0%);
-
-  will-change: clip-path;
+  /*
+   * The internal About panels are animated
+   * independently through their clip paths.
+   *
+   * Pointer events remain disabled so the invisible
+   * About container does not block the Hero buttons.
+   */
+  pointer-events: none;
 }
 
 /*
- * Slightly shorter interaction distance on mobile,
- * so the reveal does not feel slow or heavy.
+ * These classes can remain available for any
+ * temporary or future standard content sections.
  */
+
+.standardSection {
+  position: relative;
+  z-index: 3;
+
+  min-height: 100svh;
+
+  padding: clamp(110px, 10vw, 180px) clamp(24px, 6vw, 100px);
+
+  background: #f2ede5;
+  color: #18191b;
+}
+
+.standardSection h2 {
+  margin: 0;
+
+  font-family: var(--font-heading);
+  font-size: clamp(54px, 7vw, 120px);
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* Mobile */
+
 @media (max-width: 767px) {
   .heroAboutScene {
-    height: 180svh;
+    /*
+     * A slightly shorter scroll distance on mobile
+     * keeps the three stages responsive and comfortable.
+     */
+    height: 260svh;
   }
 }
 
-/*
- * Without animation, Hero and About return to normal
- * document flow and remain fully readable.
- */
+/* Reduced motion */
+
 @media (prefers-reduced-motion: reduce) {
   .heroAboutScene {
     height: auto;
@@ -101,6 +131,6 @@
   }
 
   .aboutLayer {
-    clip-path: none !important;
+    pointer-events: auto;
   }
 }
