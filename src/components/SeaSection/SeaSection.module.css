@@ -4,8 +4,8 @@
   width: 100%;
 
   /*
-   * Extra scroll distance gives the image enough
-   * room to reveal from bottom to top.
+   * One viewport displays the fixed composition.
+   * The second viewport provides reveal distance.
    */
   height: 200vh;
   height: 200svh;
@@ -27,30 +27,65 @@
   background: #f2ede5;
 }
 
-/*
- * The whole image composition moves vertically.
- * It begins at yPercent: 100 through GSAP.
- */
-.reveal {
+/* Two equal columns */
+
+.columns {
   position: absolute;
   inset: 0;
+  z-index: 1;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+}
+
+.panel {
+  position: relative;
 
   width: 100%;
   height: 100%;
 
   overflow: hidden;
 
-  background: #063d5a;
+  background: #f2ede5;
 
-  will-change: transform;
+  will-change: clip-path;
 }
 
-.imageLayer {
-  position: absolute;
-  inset: -6% 0;
+/*
+ * The left side is initially clipped from the bottom.
+ * GSAP reveals it from top to bottom.
+ */
+.leftPanel {
+  clip-path: inset(0% 0% 100% 0%);
+}
 
-  width: 100%;
-  height: 112%;
+/*
+ * The right side is initially clipped from the top.
+ * GSAP reveals it from bottom to top.
+ */
+.rightPanel {
+  clip-path: inset(100% 0% 0% 0%);
+}
+
+/*
+ * Each column contains a full-viewport-width copy
+ * of the same image.
+ *
+ * Since every panel is 50vw wide, the image canvas
+ * must be 200% wide to equal the full viewport width.
+ */
+.imageCanvas {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+
+  width: 200%;
+  height: 100%;
 
   overflow: hidden;
 
@@ -58,34 +93,92 @@
   will-change: transform;
 }
 
+/*
+ * Show the left half of the full image.
+ */
+.leftImageCanvas {
+  left: 0;
+}
+
+/*
+ * Move the complete image canvas left by one panel width
+ * so this panel displays the right half of the same image.
+ */
+.rightImageCanvas {
+  right: 0;
+}
+
 .image {
   object-fit: cover;
   object-position: center center;
 }
 
+/* Subtle full-section treatment */
+
 .overlay {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
 
-  background: linear-gradient(0deg, rgba(1, 26, 42, 0.1) 0%, transparent 42%);
+  background:
+    linear-gradient(
+      0deg,
+      rgba(1, 26, 42, 0.12) 0%,
+      transparent 42%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(2, 31, 48, 0.04) 0%,
+      transparent 24%,
+      transparent 76%,
+      rgba(2, 31, 48, 0.04) 100%
+    );
+
+  pointer-events: none;
+
+  will-change: opacity;
+}
+
+/*
+ * Optional subtle centre division.
+ * It makes the opposite reveals slightly clearer
+ * without creating a visible gap.
+ */
+.columns::after {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 3;
+
+  /* width: 1px; */
+
+  background: rgba(255, 255, 255, 0.08);
+
+  transform: translateX(-50%);
 
   pointer-events: none;
 }
+
+/* Tablet and mobile */
 
 @media (max-width: 767px) {
   .seaSection {
     height: 180svh;
   }
 
-  .imageLayer {
-    inset: -4% 0;
-
-    height: 108%;
-  }
-
+  /*
+   * Keep the two-column animation on mobile,
+   * but slightly adjust the image focus.
+   */
   .image {
     object-position: 54% center;
+  }
+
+  .columns::after {
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -94,6 +187,8 @@
     object-position: 57% center;
   }
 }
+
+/* Reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
   .seaSection {
@@ -104,8 +199,14 @@
     position: relative;
   }
 
-  .reveal,
-  .imageLayer {
+  .leftPanel,
+  .rightPanel {
+    clip-path: none !important;
+  }
+
+  .imageCanvas,
+  .overlay {
     transform: none !important;
+    opacity: 1 !important;
   }
 }
