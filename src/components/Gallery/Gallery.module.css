@@ -5,10 +5,15 @@
   flex-direction: column;
 
   width: 100%;
-  min-height: 100vh;
-  min-height: 100svh;
 
-  padding: 122px 0 76px;
+  /*
+   * The section is allowed to be taller than one viewport
+   * because the exact 670 × 768 centre image must fit with
+   * the heading and bottom text.
+   */
+  min-height: 1120px;
+
+  padding: 140px 0 82px;
 
   overflow: hidden;
 
@@ -16,11 +21,15 @@
   color: #18191b;
 }
 
-/* Heading */
+/* =========================================================
+   Section heading
+   ========================================================= */
 
 .headingGroup {
   position: relative;
-  z-index: 5;
+  z-index: 10;
+
+  flex: 0 0 auto;
 
   width: min(calc(100% - 48px), 760px);
   margin: 0 auto 72px;
@@ -51,77 +60,164 @@
   color: #18191b;
 }
 
-/*
- * Full-width five-column structure:
- *
- * 210px  = left image touching the browser edge
- * 1fr    = flexible space
- * 670px  = exact centre image width
- * 1fr    = flexible space
- * 210px  = right image touching the browser edge
- */
+/* =========================================================
+   Carousel stage
+   ========================================================= */
+
 .carousel {
   position: relative;
 
-  display: grid;
-  grid-template-columns:
-    210px
-    minmax(24px, 1fr)
-    670px
-    minmax(24px, 1fr)
-    210px;
-  align-items: center;
+  flex: 0 0 auto;
 
-  width: 100%;
-  max-width: none;
+  width: 100vw;
+
+  /*
+   * 768px image
+   * + 28px content margin
+   * + approximately 112px content height
+   */
+  height: 910px;
+
   margin: 0;
 
   overflow: visible;
 }
 
-/* Centre gallery card */
-
-.centreCard {
-  position: relative;
-  z-index: 3;
-
-  grid-column: 3;
+/*
+ * Every gallery card stays mounted.
+ *
+ * GSAP changes:
+ * - horizontal location;
+ * - vertical location;
+ * - card width;
+ * - image height;
+ * - opacity.
+ */
+.card {
+  position: absolute;
+  top: 0;
+  left: 50%;
 
   width: 670px;
   margin: 0;
 
   text-align: center;
 
-  transform-origin: center center;
-  will-change: transform, opacity;
+  transform: translateX(-50%);
+  transform-origin: center top;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  will-change: width, transform, opacity;
 }
 
-.centreImageWrapper {
+.card[data-position="centre"] {
+  z-index: 4;
+}
+
+.card[data-position="left"],
+.card[data-position="right"] {
+  z-index: 2;
+}
+
+.card[data-position="hidden"] {
+  z-index: 1;
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   Image button
+   ========================================================= */
+
+.cardButton {
+  display: block;
+
+  width: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+  color: inherit;
+
+  cursor: pointer;
+}
+
+.cardButton:disabled {
+  cursor: default;
+}
+
+.cardButton:focus-visible {
+  outline: 1px solid #18191b;
+  outline-offset: 7px;
+}
+
+/* =========================================================
+   Images
+   ========================================================= */
+
+.imageWrapper {
   position: relative;
 
-  width: 670px;
+  display: block;
+
+  width: 100%;
   height: 768px;
+
+  margin: 0;
 
   overflow: hidden;
 
   background: #d8d0c6;
 
-  transform-origin: center center;
-  will-change: transform, opacity;
+  transform-origin: center bottom;
+
+  will-change: height;
 }
 
 .image {
   object-fit: cover;
   object-position: center center;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  transform: translateZ(0);
+
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Centre text */
+.card[data-position="left"]:hover .image,
+.card[data-position="right"]:hover .image {
+  transform: translateZ(0) scale(1.025);
+}
+
+/* =========================================================
+   Centre-card text
+   ========================================================= */
 
 .cardContent {
   width: min(100%, 620px);
-  min-height: 100px;
+  min-height: 110px;
 
   margin: 28px auto 0;
+  padding: 0 12px;
+
+  opacity: 0;
+  visibility: hidden;
+
+  pointer-events: none;
+
+  will-change: transform, opacity;
+}
+
+.card[data-position="centre"] .cardContent {
+  visibility: visible;
 }
 
 .cardTitle {
@@ -150,97 +246,20 @@
   color: #18191b;
 }
 
-/* Side cards */
-
-.sideCard {
-  position: relative;
-  z-index: 2;
-
-  display: block;
-
-  width: 210px;
-  height: 446px;
-
-  padding: 0;
-  border: 0;
-
-  background: transparent;
-  color: #18191b;
-
-  opacity: 0.62;
-
-  cursor: pointer;
-
-  transform-origin: center center;
-  will-change: transform, opacity;
-
-  transition:
-    opacity 500ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.leftCard {
-  grid-column: 1;
-  justify-self: start;
-}
-
-.rightCard {
-  grid-column: 5;
-  justify-self: end;
-}
-
-.sideCard:hover,
-.sideCard:focus-visible {
-  opacity: 1;
-
-  transform: scale(1.025);
-}
-
-.sideCard:focus-visible {
-  outline: 1px solid #18191b;
-  outline-offset: 8px;
-}
-
-.sideCard:disabled {
-  cursor: default;
-}
-
-.sideImageWrapper {
-  position: relative;
-
-  display: block;
-
-  width: 210px;
-  height: 446px;
-
-  overflow: hidden;
-
-  background: #d8d0c6;
-}
-
-/*
- * Temporary moving visual created by JavaScript.
- */
-.movingImage {
-  background: #d8d0c6;
-
-  box-shadow: 0 18px 54px rgba(24, 25, 27, 0.08);
-
-  will-change: top, left, width, height, transform;
-}
-
-/* Pagination */
+/* =========================================================
+   Pagination
+   ========================================================= */
 
 .pagination {
   position: relative;
-  z-index: 5;
+  z-index: 10;
 
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
 
-  margin-top: 38px;
+  margin-top: 28px;
 }
 
 .paginationButton {
@@ -272,83 +291,65 @@
   outline-offset: 5px;
 }
 
-/* Medium desktop */
-
-@media (max-width: 1350px) {
-  .carousel {
-    grid-template-columns:
-      170px
-      minmax(20px, 1fr)
-      min(52vw, 670px)
-      minmax(20px, 1fr)
-      170px;
-  }
-
-  .centreCard,
-  .centreImageWrapper {
-    width: min(52vw, 670px);
-  }
-
-  .centreImageWrapper {
-    height: min(60vw, 768px);
-  }
-
-  .sideCard,
-  .sideImageWrapper {
-    width: 170px;
-    height: 390px;
-  }
+.paginationButton:disabled {
+  cursor: default;
 }
 
-/* Tablet */
+/* =========================================================
+   Medium desktop
+   ========================================================= */
 
-@media (max-width: 1024px) {
+@media (max-width: 1350px) {
   .gallery {
-    padding-top: 108px;
+    min-height: 1040px;
+
+    padding-top: 132px;
   }
 
   .headingGroup {
-    margin-bottom: 52px;
+    margin-bottom: 58px;
   }
 
   .carousel {
-    grid-template-columns:
-      14vw
-      minmax(12px, 1fr)
-      58vw
-      minmax(12px, 1fr)
-      14vw;
-  }
-
-  .centreCard,
-  .centreImageWrapper {
-    width: 58vw;
-  }
-
-  .centreImageWrapper {
-    height: min(70vw, 680px);
-  }
-
-  .sideCard,
-  .sideImageWrapper {
-    width: 14vw;
-    height: min(40vw, 350px);
+    height: 840px;
   }
 }
 
-/* Mobile */
+/* =========================================================
+   Tablet
+   ========================================================= */
+
+@media (max-width: 1024px) {
+  .gallery {
+    min-height: auto;
+
+    padding: 124px 0 72px;
+  }
+
+  .headingGroup {
+    margin-bottom: 48px;
+  }
+
+  .carousel {
+    height: min(88vw, 800px);
+  }
+}
+
+/* =========================================================
+   Mobile
+   ========================================================= */
 
 @media (max-width: 767px) {
   .gallery {
     min-height: auto;
 
-    padding: 92px 0 68px;
+    padding: 100px 0 64px;
   }
 
   .headingGroup {
     width: calc(100% - 40px);
 
-    margin-bottom: 42px;
+    margin-bottom: 40px;
   }
 
   .eyebrow {
@@ -360,31 +361,11 @@
   }
 
   .carousel {
-    grid-template-columns:
-      12vw
-      0
-      76vw
-      0
-      12vw;
-  }
-
-  .centreCard,
-  .centreImageWrapper {
-    width: 76vw;
-  }
-
-  .centreImageWrapper {
-    height: min(100vw, 550px);
-  }
-
-  .sideCard,
-  .sideImageWrapper {
-    width: 12vw;
-    height: min(46vw, 260px);
+    height: min(132vw, 670px);
   }
 
   .cardContent {
-    min-height: 108px;
+    min-height: 104px;
 
     margin-top: 20px;
     padding-inline: 8px;
@@ -405,15 +386,17 @@
   }
 
   .pagination {
-    margin-top: 24px;
+    margin-top: 22px;
   }
 }
 
-/* Small mobile */
+/* =========================================================
+   Small mobile
+   ========================================================= */
 
 @media (max-width: 480px) {
   .gallery {
-    padding-top: 84px;
+    padding-top: 92px;
   }
 
   .headingGroup {
@@ -429,44 +412,20 @@
   }
 
   .carousel {
-    grid-template-columns:
-      10vw
-      0
-      80vw
-      0
-      10vw;
-  }
-
-  .centreCard,
-  .centreImageWrapper {
-    width: 80vw;
-  }
-
-  .centreImageWrapper {
-    height: min(108vw, 520px);
-  }
-
-  .sideCard,
-  .sideImageWrapper {
-    width: 10vw;
-    height: min(42vw, 230px);
+    height: min(145vw, 640px);
   }
 }
 
-/* Reduced motion */
+/* =========================================================
+   Reduced motion
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .headingGroup > *,
-  .sideCard,
-  .centreCard,
-  .centreImageWrapper,
-  .cardContent > * {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-
-  .sideCard,
-  .paginationButton {
-    transition: none;
+  .card,
+  .imageWrapper,
+  .cardContent,
+  .image {
+    transition: none !important;
   }
 }
