@@ -10,7 +10,9 @@
   height: 100vh;
   height: 100dvh;
 
-  padding: 30px;
+  padding: 24px;
+
+  overflow: hidden;
 
   background: rgba(10, 17, 20, 0.68);
 
@@ -22,15 +24,20 @@
   pointer-events: none;
 }
 
+/* =========================================================
+   Popup dialog
+   ========================================================= */
+
 .dialog {
   position: relative;
 
   width: min(670px, 100%);
-  min-height: 675px;
+  max-height: calc(100dvh - 48px);
 
-  padding: 48px 56px 38px;
+  padding: 48px 56px 40px;
 
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 
   background: linear-gradient(180deg, #0d78a6 0%, #073d61 100%);
 
@@ -38,22 +45,40 @@
 
   box-shadow: 0 34px 90px rgba(0, 0, 0, 0.28);
 
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.36) transparent;
+
   will-change: transform, opacity;
 }
 
-/* Close button */
+.dialog::-webkit-scrollbar {
+  width: 5px;
+}
+
+.dialog::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dialog::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.34);
+  border-radius: 20px;
+}
+
+/* =========================================================
+   Close button
+   ========================================================= */
 
 .closeButton {
   position: absolute;
-  top: 34px;
-  right: 42px;
-  z-index: 2;
+  top: 28px;
+  right: 34px;
+  z-index: 5;
 
   display: grid;
   place-items: center;
 
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
 
   padding: 0;
   border: 0;
@@ -64,11 +89,16 @@
   cursor: pointer;
 }
 
+.closeButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
 .closeIcon {
   display: block;
 
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
 
   background-color: currentColor;
 
@@ -87,8 +117,8 @@
   transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.closeButton:hover .closeIcon,
-.closeButton:focus-visible .closeIcon {
+.closeButton:hover:not(:disabled) .closeIcon,
+.closeButton:focus-visible:not(:disabled) .closeIcon {
   transform: rotate(90deg);
 }
 
@@ -97,18 +127,23 @@
   outline-offset: 4px;
 }
 
-/* Form */
+/* =========================================================
+   Form
+   ========================================================= */
 
 .form {
+  position: relative;
+
   width: 100%;
 }
 
 .headingGroup {
-  margin: 0 0 52px;
+  margin: 0 0 44px;
+  padding-right: 54px;
 }
 
 .eyebrow {
-  margin: 0 0 6px;
+  margin: 0 0 5px;
 
   font-family: var(--font-curve);
   font-size: 32px;
@@ -130,37 +165,72 @@
   color: #ffffff;
 }
 
-/* Fields */
+/* =========================================================
+   Accessible hidden labels
+   ========================================================= */
+
+.visuallyHidden {
+  position: absolute !important;
+
+  width: 1px !important;
+  height: 1px !important;
+
+  padding: 0 !important;
+  margin: -1px !important;
+
+  overflow: hidden !important;
+
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+
+  white-space: nowrap !important;
+
+  border: 0 !important;
+}
+
+/* =========================================================
+   Form rows
+   ========================================================= */
+
+.nameRow {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  gap: 26px;
+
+  width: 100%;
+  margin: 0 0 30px;
+}
+
+.fieldRow {
+  width: 100%;
+  margin: 0 0 30px;
+}
 
 .field {
+  position: relative;
+
   display: flex;
   flex-direction: column;
 
-  margin-bottom: 46px;
+  min-width: 0;
+  margin: 0;
 }
 
-.label {
-  margin: 0 0 10px;
-
-  font-family: var(--font-heading);
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.2;
-
-  color: rgba(255, 255, 255, 0.92);
-
-  transition:
-    color 300ms ease,
-    transform 300ms ease;
-}
+/* =========================================================
+   Inputs
+   ========================================================= */
 
 .input,
-.textarea {
+.select {
   display: block;
 
   width: 100%;
+  height: 40px;
 
-  padding: 0 0 10px;
+  padding: 0 0 11px;
 
   border: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.52);
@@ -173,9 +243,7 @@
   font-family: var(--font-heading);
   font-size: 16px;
   font-weight: 400;
-  line-height: 1.35;
-
-  appearance: none;
+  line-height: 1.3;
 
   transition:
     border-color 350ms ease,
@@ -183,35 +251,192 @@
 }
 
 .input {
-  height: 26px;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.textarea {
-  height: 32px;
-  min-height: 32px;
-
-  overflow: hidden;
-  resize: none;
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.94);
+  opacity: 1;
 }
 
 .input:focus,
-.textarea:focus {
+.select:focus {
   border-bottom-color: #ffffff;
 
   box-shadow: 0 1px 0 #ffffff;
 }
 
-.field:focus-within .label {
+/* =========================================================
+   User-type select
+   ========================================================= */
+
+.selectWrapper {
+  position: relative;
+
+  width: 100%;
+}
+
+.select {
+  position: relative;
+  z-index: 1;
+
+  padding-right: 34px;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  cursor: pointer;
+}
+
+.selectWrapper::after {
+  content: "";
+
+  position: absolute;
+  top: 10px;
+  right: 3px;
+  z-index: 2;
+
+  width: 8px;
+  height: 8px;
+
+  border-right: 1px solid rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+
+  transform: rotate(45deg);
+
+  pointer-events: none;
+}
+
+.select option {
+  background: #073d61;
   color: #ffffff;
 
-  transform: translateY(-2px);
+  font-family: Arial, sans-serif;
 }
 
-.messageField {
-  margin-bottom: 38px;
+/* =========================================================
+   Worldwide phone field
+   ========================================================= */
+
+.phoneInput {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  height: 40px;
+
+  padding: 0 0 11px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.52);
+
+  transition:
+    border-color 350ms ease,
+    box-shadow 350ms ease;
 }
 
-/* Submit */
+.phoneInput:focus-within {
+  border-bottom-color: #ffffff;
+
+  box-shadow: 0 1px 0 #ffffff;
+}
+
+/* Country selector */
+
+.phoneInput :global(.PhoneInputCountry) {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  margin-right: 14px;
+}
+
+.phoneInput :global(.PhoneInputCountrySelect) {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  border: 0;
+  outline: 0;
+
+  cursor: pointer;
+
+  opacity: 0;
+}
+
+.phoneInput :global(.PhoneInputCountryIcon) {
+  width: 25px;
+  height: 18px;
+
+  overflow: hidden;
+
+  border-radius: 1px;
+
+  background: transparent;
+
+  box-shadow: none;
+}
+
+.phoneInput :global(.PhoneInputCountryIconImg) {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.phoneInput :global(.PhoneInputCountrySelectArrow) {
+  display: block;
+
+  width: 7px;
+  height: 7px;
+
+  margin-left: 10px;
+
+  border-right: 1px solid rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+
+  opacity: 1;
+
+  transform: rotate(45deg);
+}
+
+/* Phone number input */
+
+.phoneInput :global(.PhoneInputInput) {
+  flex: 1;
+
+  min-width: 0;
+  height: 29px;
+
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+
+  background: transparent;
+  color: #ffffff;
+
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.phoneInput :global(.PhoneInputInput::placeholder) {
+  color: rgba(255, 255, 255, 0.94);
+  opacity: 1;
+}
+
+/* =========================================================
+   Submit button
+   ========================================================= */
 
 .submitButton {
   position: relative;
@@ -221,8 +446,9 @@
   justify-content: center;
 
   min-width: 206px;
-  height: 58px;
+  height: 56px;
 
+  margin-top: 2px;
   padding: 0 30px;
 
   border: 1px solid rgba(255, 255, 255, 0.9);
@@ -240,7 +466,13 @@
 
   transition:
     color 450ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 450ms cubic-bezier(0.16, 1, 0.3, 1);
+    border-color 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 300ms ease;
+}
+
+.submitButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .submitButton::before {
@@ -261,13 +493,13 @@
   z-index: 1;
 }
 
-.submitButton:hover,
-.submitButton:focus-visible {
+.submitButton:hover:not(:disabled),
+.submitButton:focus-visible:not(:disabled) {
   color: #073d61;
 }
 
-.submitButton:hover::before,
-.submitButton:focus-visible::before {
+.submitButton:hover:not(:disabled)::before,
+.submitButton:focus-visible:not(:disabled)::before {
   transform: translateY(0);
 }
 
@@ -275,6 +507,10 @@
   outline: 1px solid #ffffff;
   outline-offset: 5px;
 }
+
+/* =========================================================
+   Status message
+   ========================================================= */
 
 .status {
   min-height: 20px;
@@ -284,10 +520,20 @@
   font-size: 13px;
   line-height: 1.4;
 
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.92);
 }
 
-/* Tablet */
+.status[data-status="error"] {
+  color: #ffd8d8;
+}
+
+.status[data-status="success"] {
+  color: #ffffff;
+}
+
+/* =========================================================
+   Tablet
+   ========================================================= */
 
 @media (max-width: 767px) {
   .overlay {
@@ -296,17 +542,14 @@
 
   .dialog {
     width: 100%;
-    min-height: auto;
     max-height: calc(100dvh - 36px);
 
     padding: 42px 32px 30px;
-
-    overflow-y: auto;
   }
 
   .closeButton {
-    top: 24px;
-    right: 24px;
+    top: 20px;
+    right: 20px;
 
     width: 42px;
     height: 42px;
@@ -318,19 +561,30 @@
   }
 
   .headingGroup {
-    margin-bottom: 44px;
+    margin-bottom: 38px;
   }
 
-  .field {
-    margin-bottom: 36px;
+  .nameRow,
+  .fieldRow {
+    margin-bottom: 26px;
   }
 
-  .messageField {
-    margin-bottom: 32px;
+  .nameRow {
+    gap: 20px;
   }
 }
 
-/* Mobile */
+/* =========================================================
+   Mobile
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .nameRow {
+    grid-template-columns: 1fr;
+
+    gap: 24px;
+  }
+}
 
 @media (max-width: 480px) {
   .overlay {
@@ -348,8 +602,8 @@
   }
 
   .closeButton {
-    top: 20px;
-    right: 18px;
+    top: 16px;
+    right: 14px;
   }
 
   .eyebrow {
@@ -361,49 +615,62 @@
   }
 
   .headingGroup {
-    margin-bottom: 42px;
+    margin-bottom: 36px;
   }
 
-  .field {
-    margin-bottom: 34px;
+  .nameRow {
+    gap: 22px;
   }
 
-  .label,
+  .nameRow,
+  .fieldRow {
+    margin-bottom: 24px;
+  }
+
   .input,
-  .textarea {
+  .select,
+  .phoneInput :global(.PhoneInputInput) {
     font-size: 15px;
   }
 
   .submitButton {
     width: 100%;
-    height: 56px;
+    height: 54px;
 
     font-size: 15px;
   }
 }
 
-/* Autofill */
+/* =========================================================
+   Autofill
+   ========================================================= */
 
 .input:-webkit-autofill,
 .input:-webkit-autofill:hover,
 .input:-webkit-autofill:focus,
-.textarea:-webkit-autofill,
-.textarea:-webkit-autofill:hover,
-.textarea:-webkit-autofill:focus {
+.phoneInput :global(.PhoneInputInput:-webkit-autofill),
+.phoneInput :global(.PhoneInputInput:-webkit-autofill:hover),
+.phoneInput :global(.PhoneInputInput:-webkit-autofill:focus) {
   -webkit-text-fill-color: #ffffff;
+
+  caret-color: #ffffff;
 
   box-shadow: 0 0 0 1000px transparent inset;
 
   transition: background-color 9999s ease-out;
 }
 
-/* Reduced motion */
+/* =========================================================
+   Reduced motion
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .overlay,
   .dialog,
   .form > * {
     opacity: 1 !important;
+    visibility: visible !important;
+
     transform: none !important;
   }
 

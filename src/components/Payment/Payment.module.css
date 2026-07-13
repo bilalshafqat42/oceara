@@ -5,6 +5,8 @@
   min-height: 100vh;
   min-height: 100svh;
 
+  overflow: hidden;
+
   background: #f2ede5;
   color: #18191b;
 }
@@ -22,14 +24,15 @@
   overflow: hidden;
 
   background: #f2ede5;
-
-  will-change: clip-path;
 }
 
-/* Left content panel */
+/* =========================================================
+   Left beige content panel
+   ========================================================= */
 
 .contentPanel {
   position: relative;
+  z-index: 2;
 
   display: flex;
   align-items: center;
@@ -49,7 +52,7 @@
 }
 
 .headingGroup {
-  margin-bottom: clamp(90px, 12vh, 170px);
+  margin: 0 0 clamp(90px, 12vh, 170px);
 }
 
 .eyebrow {
@@ -75,7 +78,9 @@
   color: #18191b;
 }
 
-/* Payment plan */
+/* =========================================================
+   Payment plan
+   ========================================================= */
 
 .plan {
   width: min(100%, 430px);
@@ -133,10 +138,13 @@
   text-align: right;
 }
 
-/* Right image panel */
+/* =========================================================
+   Right image panel
+   ========================================================= */
 
 .imagePanel {
   position: relative;
+  z-index: 3;
 
   min-width: 0;
   min-height: 100vh;
@@ -145,36 +153,58 @@
   overflow: hidden;
 
   background: #857657;
+
+  /*
+   * Initial state is also set through GSAP.
+   * Keeping it here prevents a flash before JS loads.
+   *
+   * Hidden from the left:
+   * the reveal opens from right to left.
+   */
+  clip-path: inset(0% 0% 0% 100%);
+
+  will-change: clip-path;
 }
 
 .imageLayer {
   position: absolute;
-  inset: -6% 0;
+  inset: -5%;
 
-  width: 100%;
-  height: 112%;
+  width: 110%;
+  height: 110%;
 
   overflow: hidden;
 
   transform-origin: center center;
+
   will-change: transform;
 }
 
 .image {
   object-fit: cover;
   object-position: center center;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  transform: translateZ(0);
 }
 
 .imageOverlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
 
-  background: linear-gradient(0deg, rgba(31, 24, 16, 0.12) 0%, transparent 44%);
+  background:
+    linear-gradient(0deg, rgba(31, 24, 16, 0.12) 0%, transparent 44%),
+    linear-gradient(90deg, rgba(17, 25, 25, 0.06) 0%, transparent 35%);
 
   pointer-events: none;
 }
 
-/* Tablet */
+/* =========================================================
+   Tablet
+   ========================================================= */
 
 @media (max-width: 1100px) {
   .contentPanel {
@@ -194,7 +224,9 @@
   }
 }
 
-/* Mobile */
+/* =========================================================
+   Mobile
+   ========================================================= */
 
 @media (max-width: 767px) {
   .payment {
@@ -203,7 +235,9 @@
 
   .viewport {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(480px, 62svh);
+    grid-template-rows:
+      auto
+      minmax(480px, 62svh);
 
     min-height: auto;
   }
@@ -242,6 +276,7 @@
 
   .planLabels {
     gap: 18px;
+
     margin-top: 16px;
   }
 
@@ -249,22 +284,25 @@
     font-size: 14px;
   }
 
+  /*
+   * On mobile, the image still reveals
+   * horizontally from right to left.
+   */
   .imagePanel {
     min-height: 62svh;
   }
 
   .imageLayer {
-    inset: -4% 0;
+    inset: -4%;
 
+    width: 108%;
     height: 108%;
-  }
-
-  .image {
-    object-position: center center;
   }
 }
 
-/* Small mobile */
+/* =========================================================
+   Small mobile
+   ========================================================= */
 
 @media (max-width: 420px) {
   .contentPanel {
@@ -284,16 +322,18 @@
   }
 }
 
-/* Reduced motion */
+/* =========================================================
+   Reduced motion
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .viewport {
+  .imagePanel {
     clip-path: none !important;
   }
 
   .imageLayer,
   .content > * {
-    transform: none !important;
     opacity: 1 !important;
+    transform: none !important;
   }
 }

@@ -8,120 +8,154 @@ import styles from "./Payment.module.css";
 
 export default function Payment() {
   const sectionRef = useRef(null);
-  const viewportRef = useRef(null);
   const contentRef = useRef(null);
+  const imagePanelRef = useRef(null);
   const imageLayerRef = useRef(null);
 
   useGSAP(
     () => {
       const section = sectionRef.current;
-      const viewport = viewportRef.current;
       const content = contentRef.current;
+      const imagePanel = imagePanelRef.current;
       const imageLayer = imageLayerRef.current;
 
-      if (!section || !viewport || !content || !imageLayer) {
+      if (!section || !content || !imagePanel || !imageLayer) {
         return;
       }
 
+      const contentChildren = Array.from(content.children);
       const matchMedia = gsap.matchMedia();
 
       matchMedia.add(
         {
+          desktop: "(min-width: 768px)",
           mobile: "(max-width: 767px)",
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { mobile, reduceMotion } = context.conditions;
+          const { mobile = false, reduceMotion = false } =
+            context.conditions ?? {};
 
           if (reduceMotion) {
-            gsap.set(viewport, {
+            gsap.set(imagePanel, {
               clipPath: "none",
-            });
-
-            gsap.set(content.children, {
-              opacity: 1,
-              y: 0,
             });
 
             gsap.set(imageLayer, {
               clearProps: "transform",
             });
 
+            gsap.set(contentChildren, {
+              autoAlpha: 1,
+              y: 0,
+            });
+
             return;
           }
 
           /*
-           * Reveal the complete payment section
-           * vertically from bottom to top.
+           * The left beige panel remains fully visible.
+           *
+           * Only its content starts slightly lower
+           * and fades into position.
            */
-          gsap.fromTo(
-            viewport,
-            {
-              clipPath: "inset(100% 0% 0% 0%)",
-            },
-            {
-              clipPath: "inset(0% 0% 0% 0%)",
-              ease: "none",
-
-              scrollTrigger: {
-                trigger: section,
-                start: "top bottom",
-                end: "top top",
-                scrub: mobile ? 0.55 : 0.75,
-                invalidateOnRefresh: true,
-              },
-            },
-          );
+          gsap.set(contentChildren, {
+            autoAlpha: 0,
+            y: mobile ? 28 : 44,
+          });
 
           /*
-           * Subtle image depth movement while
-           * the payment section is revealed.
+           * The right image panel already occupies its
+           * final 50% position.
+           *
+           * It is hidden from the left side, meaning its
+           * right edge is visible first and the reveal
+           * opens from right to left.
            */
-          gsap.fromTo(
-            imageLayer,
-            {
-              scale: mobile ? 1.05 : 1.08,
-              yPercent: mobile ? 5 : 8,
-            },
-            {
-              scale: 1,
-              yPercent: 0,
-              ease: "none",
-
-              scrollTrigger: {
-                trigger: section,
-                start: "top bottom",
-                end: "top top",
-                scrub: mobile ? 0.55 : 0.75,
-                invalidateOnRefresh: true,
-              },
-            },
-          );
+          gsap.set(imagePanel, {
+            clipPath: "inset(0% 0% 0% 100%)",
+          });
 
           /*
-           * Payment text enters after the section
-           * is sufficiently visible.
+           * The image itself stays in place.
+           * A very subtle horizontal offset creates depth
+           * without making it look like the image is sliding.
            */
-          gsap.fromTo(
-            content.children,
-            {
-              opacity: 0,
-              y: mobile ? 30 : 46,
-            },
-            {
-              opacity: 1,
-              y: 0,
-              duration: mobile ? 0.75 : 0.95,
-              stagger: 0.1,
-              ease: "power3.out",
+          gsap.set(imageLayer, {
+            scale: mobile ? 1.035 : 1.055,
+            xPercent: mobile ? 2 : 4,
+            transformOrigin: "center center",
+          });
 
-              scrollTrigger: {
-                trigger: section,
-                start: "top 55%",
-                once: true,
-              },
+          /*
+           * Right image reveal:
+           *
+           * Scroll down:
+           * right → left opening.
+           *
+           * Scroll up:
+           * left → right closing.
+           */
+          const imageTimeline = gsap.timeline({
+            defaults: {
+              ease: "none",
             },
-          );
+
+            scrollTrigger: {
+              trigger: section,
+              start: "top bottom",
+              end: "top top",
+
+              scrub: mobile ? 0.55 : 0.8,
+              invalidateOnRefresh: true,
+            },
+          });
+
+          imageTimeline
+            .to(
+              imagePanel,
+              {
+                clipPath: "inset(0% 0% 0% 0%)",
+                duration: 1,
+              },
+              0,
+            )
+            .to(
+              imageLayer,
+              {
+                scale: 1,
+                xPercent: 0,
+                duration: 1,
+              },
+              0,
+            );
+
+          /*
+           * Left content entrance.
+           *
+           * Heading group appears first,
+           * followed by the payment plan.
+           */
+          const contentTimeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: mobile ? "top 72%" : "top 68%",
+              once: true,
+            },
+          });
+
+          contentTimeline.to(contentChildren, {
+            autoAlpha: 1,
+            y: 0,
+            duration: mobile ? 0.75 : 0.95,
+            stagger: mobile ? 0.1 : 0.14,
+            ease: "power3.out",
+          });
+
+          return () => {
+            imageTimeline.kill();
+            contentTimeline.kill();
+          };
         },
       );
 
@@ -141,7 +175,7 @@ export default function Payment() {
       className={styles.payment}
       aria-labelledby="payment-title"
     >
-      <div ref={viewportRef} className={styles.viewport}>
+      <div className={styles.viewport}>
         <div className={styles.contentPanel}>
           <div ref={contentRef} className={styles.content}>
             <div className={styles.headingGroup}>
@@ -175,7 +209,7 @@ export default function Payment() {
           </div>
         </div>
 
-        <div className={styles.imagePanel}>
+        <div ref={imagePanelRef} className={styles.imagePanel}>
           <div ref={imageLayerRef} className={styles.imageLayer}>
             <Image
               src="/images/payment/swim.jpg"
