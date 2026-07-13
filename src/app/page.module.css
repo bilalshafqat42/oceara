@@ -1,6 +1,11 @@
 .heroAboutScene {
   position: relative;
 
+  /*
+   * One viewport remains visible while the second
+   * viewport provides the animation scroll distance.
+   */
+  width: 100%;
   height: 200svh;
 
   background: #073d61;
@@ -16,8 +21,13 @@
 
   overflow: hidden;
   isolation: isolate;
+
+  background: #073d61;
 }
 
+/*
+ * Hero remains underneath the About reveal.
+ */
 .heroLayer {
   position: absolute;
   inset: 0;
@@ -27,9 +37,14 @@
   height: 100%;
 
   transform-origin: center center;
+
   will-change: transform;
 }
 
+/*
+ * About occupies the exact same viewport.
+ * GSAP reveals it vertically using clip-path.
+ */
 .aboutLayer {
   position: absolute;
   inset: 0;
@@ -41,41 +56,25 @@
   margin: 0;
   padding: 0;
 
-  /*
-   * No radius and no side inset.
-   * The reveal edge stays perfectly horizontal.
-   */
   clip-path: inset(100% 0% 0% 0%);
 
   will-change: clip-path;
 }
 
-.standardSection {
-  position: relative;
-  z-index: 3;
-
-  min-height: 100svh;
-
-  padding: clamp(110px, 10vw, 180px) clamp(24px, 6vw, 100px);
-
-  background: #f2ede5;
-  color: #18191b;
-}
-
-.standardSection h2 {
-  margin: 0;
-
-  font-family: var(--font-heading);
-  font-size: clamp(54px, 7vw, 120px);
-  font-weight: 400;
-}
-
+/*
+ * Slightly shorter interaction distance on mobile,
+ * so the reveal does not feel slow or heavy.
+ */
 @media (max-width: 767px) {
   .heroAboutScene {
     height: 180svh;
   }
 }
 
+/*
+ * Without animation, Hero and About return to normal
+ * document flow and remain fully readable.
+ */
 @media (prefers-reduced-motion: reduce) {
   .heroAboutScene {
     height: auto;
@@ -83,8 +82,10 @@
 
   .stickyViewport {
     position: relative;
+    top: auto;
 
     height: auto;
+
     overflow: visible;
   }
 
@@ -93,6 +94,7 @@
     position: relative;
     inset: auto;
 
+    width: 100%;
     min-height: 100svh;
 
     transform: none !important;

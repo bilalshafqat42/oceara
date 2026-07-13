@@ -32,22 +32,21 @@ export default function Home() {
       const heroLayer = heroLayerRef.current;
       const aboutLayer = aboutLayerRef.current;
 
-      const aboutContent = aboutLayer?.querySelector("[data-about-content]");
+      if (!scene || !heroLayer || !aboutLayer) {
+        return;
+      }
 
-      const aboutMedia = aboutLayer?.querySelector("[data-about-media]");
+      const aboutContent = aboutLayer.querySelector("[data-about-content]");
+
+      const aboutMedia = aboutLayer.querySelector("[data-about-media]");
 
       const aboutImage = aboutMedia?.querySelector("img");
 
-      if (
-        !scene ||
-        !heroLayer ||
-        !aboutLayer ||
-        !aboutContent ||
-        !aboutMedia ||
-        !aboutImage
-      ) {
+      if (!aboutContent || !aboutMedia || !aboutImage) {
         return;
       }
+
+      const aboutContentChildren = Array.from(aboutContent.children);
 
       const matchMedia = gsap.matchMedia();
 
@@ -58,8 +57,17 @@ export default function Home() {
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { desktop, mobile, reduceMotion } = context.conditions;
+          const {
+            desktop = false,
+            mobile = false,
+            reduceMotion = false,
+          } = context.conditions ?? {};
 
+          /*
+           * Accessibility fallback:
+           * remove scroll-driven transitions when the
+           * visitor prefers reduced motion.
+           */
           if (reduceMotion) {
             gsap.set(aboutLayer, {
               clipPath: "none",
@@ -69,9 +77,10 @@ export default function Home() {
               clearProps: "transform",
             });
 
-            gsap.set(aboutContent.children, {
+            gsap.set(aboutContentChildren, {
               opacity: 1,
               y: 0,
+              clearProps: "transform",
             });
 
             gsap.set(aboutImage, {
@@ -81,35 +90,56 @@ export default function Home() {
             return;
           }
 
+          /*
+           * Initial Hero/About scene state.
+           *
+           * About already covers the same viewport as Hero,
+           * but clip-path hides it below the screen.
+           */
           gsap.set(aboutLayer, {
             clipPath: "inset(100% 0% 0% 0%)",
           });
 
           gsap.set(heroLayer, {
             scale: 1,
-            y: 0,
+            transformOrigin: "center center",
           });
 
-          gsap.set(aboutContent.children, {
-            opacity: 0,
+          gsap.set(aboutContentChildren, {
+            autoAlpha: 0,
             y: mobile ? 24 : 36,
           });
 
+          /*
+           * Internal image offset creates subtle depth while
+           * the About section itself remains stationary.
+           */
           gsap.set(aboutImage, {
             scale: 1.08,
             yPercent: 8,
+            transformOrigin: "center center",
           });
 
           const timeline = gsap.timeline({
+            defaults: {
+              ease: "none",
+            },
+
             scrollTrigger: {
               trigger: scene,
               start: "top top",
               end: "bottom bottom",
 
               scrub: mobile ? 0.5 : 0.75,
+
               invalidateOnRefresh: true,
+              fastScrollEnd: true,
 
               snap: {
+                /*
+                 * Below 45% returns to Hero.
+                 * At 45% or above completes About.
+                 */
                 snapTo: (progress) => (progress < SNAP_THRESHOLD ? 0 : 1),
 
                 duration: {
@@ -125,38 +155,54 @@ export default function Home() {
           });
 
           timeline
+            /*
+             * About is revealed vertically from bottom to top.
+             * No x movement, margin or rounded clipping.
+             */
             .to(
               aboutLayer,
               {
                 clipPath: "inset(0% 0% 0% 0%)",
                 duration: 1,
-                ease: "none",
               },
               0,
             )
+
+            /*
+             * Hero stays fixed behind About and receives
+             * only a very subtle depth scale.
+             */
             .to(
               heroLayer,
               {
                 scale: desktop ? 1.018 : 1.008,
                 duration: 1,
-                ease: "none",
               },
               0,
             )
+
+            /*
+             * The About image settles into its final position
+             * while the section is revealed.
+             */
             .to(
               aboutImage,
               {
                 scale: 1,
                 yPercent: 0,
                 duration: 1,
-                ease: "none",
               },
               0,
             )
+
+            /*
+             * About text appears after most of the panel
+             * has already entered the viewport.
+             */
             .to(
-              aboutContent.children,
+              aboutContentChildren,
               {
-                opacity: 1,
+                autoAlpha: 1,
                 y: 0,
                 stagger: 0.08,
                 duration: 0.3,
@@ -164,6 +210,10 @@ export default function Home() {
               },
               0.58,
             );
+
+          return () => {
+            timeline.kill();
+          };
         },
       );
 
@@ -185,6 +235,7 @@ export default function Home() {
           ref={sceneRef}
           id="hero-about-scene"
           className={styles.heroAboutScene}
+          aria-label="Oceara introduction"
         >
           <div className={styles.stickyViewport}>
             <div ref={heroLayerRef} className={styles.heroLayer}>
