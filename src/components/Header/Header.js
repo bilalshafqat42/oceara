@@ -7,14 +7,38 @@ import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import styles from "./Header.module.css";
 
 const menuItems = [
-  { label: "About", href: "#about" },
-  { label: "Location", href: "#location" },
-  { label: "Amenities", href: "#amenities" },
-  { label: "Payment Plan", href: "#payment-plan" },
-  { label: "Contact", href: "#contact" },
+  {
+    label: "About",
+    href: "#about",
+  },
+  {
+    label: "Location",
+    href: "#location",
+  },
+  {
+    label: "Amenities",
+    href: "#amenities",
+  },
+  {
+    label: "Payment Plan",
+    href: "#payment-plan",
+  },
+  {
+    label: "Contact",
+    href: "#contact",
+  },
 ];
 
-const HEADER_CHANGE_PROGRESS = 0.88;
+/*
+ * The Hero/About animation has three main stages:
+ *
+ * 0.00 = Hero
+ * 0.50 = Beige About panel
+ * 1.00 = Complete About section
+ *
+ * The glass header activates during the final About stage.
+ */
+const HEADER_CHANGE_PROGRESS = 0.66;
 
 export default function Header() {
   const headerRef = useRef(null);
@@ -25,14 +49,14 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   /*
-   * Header entrance and scroll colour state.
+   * Header entrance animation and scroll colour state.
    */
   useGSAP(
     () => {
       const header = headerRef.current;
 
       if (!header) {
-        return;
+        return undefined;
       }
 
       const introTimeline = gsap.timeline({
@@ -110,8 +134,8 @@ export default function Header() {
         });
       } else {
         /*
-         * Safe fallback if the Hero/About scene
-         * is temporarily removed during development.
+         * Development fallback if the Hero/About scene
+         * is temporarily unavailable.
          */
         scrollTrigger = ScrollTrigger.create({
           start: 80,
@@ -136,16 +160,18 @@ export default function Header() {
   /*
    * Full-screen menu reveal.
    *
-   * The menu remains fixed in position while clip-path
-   * reveals it from left to right. Reversing the same
-   * timeline closes it from right to left.
+   * Opening:
+   * left to right.
+   *
+   * Closing:
+   * right to left by reversing the same timeline.
    */
   useGSAP(
     () => {
       const menu = menuRef.current;
 
       if (!menu) {
-        return;
+        return undefined;
       }
 
       gsap.set(menu, {
@@ -235,6 +261,7 @@ export default function Header() {
     document.body.style.overflow = "hidden";
 
     setMenuOpen(true);
+
     menuTimelineRef.current?.play();
   }, [menuOpen]);
 
@@ -248,6 +275,9 @@ export default function Header() {
     closeMenu();
   }, [closeMenu]);
 
+  /*
+   * Close the menu with Escape.
+   */
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === "Escape" && menuOpen) {
@@ -290,7 +320,7 @@ export default function Header() {
           </a>
         </div>
 
-        <div className={styles.divider} />
+        <div className={styles.divider} aria-hidden="true" />
       </header>
 
       <div
