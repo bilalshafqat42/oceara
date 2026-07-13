@@ -6,51 +6,66 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./Project.module.css";
 
-const projectSlides = [
-  {
-    id: "project-intro",
-    type: "intro",
+const projectContent = {
+  intro: {
     eyebrow: "A Residential",
     title: "Retreat On Dubai Islands",
     linkLabel: "Submit Request",
     href: "#contact",
   },
-  {
-    id: "project-description",
-    type: "descriptionRight",
-    text: "Oceara Park Views is a mid-rise residential development comprising 63 thoughtfully designed residences, offering a curated collection of 1–3 bedroom apartments and 3–4 bedroom townhouses. Defined by clean architectural lines, expansive terraces and light-filled interiors, every residence is designed to strengthen the connection between indoor comfort and outdoor living.",
-  },
-  {
-    id: "project-location",
-    type: "descriptionLeft",
-    text: "Set within Dubai Islands, this distinctive address occupies a unique position where expansive parkland meets the coastline. Defined by open outlooks, natural surroundings and a sense of separation from the pace of the city, it offers a residential environment shaped by space, calm and connection to nature.",
-  },
-];
+
+  description:
+    "Oceara Park Views is a mid-rise residential development comprising 63 thoughtfully designed residences, offering a curated collection of 1–3 bedroom apartments and 3–4 bedroom townhouses. Defined by clean architectural lines, expansive terraces and light-filled interiors, every residence is designed to strengthen the connection between indoor comfort and outdoor living.",
+
+  location:
+    "Set within Dubai Islands, this distinctive address occupies a unique position where expansive parkland meets the coastline. Defined by open outlooks, natural surroundings and a sense of separation from the pace of the city, it offers a residential environment shaped by space, calm and connection to nature.",
+};
 
 export default function Project() {
   const sectionRef = useRef(null);
   const stickyRef = useRef(null);
+
+  const imageSceneRef = useRef(null);
   const imageRef = useRef(null);
   const overlayRef = useRef(null);
-  const slideRefs = useRef([]);
+  const introRef = useRef(null);
+  const introContentRef = useRef(null);
+
+  const beigeSceneRef = useRef(null);
+  const descriptionOneRef = useRef(null);
+  const descriptionTwoRef = useRef(null);
 
   useGSAP(
     () => {
       const section = sectionRef.current;
       const sticky = stickyRef.current;
+
+      const imageScene = imageSceneRef.current;
       const image = imageRef.current;
       const overlay = overlayRef.current;
-      const slides = slideRefs.current.filter(Boolean);
+      const intro = introRef.current;
+      const introContent = introContentRef.current;
+
+      const beigeScene = beigeSceneRef.current;
+      const descriptionOne = descriptionOneRef.current;
+      const descriptionTwo = descriptionTwoRef.current;
 
       if (
         !section ||
         !sticky ||
+        !imageScene ||
         !image ||
         !overlay ||
-        slides.length !== projectSlides.length
+        !intro ||
+        !introContent ||
+        !beigeScene ||
+        !descriptionOne ||
+        !descriptionTwo
       ) {
         return undefined;
       }
+
+      const introChildren = Array.from(introContent.children);
 
       const matchMedia = gsap.matchMedia();
 
@@ -61,55 +76,60 @@ export default function Project() {
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { mobile = false, reduceMotion = false } =
-            context.conditions ?? {};
+          const {
+            desktop = false,
+            mobile = false,
+            reduceMotion = false,
+          } = context.conditions ?? {};
 
           if (reduceMotion) {
             gsap.set(sticky, {
               clipPath: "none",
             });
 
-            gsap.set([image, overlay], {
-              clearProps: "all",
-            });
-
-            gsap.set(slides, {
-              position: "relative",
-              autoAlpha: 1,
-              y: 0,
-              pointerEvents: "auto",
-            });
+            gsap.set(
+              [
+                imageScene,
+                image,
+                overlay,
+                intro,
+                ...introChildren,
+                beigeScene,
+                descriptionOne,
+                descriptionTwo,
+              ],
+              {
+                clearProps: "all",
+                autoAlpha: 1,
+                x: 0,
+                y: 0,
+                yPercent: 0,
+              },
+            );
 
             return undefined;
           }
 
           /*
-           * Text movement and pacing settings.
+           * Initial section state.
            *
-           * Increase slideTravel to create more distance
-           * between the entering and exiting cards.
-           *
-           * Increase readingHold to leave each card visible longer.
-           */
-          const slideTravel = mobile ? 74 : 110;
-          const entranceDuration = mobile ? 0.65 : 0.82;
-          const readingHold = mobile ? 0.42 : 0.58;
-          const exitDuration = mobile ? 0.52 : 0.68;
-          const transitionGap = mobile ? 0.08 : 0.12;
-
-          /*
-           * Initial state:
-           *
-           * The entire project viewport is hidden below.
-           * All text cards are also hidden.
+           * The complete sticky scene is hidden below the
+           * previous component and reveals upward.
            */
           gsap.set(sticky, {
             clipPath: "inset(100% 0% 0% 0%)",
           });
 
+          /*
+           * Building scene begins in its normal position.
+           */
+          gsap.set(imageScene, {
+            yPercent: 0,
+          });
+
           gsap.set(image, {
             scale: mobile ? 1.06 : 1.1,
-            yPercent: mobile ? 5 : 8,
+            yPercent: mobile ? 4 : 7,
             transformOrigin: "center center",
           });
 
@@ -117,23 +137,47 @@ export default function Project() {
             opacity: 0.4,
           });
 
-          slides.forEach((slide) => {
-            gsap.set(slide, {
-              autoAlpha: 0,
-              y: slideTravel,
-              pointerEvents: "none",
-              force3D: true,
-            });
+          /*
+           * Intro card is already positioned at the bottom-left,
+           * but its content starts hidden.
+           */
+          gsap.set(intro, {
+            autoAlpha: 0,
+            y: mobile ? 52 : 76,
+            pointerEvents: "none",
+          });
+
+          gsap.set(introChildren, {
+            autoAlpha: 0,
+            y: mobile ? 20 : 28,
+          });
+
+          /*
+           * The beige editorial section waits below the viewport.
+           */
+          gsap.set(beigeScene, {
+            yPercent: 100,
+          });
+
+          /*
+           * Both editorial paragraphs remain hidden initially.
+           */
+          gsap.set([descriptionOne, descriptionTwo], {
+            autoAlpha: 0,
+            y: mobile ? 38 : 58,
+            pointerEvents: "none",
           });
 
           /*
            * Phase 1:
-           *
-           * Reveal the complete background from bottom to top.
-           *
-           * This finishes before the text-card timeline starts.
+           * reveal the complete building composition
+           * from bottom to top as the section enters.
            */
-          const revealTimeline = gsap.timeline({
+          const entranceTimeline = gsap.timeline({
+            defaults: {
+              ease: "none",
+            },
+
             scrollTrigger: {
               trigger: section,
               start: "top bottom",
@@ -144,13 +188,12 @@ export default function Project() {
             },
           });
 
-          revealTimeline
+          entranceTimeline
             .to(
               sticky,
               {
                 clipPath: "inset(0% 0% 0% 0%)",
                 duration: 1,
-                ease: "none",
               },
               0,
             )
@@ -160,7 +203,6 @@ export default function Project() {
                 scale: 1,
                 yPercent: 0,
                 duration: 1,
-                ease: "none",
               },
               0,
             )
@@ -169,28 +211,34 @@ export default function Project() {
               {
                 opacity: 1,
                 duration: 1,
-                ease: "none",
               },
               0,
             );
 
           /*
            * Phase 2:
-           *
-           * This timeline begins only after the background
-           * has fully reached the top of the viewport.
-           *
-           * One text composition is shown at a time.
+           * complete Project storytelling sequence.
            */
-          const slidesTimeline = gsap.timeline({
+          const storyTimeline = gsap.timeline({
+            defaults: {
+              ease: "none",
+            },
+
             scrollTrigger: {
               trigger: section,
               start: "top top",
               end: "bottom bottom",
 
-              scrub: mobile ? 0.7 : 1,
+              scrub: mobile ? 0.65 : 0.95,
               invalidateOnRefresh: true,
 
+              /*
+               * Stable resting states:
+               *
+               * Intro composition
+               * First beige paragraph
+               * Second beige paragraph
+               */
               snap: {
                 snapTo: "labelsDirectional",
 
@@ -199,7 +247,7 @@ export default function Project() {
                   max: mobile ? 0.65 : 0.9,
                 },
 
-                delay: mobile ? 0.16 : 0.12,
+                delay: mobile ? 0.15 : 0.1,
                 ease: "power2.inOut",
                 inertia: false,
               },
@@ -207,91 +255,129 @@ export default function Project() {
           });
 
           /*
-           * First card enters only after the image
-           * has completed its full-screen reveal.
+           * Intro card enters from below.
            */
-          slidesTimeline
-            .fromTo(
-              slides[0],
-              {
-                autoAlpha: 0,
-                y: slideTravel,
-                pointerEvents: "none",
-              },
+          storyTimeline
+            .to(intro, {
+              autoAlpha: 1,
+              y: 0,
+              pointerEvents: "auto",
+              duration: mobile ? 0.42 : 0.5,
+              ease: "power3.out",
+            })
+            .to(
+              introChildren,
               {
                 autoAlpha: 1,
                 y: 0,
-                pointerEvents: "auto",
-                duration: entranceDuration,
+                duration: mobile ? 0.3 : 0.38,
+                stagger: 0.07,
                 ease: "power3.out",
               },
+              "-=0.24",
             )
-            .addLabel("project-slide-0");
+            .addLabel("project-intro")
 
-          /*
-           * Each card:
-           *
-           * 1. Remains readable.
-           * 2. Moves upward and fades out.
-           * 3. Leaves a small empty transition.
-           * 4. Allows the next card to rise from below.
-           */
-          for (let index = 0; index < slides.length - 1; index += 1) {
-            const currentSlide = slides[index];
-            const nextSlide = slides[index + 1];
+            /*
+             * Leave the intro visible for reading.
+             */
+            .to(
+              {},
+              {
+                duration: mobile ? 0.45 : 0.62,
+              },
+            )
 
-            slidesTimeline
-              .to(
-                {},
-                {
-                  duration: readingHold,
-                },
-              )
-              .to(currentSlide, {
-                autoAlpha: 0,
-                y: -slideTravel,
-                pointerEvents: "none",
-                duration: exitDuration,
+            /*
+             * Building image and intro card move upward together.
+             *
+             * At the same time, the beige editorial background
+             * rises from the bottom.
+             */
+            .to(imageScene, {
+              yPercent: -100,
+              duration: mobile ? 0.9 : 1.1,
+              ease: "power2.inOut",
+            })
+            .to(
+              beigeScene,
+              {
+                yPercent: 0,
+                duration: mobile ? 0.9 : 1.1,
                 ease: "power2.inOut",
-              })
-              .to(
-                {},
-                {
-                  duration: transitionGap,
-                },
-              )
-              .fromTo(
-                nextSlide,
-                {
-                  autoAlpha: 0,
-                  y: slideTravel,
-                  pointerEvents: "none",
-                },
-                {
-                  autoAlpha: 1,
-                  y: 0,
-                  pointerEvents: "auto",
-                  duration: entranceDuration,
-                  ease: "power3.out",
-                },
-              )
-              .addLabel(`project-slide-${index + 1}`);
-          }
+              },
+              "<",
+            )
 
-          /*
-           * Keep the final paragraph visible before
-           * releasing the sticky section.
-           */
-          slidesTimeline.to(
-            {},
-            {
-              duration: mobile ? 0.45 : 0.62,
-            },
-          );
+            /*
+             * First editorial block enters on the right.
+             */
+            .to(descriptionOne, {
+              autoAlpha: 1,
+              y: 0,
+              pointerEvents: "auto",
+              duration: mobile ? 0.44 : 0.55,
+              ease: "power3.out",
+            })
+            .addLabel("project-description")
+
+            /*
+             * First paragraph reading time.
+             */
+            .to(
+              {},
+              {
+                duration: mobile ? 0.55 : 0.78,
+              },
+            )
+
+            /*
+             * First paragraph exits upward.
+             */
+            .to(descriptionOne, {
+              autoAlpha: 0,
+              y: mobile ? -34 : -52,
+              pointerEvents: "none",
+              duration: mobile ? 0.38 : 0.48,
+              ease: "power2.inOut",
+            })
+
+            /*
+             * Small clean gap before the next paragraph.
+             */
+            .to(
+              {},
+              {
+                duration: mobile ? 0.08 : 0.12,
+              },
+            )
+
+            /*
+             * Second editorial block enters on the left.
+             */
+            .to(descriptionTwo, {
+              autoAlpha: 1,
+              y: 0,
+              pointerEvents: "auto",
+              duration: mobile ? 0.44 : 0.55,
+              ease: "power3.out",
+            })
+            .addLabel("project-location")
+
+            /*
+             * Keep the final paragraph visible before
+             * releasing the sticky viewport.
+             */
+            .to(
+              {},
+              {
+                duration: mobile ? 0.65 : 0.9,
+              },
+            );
 
           return () => {
-            revealTimeline.kill();
-            slidesTimeline.kill();
+            entranceTimeline.kill();
+            storyTimeline.kill();
           };
         },
       );
@@ -310,76 +396,77 @@ export default function Project() {
       ref={sectionRef}
       id="project"
       className={styles.project}
-      style={{
-        "--project-slide-count": projectSlides.length,
-      }}
       aria-labelledby="project-section-title"
     >
       <div ref={stickyRef} className={styles.stickyViewport}>
-        <div className={styles.background}>
-          <Image
-            ref={imageRef}
-            src="/images/project/building.jpg"
-            alt="Oceara residential building overlooking Dubai Islands"
-            fill
-            quality={90}
-            sizes="100vw"
-            className={styles.backgroundImage}
-          />
-
-          <div
-            ref={overlayRef}
-            className={styles.backgroundOverlay}
-            aria-hidden="true"
-          />
-        </div>
-
         <h2 id="project-section-title" className={styles.visuallyHidden}>
           Oceara Park Views project
         </h2>
 
-        <div className={styles.slides}>
-          {projectSlides.map((slide, index) => {
-            const slideClassName = [styles.slide, styles[slide.type]]
-              .filter(Boolean)
-              .join(" ");
+        {/* Building and intro composition */}
+        <div ref={imageSceneRef} className={styles.imageScene}>
+          <div className={styles.background}>
+            <Image
+              ref={imageRef}
+              src="/images/project/building.jpg"
+              alt="Oceara residential building overlooking Dubai Islands"
+              fill
+              quality={90}
+              sizes="100vw"
+              className={styles.backgroundImage}
+            />
 
-            return (
-              <article
-                key={slide.id}
-                ref={(element) => {
-                  slideRefs.current[index] = element;
-                }}
-                className={slideClassName}
+            <div
+              ref={overlayRef}
+              className={styles.backgroundOverlay}
+              aria-hidden="true"
+            />
+          </div>
+
+          <article
+            ref={introRef}
+            className={styles.introCard}
+            aria-label="Oceara residential retreat"
+          >
+            <div ref={introContentRef} className={styles.introContent}>
+              <div>
+                <p className={styles.eyebrow}>{projectContent.intro.eyebrow}</p>
+
+                <h3 className={styles.title}>{projectContent.intro.title}</h3>
+              </div>
+
+              <a
+                href={projectContent.intro.href}
+                className={styles.requestLink}
+                data-contact-popup
               >
-                {slide.type === "intro" ? (
-                  <div className={styles.introCard}>
-                    <div>
-                      <p className={styles.eyebrow}>{slide.eyebrow}</p>
+                {projectContent.intro.linkLabel}
+              </a>
+            </div>
+          </article>
+        </div>
 
-                      <h3 className={styles.title}>{slide.title}</h3>
-                    </div>
+        {/* Beige editorial composition */}
+        <div ref={beigeSceneRef} className={styles.beigeScene}>
+          <article
+            ref={descriptionOneRef}
+            className={`${styles.descriptionBlock} ${styles.descriptionRight}`}
+          >
+            <p>{projectContent.description}</p>
+          </article>
 
-                    <a
-                      href={slide.href}
-                      className={styles.requestLink}
-                      data-contact-popup
-                    >
-                      {slide.linkLabel}
-                    </a>
-                  </div>
-                ) : (
-                  <p className={styles.description}>{slide.text}</p>
-                )}
-              </article>
-            );
-          })}
+          <article
+            ref={descriptionTwoRef}
+            className={`${styles.descriptionBlock} ${styles.descriptionLeft}`}
+          >
+            <p>{projectContent.location}</p>
+          </article>
         </div>
 
         <div className={styles.progress} aria-hidden="true">
-          {projectSlides.map((slide) => (
-            <span key={slide.id} className={styles.progressLine} />
-          ))}
+          <span className={styles.progressLine} />
+          <span className={styles.progressLine} />
+          <span className={styles.progressLine} />
         </div>
       </div>
     </section>

@@ -1,12 +1,19 @@
 .project {
   position: relative;
 
-  /*
-   * One viewport for the full image reveal,
-   * followed by three viewports for the text cards.
-   */
   width: 100%;
-  height: calc((var(--project-slide-count) + 1) * 100svh);
+
+  /*
+   * Scroll stages:
+   *
+   * 1. Building reveal
+   * 2. Intro card
+   * 3. Image/intro move upward + beige reveal
+   * 4. First editorial paragraph
+   * 5. Second editorial paragraph
+   */
+  height: 500vh;
+  height: 500svh;
 
   background: #f2ede5;
 }
@@ -22,19 +29,35 @@
   overflow: hidden;
   isolation: isolate;
 
-  background: #d9e4eb;
+  background: #f2ede5;
 
   clip-path: inset(100% 0% 0% 0%);
 
   will-change: clip-path;
 }
 
-/* Fixed full-screen project image */
+/* =========================================================
+   Building scene
+   ========================================================= */
+
+.imageScene {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  background: #d9e4eb;
+
+  will-change: transform;
+}
 
 .background {
   position: absolute;
   inset: 0;
-  z-index: 0;
 
   width: 100%;
   height: 100%;
@@ -48,12 +71,16 @@
 
   transform-origin: center center;
 
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
   will-change: transform;
 }
 
 .backgroundOverlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
 
   background:
     linear-gradient(90deg, rgba(4, 31, 44, 0.035) 0%, transparent 42%),
@@ -64,66 +91,46 @@
   will-change: opacity;
 }
 
-/* Cards layer */
-
-.slides {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-
-  width: 100%;
-  height: 100%;
-
-  pointer-events: none;
-}
-
-.slide {
-  position: absolute;
-  inset: 0;
-
-  width: 100%;
-  height: 100%;
-
-  visibility: hidden;
-  opacity: 0;
-
-  pointer-events: none;
-
-  will-change: transform, opacity;
-}
-
-/*
- * First card:
- *
- * Anchored directly to the bottom-left corner.
- */
-.intro {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-}
+/* =========================================================
+   Intro card
+   ========================================================= */
 
 .introCard {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
 
-  width: min(48vw, 720px);
-  min-height: min(46vh, 470px);
+  width: min(50vw, 740px);
+  min-height: min(54vh, 520px);
 
   margin: 0;
+  padding: 0;
 
-  padding: clamp(58px, 7vw, 108px) clamp(48px, 7vw, 112px)
-    clamp(50px, 6vw, 86px);
+  overflow: hidden;
 
   background: #f2ede5;
   color: #18191b;
 
-  pointer-events: auto;
+  box-shadow: 0 12px 45px rgba(24, 25, 27, 0.04);
+
+  will-change: transform, opacity;
+}
+
+.introContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  width: 100%;
+  min-height: min(54vh, 520px);
+
+  padding: clamp(64px, 8vw, 120px) clamp(52px, 8vw, 125px)
+    clamp(52px, 7vw, 94px);
 }
 
 .eyebrow {
-  margin: 0 0 12px;
+  margin: 0 0 11px;
 
   font-family: var(--font-curve);
   font-size: 32px;
@@ -134,7 +141,7 @@
 }
 
 .title {
-  max-width: 560px;
+  max-width: 520px;
   margin: 0;
 
   font-family: var(--font-heading);
@@ -150,6 +157,8 @@
   position: relative;
 
   align-self: flex-start;
+
+  display: inline-flex;
 
   padding-bottom: 7px;
 
@@ -198,65 +207,79 @@
   outline-offset: 6px;
 }
 
-/*
- * Second card:
- *
- * Bottom aligned but inset from the right edge.
- */
-.descriptionRight {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
+/* =========================================================
+   Beige editorial section
+   ========================================================= */
 
-  padding: 100px clamp(60px, 10vw, 180px) clamp(72px, 10vh, 112px);
+.beigeScene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  background: #f2ede5;
+  color: #18191b;
+
+  will-change: transform;
 }
 
 /*
- * Third card:
- *
- * Bottom aligned and inset from the left edge.
+ * Each description remains independently positioned
+ * inside the same beige viewport.
  */
-.descriptionLeft {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
+.descriptionBlock {
+  position: absolute;
 
-  padding: 100px clamp(60px, 10vw, 180px) clamp(72px, 10vh, 112px);
-}
-
-.descriptionLeft .description {
-  margin-left: clamp(70px, 10vw, 170px);
-}
-
-.description {
-  width: min(100%, 510px);
+  width: min(34vw, 510px);
   margin: 0;
-
-  padding: 38px 46px;
 
   font-family: var(--font-body);
   font-size: 18px;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.62;
 
   color: #18191b;
-  background: rgba(242, 237, 229, 0.96);
 
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
-  box-shadow: 0 16px 50px rgba(24, 25, 27, 0.06);
-
-  pointer-events: auto;
+  will-change: transform, opacity;
 }
 
-/* Progress indicator */
+.descriptionBlock p {
+  margin: 0;
+}
+
+/*
+ * First text block:
+ * middle-right, matching the Figma composition.
+ */
+.descriptionRight {
+  top: 50%;
+  right: clamp(80px, 12vw, 190px);
+
+  transform: translateY(-25%);
+}
+
+/*
+ * Second text block:
+ * lower-left, matching the Figma composition.
+ */
+.descriptionLeft {
+  bottom: clamp(70px, 12vh, 150px);
+  left: clamp(80px, 13vw, 210px);
+}
+
+/* =========================================================
+   Progress
+   ========================================================= */
 
 .progress {
   position: absolute;
   right: clamp(28px, 4vw, 64px);
   bottom: clamp(28px, 4vh, 52px);
-  z-index: 3;
+  z-index: 8;
 
   display: flex;
   gap: 7px;
@@ -270,10 +293,12 @@
   width: 20px;
   height: 1px;
 
-  background: rgba(255, 255, 255, 0.58);
+  background: rgba(24, 25, 27, 0.34);
 }
 
-/* Accessible hidden title */
+/* =========================================================
+   Accessible hidden heading
+   ========================================================= */
 
 .visuallyHidden {
   position: absolute !important;
@@ -294,40 +319,46 @@
   clip-path: inset(50%) !important;
 }
 
-/* Tablet */
+/* =========================================================
+   Tablet
+   ========================================================= */
 
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
+  .introCard,
+  .introContent {
+    min-height: min(50vh, 480px);
+  }
+
   .introCard {
     width: 56vw;
-    min-height: 44vh;
-
-    padding: 66px 54px 54px;
   }
 
-  .descriptionRight,
-  .descriptionLeft {
-    padding-inline: 52px;
-    padding-bottom: 72px;
+  .introContent {
+    padding: 70px 54px 58px;
   }
 
-  .descriptionLeft .description {
-    margin-left: 30px;
-  }
-
-  .description {
-    max-width: 470px;
-
-    padding: 32px 38px;
+  .descriptionBlock {
+    width: min(42vw, 470px);
 
     font-size: 17px;
   }
+
+  .descriptionRight {
+    right: 70px;
+  }
+
+  .descriptionLeft {
+    left: 70px;
+  }
 }
 
-/* Mobile */
+/* =========================================================
+   Mobile
+   ========================================================= */
 
 @media (max-width: 767px) {
   .project {
-    height: calc((var(--project-slide-count) + 1) * 90svh);
+    height: 430svh;
   }
 
   .backgroundImage {
@@ -343,10 +374,16 @@
   }
 
   .introCard {
-    width: calc(100% - 36px);
-    min-height: 43svh;
+    right: 18px;
+    bottom: 22px;
+    left: 18px;
 
-    margin: 0 18px 22px;
+    width: auto;
+    min-height: 42svh;
+  }
+
+  .introContent {
+    min-height: 42svh;
 
     padding: 52px 25px 38px;
   }
@@ -365,39 +402,68 @@
     font-size: 15px;
   }
 
-  .descriptionRight,
-  .descriptionLeft {
-    align-items: flex-end;
-    justify-content: flex-start;
+  .descriptionBlock {
+    right: 22px;
+    left: 22px;
 
-    padding: 90px 18px 52px;
-  }
-
-  .descriptionLeft .description {
-    margin-left: 0;
-  }
-
-  .description {
-    width: 100%;
-    max-width: 100%;
-
-    padding: 25px;
+    width: auto;
+    max-width: none;
 
     font-size: 15px;
     line-height: 1.6;
+  }
 
-    background: rgba(242, 237, 229, 0.95);
+  .descriptionRight {
+    top: 46%;
+    right: 22px;
+    left: 22px;
 
-    box-shadow: 0 12px 36px rgba(24, 25, 27, 0.08);
+    transform: translateY(-50%);
+  }
+
+  .descriptionLeft {
+    right: 22px;
+    bottom: 68px;
+    left: 22px;
   }
 
   .progress {
-    right: 22px;
-    bottom: 21px;
+    right: 20px;
+    bottom: 20px;
   }
 }
 
-/* Reduced motion */
+/* =========================================================
+   Small mobile
+   ========================================================= */
+
+@media (max-width: 480px) {
+  .introCard {
+    right: 14px;
+    left: 14px;
+  }
+
+  .introContent {
+    padding: 46px 22px 34px;
+  }
+
+  .eyebrow {
+    font-size: 28px;
+  }
+
+  .title {
+    font-size: 31px;
+  }
+
+  .descriptionBlock {
+    right: 18px;
+    left: 18px;
+  }
+}
+
+/* =========================================================
+   Reduced motion
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .project {
@@ -409,57 +475,54 @@
     top: auto;
 
     height: auto;
-    min-height: 100svh;
+    min-height: auto;
 
     clip-path: none !important;
+    overflow: visible;
   }
 
-  .background {
-    position: absolute;
-  }
-
-  .slides {
-    position: relative;
-
-    display: grid;
-    gap: 28px;
-
-    padding: 100px 22px;
-  }
-
-  .slide {
+  .imageScene,
+  .beigeScene {
     position: relative;
     inset: auto;
 
-    visibility: visible;
-    opacity: 1;
-
     width: 100%;
-    height: auto;
+    min-height: 100svh;
 
     transform: none !important;
-
-    pointer-events: auto;
   }
 
   .introCard {
-    width: 100%;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .beigeScene {
+    display: grid;
+    gap: 80px;
+
+    min-height: auto;
+
+    padding: 120px 24px;
+  }
+
+  .descriptionBlock {
+    position: relative;
+    inset: auto;
+
+    width: min(100%, 510px);
     margin: 0;
+
+    opacity: 1 !important;
+    transform: none !important;
   }
 
-  .descriptionRight,
+  .descriptionRight {
+    margin-left: auto;
+  }
+
   .descriptionLeft {
-    display: block;
-
-    padding: 0;
-  }
-
-  .descriptionLeft .description {
-    margin-left: 0;
-  }
-
-  .description {
-    width: 100%;
+    margin-right: auto;
   }
 
   .progress {
