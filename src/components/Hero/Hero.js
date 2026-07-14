@@ -13,10 +13,11 @@ export default function Hero() {
   const scrollIndicatorRef = useRef(null);
 
   /*
-   * Scroll to the end of the shared Hero/About scene.
+   * Clicking Scroll Down moves the page to the end
+   * of the shared Hero/About scene.
    *
-   * The Hero-to-About timeline remains controlled
-   * by page.js, where both sections are available.
+   * The Hero-to-About transition remains controlled
+   * by the timeline inside page.js.
    */
   const revealAbout = useCallback((event) => {
     event.preventDefault();
@@ -89,7 +90,10 @@ export default function Hero() {
           }
 
           /*
-           * Initial Hero entrance sequence.
+           * Initial Hero entrance.
+           *
+           * A small image scale is used so the background
+           * remains sharper than the previous 1.09 scale.
            */
           const entranceTimeline = gsap.timeline({
             defaults: {
@@ -101,11 +105,11 @@ export default function Hero() {
             .fromTo(
               image,
               {
-                scale: mobile ? 1.06 : 1.09,
+                scale: mobile ? 1.025 : 1.035,
               },
               {
                 scale: 1,
-                duration: mobile ? 1.5 : 1.9,
+                duration: mobile ? 1.4 : 1.7,
                 ease: "power2.out",
               },
               0,
@@ -114,7 +118,7 @@ export default function Hero() {
               eyebrow,
               {
                 autoAlpha: 0,
-                y: mobile ? 22 : 30,
+                y: mobile ? 22 : 28,
               },
               {
                 autoAlpha: 1,
@@ -127,12 +131,12 @@ export default function Hero() {
               title,
               {
                 autoAlpha: 0,
-                y: mobile ? 32 : 46,
+                y: mobile ? 30 : 42,
               },
               {
                 autoAlpha: 1,
                 y: 0,
-                duration: mobile ? 1 : 1.15,
+                duration: mobile ? 1 : 1.1,
               },
               0.5,
             )
@@ -140,12 +144,12 @@ export default function Hero() {
               subtitle,
               {
                 autoAlpha: 0,
-                y: mobile ? 20 : 28,
+                y: mobile ? 18 : 24,
               },
               {
                 autoAlpha: 1,
                 y: 0,
-                duration: 0.9,
+                duration: 0.85,
               },
               0.68,
             )
@@ -153,70 +157,57 @@ export default function Hero() {
               discoverLink,
               {
                 autoAlpha: 0,
-                y: mobile ? 18 : 24,
-              },
-              {
-                autoAlpha: 1,
-                y: 0,
-                duration: 0.82,
-              },
-              0.82,
-            );
-
-          if (scrollIndicator) {
-            entranceTimeline.fromTo(
-              scrollIndicator,
-              {
-                autoAlpha: 0,
-                y: 16,
+                y: mobile ? 16 : 22,
               },
               {
                 autoAlpha: 1,
                 y: 0,
                 duration: 0.8,
               },
-              1,
+              0.8,
+            );
+
+          /*
+           * Scroll Down remains visible.
+           *
+           * It is no longer faded out through ScrollTrigger.
+           * The About panel will naturally cover it during
+           * the Hero-to-About transition.
+           */
+          if (scrollIndicator) {
+            entranceTimeline.fromTo(
+              scrollIndicator,
+              {
+                autoAlpha: 0,
+                y: 14,
+              },
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.75,
+              },
+              0.95,
             );
           }
 
           /*
-           * Subtle image movement while scrolling.
+           * Very subtle vertical background movement.
            *
-           * The wrapper remains larger than the viewport,
-           * allowing movement without revealing an empty edge.
+           * Keeping this movement small prevents the image
+           * from looking soft or overly enlarged.
            */
           gsap.to(image, {
-            yPercent: desktop ? 7 : 4,
+            yPercent: desktop ? 2.5 : 1.5,
             ease: "none",
 
             scrollTrigger: {
               trigger: section,
               start: "top top",
               end: "bottom top",
-              scrub: mobile ? 0.55 : 0.85,
+              scrub: mobile ? 0.5 : 0.75,
               invalidateOnRefresh: true,
             },
           });
-
-          /*
-           * Fade the scroll indicator once the visitor
-           * begins moving through the Hero/About scene.
-           */
-          if (scrollIndicator) {
-            gsap.to(scrollIndicator, {
-              autoAlpha: 0,
-              y: -12,
-              ease: "none",
-
-              scrollTrigger: {
-                trigger: section,
-                start: "top top",
-                end: mobile ? "12% top" : "18% top",
-                scrub: true,
-                invalidateOnRefresh: true,
-              },
-            });
-          }
         },
       );
 
@@ -242,7 +233,7 @@ export default function Hero() {
           alt="Oceara coastal residences surrounded by sea and nature"
           fill
           priority
-          quality={90}
+          quality={100}
           sizes="100vw"
           className={styles.image}
         />
