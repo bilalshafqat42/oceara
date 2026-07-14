@@ -1,7 +1,8 @@
 .header {
-  --header-background: transparent;
+  --header-background: rgba(255, 255, 255, 0);
   --header-foreground: #ffffff;
   --header-divider: rgba(255, 255, 255, 0.35);
+  --header-blur: blur(0px) saturate(100%);
 
   position: fixed;
   inset: 0 0 auto;
@@ -12,8 +13,9 @@
   background: var(--header-background);
   color: var(--header-foreground);
 
-  backdrop-filter: blur(0) saturate(100%);
-  -webkit-backdrop-filter: blur(0) saturate(100%);
+  backdrop-filter: var(--header-blur);
+
+  box-shadow: none;
 
   transition:
     background-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -23,31 +25,39 @@
 }
 
 /*
- * Minimal glassmorphism state.
+ * Genuine glassmorphism state.
+ *
+ * A low-opacity background allows the content beneath
+ * the header to remain visible, while backdrop-filter
+ * blurs that content.
  */
 .header[data-scrolled="true"] {
-  --header-background: rgba(246, 249, 250, 0.66);
+  --header-background: rgba(247, 247, 243, 0.42);
   --header-foreground: #18191b;
-  --header-divider: rgba(24, 25, 27, 0.16);
+  --header-divider: rgba(24, 25, 27, 0.12);
+  --header-blur: blur(32px) saturate(165%) contrast(102%);
 
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.74) 0%,
-    rgba(244, 248, 250, 0.58) 100%
+    rgba(255, 255, 255, 0.46) 0%,
+    rgba(248, 248, 244, 0.32) 58%,
+    rgba(242, 243, 239, 0.22) 100%
   );
 
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: var(--header-blur);
 
   box-shadow:
-    0 1px 0 rgba(24, 25, 27, 0.06),
-    0 8px 30px rgba(24, 25, 27, 0.035);
+    0 1px 0 rgba(24, 25, 27, 0.05),
+    0 10px 34px rgba(24, 25, 27, 0.04);
 }
 
-/* Header layout */
+/* =========================================================
+   Header layout
+   ========================================================= */
 
 .inner {
   position: relative;
+  z-index: 2;
 
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -59,7 +69,9 @@
   padding-inline: clamp(28px, 3.1vw, 60px);
 }
 
-/* Left menu control */
+/* =========================================================
+   Left menu control
+   ========================================================= */
 
 .menuControl {
   grid-column: 1;
@@ -112,7 +124,9 @@
   white-space: nowrap;
 }
 
-/* Centred header logo */
+/* =========================================================
+   Centred header logo
+   ========================================================= */
 
 .logo {
   grid-column: 2;
@@ -146,7 +160,9 @@
   mask-size: contain;
 }
 
-/* Request callback */
+/* =========================================================
+   Request callback
+   ========================================================= */
 
 .callback {
   grid-column: 3;
@@ -194,9 +210,14 @@
   transform-origin: left center;
 }
 
-/* Full-width divider */
+/* =========================================================
+   Full-width divider
+   ========================================================= */
 
 .divider {
+  position: relative;
+  z-index: 2;
+
   width: 100%;
   height: 1px;
   margin: 0;
@@ -206,7 +227,9 @@
   transition: background-color 600ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Keyboard focus */
+/* =========================================================
+   Keyboard focus
+   ========================================================= */
 
 .menuControl:focus-visible,
 .logo:focus-visible,
@@ -218,7 +241,9 @@
   outline-offset: 6px;
 }
 
-/* Full-screen menu overlay */
+/* =========================================================
+   Full-screen menu overlay
+   ========================================================= */
 
 .menuOverlay {
   position: fixed;
@@ -249,7 +274,9 @@
   will-change: clip-path;
 }
 
-/* Left gradient menu panel */
+/* =========================================================
+   Left gradient menu panel
+   ========================================================= */
 
 .menuBluePanel {
   position: relative;
@@ -271,7 +298,9 @@
   overflow: hidden;
 }
 
-/* Right menu image */
+/* =========================================================
+   Right menu image
+   ========================================================= */
 
 .menuImagePanel {
   position: relative;
@@ -302,7 +331,9 @@
   pointer-events: none;
 }
 
-/* Close control */
+/* =========================================================
+   Close control
+   ========================================================= */
 
 .closeButton {
   position: absolute;
@@ -353,10 +384,10 @@
   transform: rotate(90deg);
 }
 
-/*
- * Fixed positioning prevents the logo from being clipped
- * by the left panel's overflow.
- */
+/* =========================================================
+   Menu logo
+   ========================================================= */
+
 .menuLogo {
   position: fixed;
   top: clamp(28px, 3vw, 50px);
@@ -393,7 +424,9 @@
   mask-size: contain;
 }
 
-/* Menu navigation */
+/* =========================================================
+   Menu navigation
+   ========================================================= */
 
 .menuNavigation {
   display: flex;
@@ -416,7 +449,7 @@
 }
 
 .menuItem {
-  /* overflow: hidden; */
+  position: relative;
 }
 
 .menuLink {
@@ -453,7 +486,6 @@
   opacity: 0;
 
   transform: translateY(-50%) scaleX(0);
-
   transform-origin: right center;
 
   transition:
@@ -477,7 +509,9 @@
   transform: translateY(-50%) scaleX(1);
 }
 
-/* Tablet and mobile full-screen menu */
+/* =========================================================
+   Tablet and mobile full-screen menu
+   ========================================================= */
 
 @media (max-width: 900px) {
   .menuOverlay {
@@ -534,7 +568,9 @@
   }
 }
 
-/* Header tablet/mobile */
+/* =========================================================
+   Header tablet/mobile
+   ========================================================= */
 
 @media (max-width: 767px) {
   .inner {
@@ -559,6 +595,7 @@
   .logoMark {
     width: 86px;
     height: auto;
+
     aspect-ratio: 147 / 40;
   }
 
@@ -566,9 +603,16 @@
     font-size: 7px;
     letter-spacing: 0.18em;
   }
+
+  .header[data-scrolled="true"] {
+    --header-background: rgba(247, 247, 243, 0.46);
+    --header-blur: blur(26px) saturate(160%) contrast(102%);
+  }
 }
 
-/* Small mobile */
+/* =========================================================
+   Small mobile
+   ========================================================= */
 
 @media (max-width: 480px) {
   .menuText {
@@ -589,10 +633,25 @@
   }
 }
 
-/* Reduced motion */
+/* =========================================================
+   Browser fallback
+   ========================================================= */
+
+@supports not (backdrop-filter: blur(1px)) {
+  .header[data-scrolled="true"] {
+    --header-background: rgba(247, 248, 246, 0.92);
+
+    background: rgba(247, 248, 246, 0.92);
+  }
+}
+
+/* =========================================================
+   Reduced motion
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .header,
+  .divider,
   .callback::after,
   .closeIcon,
   .menuLink,
