@@ -416,7 +416,7 @@
 }
 
 .menuItem {
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .menuLink {

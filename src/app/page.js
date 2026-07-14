@@ -7,6 +7,7 @@ import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Amenities from "@/components/Amenities";
 import Project from "@/components/Project";
+import MapSection from "@/components/MapSection/MapSection";
 import Location from "@/components/Location";
 import SeaSection from "@/components/SeaSection";
 import Gallery from "@/components/Gallery";
@@ -283,6 +284,8 @@ export default function Home() {
         <Amenities />
 
         <Project />
+
+        <MapSection />
 
         <Location />
 
