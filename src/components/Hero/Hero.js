@@ -13,12 +13,10 @@ export default function Hero() {
   const scrollIndicatorRef = useRef(null);
 
   /*
-   * Clicking Discover More or Scroll Down moves the
-   * page to the end of the Hero/About scroll scene.
+   * Scroll to the end of the shared Hero/About scene.
    *
-   * The GSAP timeline in page.js follows the real
-   * page scroll position, so clicks and mouse scrolling
-   * produce the same visual transition.
+   * The Hero-to-About timeline remains controlled
+   * by page.js, where both sections are available.
    */
   const revealAbout = useCallback((event) => {
     event.preventDefault();
@@ -38,19 +36,23 @@ export default function Hero() {
     });
   }, []);
 
-  /*
-   * Hero entrance animation only.
-   *
-   * The Hero-to-About scroll transition belongs
-   * in page.js because it controls two sections.
-   */
   useGSAP(
     () => {
+      const section = sectionRef.current;
       const image = imageRef.current;
       const content = contentRef.current;
       const scrollIndicator = scrollIndicatorRef.current;
 
-      if (!image || !content) {
+      if (!section || !image || !content) {
+        return;
+      }
+
+      const eyebrow = content.querySelector(`.${styles.eyebrow}`);
+      const title = content.querySelector(`.${styles.title}`);
+      const subtitle = content.querySelector(`.${styles.subtitle}`);
+      const discoverLink = content.querySelector(`.${styles.discoverLink}`);
+
+      if (!eyebrow || !title || !subtitle || !discoverLink) {
         return;
       }
 
@@ -58,20 +60,37 @@ export default function Hero() {
 
       matchMedia.add(
         {
+          desktop: "(min-width: 768px)",
+          mobile: "(max-width: 767px)",
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { reduceMotion } = context.conditions;
+          const {
+            desktop = false,
+            mobile = false,
+            reduceMotion = false,
+          } = context.conditions ?? {};
 
           if (reduceMotion) {
-            gsap.set([image, ...content.children, scrollIndicator], {
-              clearProps: "all",
-              opacity: 1,
+            gsap.set(image, {
+              scale: 1,
+              yPercent: 0,
             });
+
+            gsap.set(
+              [eyebrow, title, subtitle, discoverLink, scrollIndicator],
+              {
+                autoAlpha: 1,
+                y: 0,
+              },
+            );
 
             return;
           }
 
+          /*
+           * Initial Hero entrance sequence.
+           */
           const entranceTimeline = gsap.timeline({
             defaults: {
               ease: "power3.out",
@@ -82,68 +101,121 @@ export default function Hero() {
             .fromTo(
               image,
               {
-                scale: 1.08,
+                scale: mobile ? 1.06 : 1.09,
               },
               {
                 scale: 1,
-                duration: 1.8,
+                duration: mobile ? 1.5 : 1.9,
                 ease: "power2.out",
               },
+              0,
             )
             .fromTo(
-              `.${styles.eyebrow}`,
+              eyebrow,
               {
-                opacity: 0,
-                y: 28,
+                autoAlpha: 0,
+                y: mobile ? 22 : 30,
               },
               {
-                opacity: 1,
+                autoAlpha: 1,
                 y: 0,
                 duration: 0.9,
               },
-              0.4,
+              0.38,
             )
             .fromTo(
-              `.${styles.title}`,
+              title,
               {
-                opacity: 0,
-                y: 42,
+                autoAlpha: 0,
+                y: mobile ? 32 : 46,
               },
               {
-                opacity: 1,
+                autoAlpha: 1,
                 y: 0,
-                duration: 1.1,
+                duration: mobile ? 1 : 1.15,
               },
-              0.52,
+              0.5,
             )
             .fromTo(
-              `.${styles.discoverLink}`,
+              subtitle,
               {
-                opacity: 0,
-                y: 22,
+                autoAlpha: 0,
+                y: mobile ? 20 : 28,
               },
               {
-                opacity: 1,
+                autoAlpha: 1,
                 y: 0,
-                duration: 0.8,
+                duration: 0.9,
               },
-              0.72,
+              0.68,
+            )
+            .fromTo(
+              discoverLink,
+              {
+                autoAlpha: 0,
+                y: mobile ? 18 : 24,
+              },
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.82,
+              },
+              0.82,
             );
 
           if (scrollIndicator) {
             entranceTimeline.fromTo(
               scrollIndicator,
               {
-                opacity: 0,
+                autoAlpha: 0,
                 y: 16,
               },
               {
-                opacity: 1,
+                autoAlpha: 1,
                 y: 0,
                 duration: 0.8,
               },
-              0.95,
+              1,
             );
+          }
+
+          /*
+           * Subtle image movement while scrolling.
+           *
+           * The wrapper remains larger than the viewport,
+           * allowing movement without revealing an empty edge.
+           */
+          gsap.to(image, {
+            yPercent: desktop ? 7 : 4,
+            ease: "none",
+
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "bottom top",
+              scrub: mobile ? 0.55 : 0.85,
+              invalidateOnRefresh: true,
+            },
+          });
+
+          /*
+           * Fade the scroll indicator once the visitor
+           * begins moving through the Hero/About scene.
+           */
+          if (scrollIndicator) {
+            gsap.to(scrollIndicator, {
+              autoAlpha: 0,
+              y: -12,
+              ease: "none",
+
+              scrollTrigger: {
+                trigger: section,
+                start: "top top",
+                end: mobile ? "12% top" : "18% top",
+                scrub: true,
+                invalidateOnRefresh: true,
+              },
+            });
           }
         },
       );
@@ -167,7 +239,7 @@ export default function Hero() {
       <div ref={imageRef} className={styles.imageWrapper}>
         <Image
           src="/images/hero/hero-bg.jpg"
-          alt="Oceara coastal living surrounded by sea and nature"
+          alt="Oceara coastal residences surrounded by sea and nature"
           fill
           priority
           quality={90}
@@ -185,13 +257,11 @@ export default function Hero() {
           Life Shaped By Sea And Serenity
         </h1>
 
-       <a
-  href="#contact"
-  className={styles.discoverLink}
-  data-contact-popup
->
-  <span>Discover More</span>
-</a>
+        <p className={styles.subtitle}>Exclusive Residences At Dubai Islands</p>
+
+        <a href="#contact" className={styles.discoverLink} data-contact-popup>
+          <span>Discover More</span>
+        </a>
       </div>
 
       <a

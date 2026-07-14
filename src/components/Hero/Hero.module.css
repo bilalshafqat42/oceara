@@ -1,9 +1,11 @@
 .hero {
   position: relative;
+
   isolation: isolate;
 
   width: 100%;
   height: 100%;
+  min-height: 100vh;
   min-height: 100svh;
 
   overflow: hidden;
@@ -12,22 +14,32 @@
   color: #ffffff;
 }
 
+/* =========================================================
+   Background image
+   ========================================================= */
+
 .imageWrapper {
   position: absolute;
-  inset: -5% 0;
+  inset: -6% 0;
 
   z-index: -3;
 
   width: 100%;
-  height: 110%;
+  height: 112%;
+
+  overflow: hidden;
 
   transform-origin: center center;
+
   will-change: transform;
 }
 
 .image {
   object-fit: cover;
   object-position: center center;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .imageOverlay {
@@ -39,30 +51,34 @@
   background:
     linear-gradient(
       90deg,
-      rgba(3, 42, 64, 0.58) 0%,
-      rgba(4, 55, 80, 0.28) 38%,
-      rgba(3, 40, 58, 0.04) 70%
+      rgba(15, 35, 45, 0.62) 0%,
+      rgba(18, 42, 52, 0.32) 39%,
+      rgba(18, 40, 48, 0.06) 72%
     ),
     linear-gradient(
       0deg,
-      rgba(1, 34, 51, 0.62) 0%,
-      rgba(1, 38, 58, 0.14) 48%,
-      rgba(1, 34, 51, 0.05) 100%
+      rgba(12, 29, 36, 0.66) 0%,
+      rgba(13, 34, 43, 0.16) 48%,
+      rgba(12, 29, 36, 0.04) 100%
     );
 
   pointer-events: none;
 }
 
+/* =========================================================
+   Main Hero content
+   ========================================================= */
+
 .content {
   position: absolute;
-  top: 61%;
+  top: 55%;
   left: clamp(40px, 7.3vw, 140px);
-
   z-index: 2;
 
-  width: min(820px, calc(100% - 80px));
+  width: min(900px, calc(100% - 80px));
 
   transform: translateY(-50%);
+
   will-change: transform, opacity;
 }
 
@@ -89,8 +105,28 @@
   letter-spacing: -0.02em;
 
   color: #ffffff;
+
   text-wrap: balance;
 }
+
+.subtitle {
+  max-width: 600px;
+
+  margin: 20px 0 0;
+
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* =========================================================
+   Discover More
+   ========================================================= */
 
 .discoverLink {
   position: relative;
@@ -124,7 +160,7 @@
 }
 
 .discoverLink::before {
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.42);
 }
 
 .discoverLink::after {
@@ -147,11 +183,14 @@
   outline-offset: 7px;
 }
 
+/* =========================================================
+   Scroll indicator
+   ========================================================= */
+
 .scrollIndicator {
   position: absolute;
   bottom: clamp(26px, 3vw, 52px);
   left: 50%;
-
   z-index: 2;
 
   display: flex;
@@ -163,6 +202,7 @@
   text-decoration: none;
 
   transform: translateX(-50%);
+
   will-change: transform, opacity;
 }
 
@@ -173,6 +213,7 @@
   line-height: 1;
   letter-spacing: 0.28em;
   text-transform: uppercase;
+
   white-space: nowrap;
 }
 
@@ -217,9 +258,14 @@
     transform: translateY(220%);
   }
 }
+
+/* =========================================================
+   Tablet
+   ========================================================= */
+
 @media (max-width: 1024px) {
   .content {
-    top: 64%;
+    top: 57%;
     left: clamp(30px, 6vw, 72px);
 
     width: min(720px, calc(100% - 60px));
@@ -235,9 +281,20 @@
 
   .title {
     max-width: 650px;
+
     font-size: 46px;
   }
+
+  .subtitle {
+    max-width: 580px;
+
+    font-size: 14px;
+  }
 }
+
+/* =========================================================
+   Mobile
+   ========================================================= */
 
 @media (max-width: 767px) {
   .hero {
@@ -245,8 +302,9 @@
   }
 
   .imageWrapper {
-    inset: -2% 0;
-    height: 104%;
+    inset: -3% 0;
+
+    height: 106%;
   }
 
   .image {
@@ -254,18 +312,20 @@
   }
 
   .imageOverlay {
-    background: linear-gradient(
-      0deg,
-      rgba(2, 36, 53, 0.76) 0%,
-      rgba(2, 43, 63, 0.18) 65%,
-      rgba(2, 36, 53, 0.06) 100%
-    );
+    background:
+      linear-gradient(
+        0deg,
+        rgba(11, 28, 35, 0.8) 0%,
+        rgba(12, 35, 44, 0.26) 62%,
+        rgba(12, 29, 36, 0.05) 100%
+      ),
+      linear-gradient(90deg, rgba(12, 29, 36, 0.32) 0%, transparent 72%);
   }
 
   .content {
     top: auto;
     right: 22px;
-    bottom: 118px;
+    bottom: 124px;
     left: 22px;
 
     width: auto;
@@ -275,17 +335,30 @@
 
   .eyebrow {
     margin-bottom: 8px;
+
     font-size: 32px;
   }
 
   .title {
     max-width: 390px;
+
     font-size: 38px;
     line-height: 1.05;
   }
 
+  .subtitle {
+    max-width: 390px;
+
+    margin-top: 16px;
+
+    font-size: 12px;
+    line-height: 1.45;
+    letter-spacing: 0.1em;
+  }
+
   .discoverLink {
     margin-top: 24px;
+
     font-size: 16px;
   }
 
@@ -300,14 +373,23 @@
   }
 
   .scrollLine {
-    display: block;
     height: 32px;
   }
 }
 
+/* =========================================================
+   Small mobile
+   ========================================================= */
+
 @media (max-width: 480px) {
   .image {
     object-position: 61% center;
+  }
+
+  .content {
+    right: 18px;
+    bottom: 116px;
+    left: 18px;
   }
 
   .eyebrow {
@@ -315,26 +397,54 @@
   }
 
   .title {
+    max-width: 360px;
+
     font-size: 34px;
+  }
+
+  .subtitle {
+    max-width: 330px;
+
+    font-size: 11px;
+  }
+
+  .discoverLink {
+    margin-top: 23px;
+
+    font-size: 15px;
   }
 
   .scrollText {
     font-size: 7px;
   }
-  .discoverLink {
-    font-size: 15px;
-  }
 }
 
+/* =========================================================
+   Reduced motion
+   ========================================================= */
+
 @media (prefers-reduced-motion: reduce) {
-  .imageWrapper,
-  .content,
-  .scrollIndicator {
+  .imageWrapper {
     transform: none !important;
+  }
+
+  .eyebrow,
+  .title,
+  .subtitle,
+  .discoverLink,
+  .scrollIndicator {
+    opacity: 1 !important;
+  }
+
+  .content {
     opacity: 1 !important;
   }
 
   .scrollLine::after {
     animation: none;
+  }
+
+  .discoverLink::after {
+    transition: none;
   }
 }
