@@ -10,8 +10,7 @@ const projectContent = {
   intro: {
     eyebrow: "A Residential",
     title: "Retreat On Dubai Islands",
-    linkLabel: "Submit Request",
-    href: "#contact",
+    buttonLabel: "Submit Request",
   },
 
   description:
@@ -20,6 +19,12 @@ const projectContent = {
   location:
     "Set within Dubai Islands, this distinctive address occupies a unique position where expansive parkland meets the coastline. Defined by open outlooks, natural surroundings and a sense of separation from the pace of the city, it offers a residential environment shaped by space, calm and connection to nature.",
 };
+
+const progressLabels = [
+  "project-intro",
+  "project-description",
+  "project-location",
+];
 
 export default function Project() {
   const sectionRef = useRef(null);
@@ -35,6 +40,8 @@ export default function Project() {
   const descriptionOneRef = useRef(null);
   const descriptionTwoRef = useRef(null);
 
+  const progressRefs = useRef([]);
+
   useGSAP(
     () => {
       const section = sectionRef.current;
@@ -49,6 +56,8 @@ export default function Project() {
       const beigeScene = beigeSceneRef.current;
       const descriptionOne = descriptionOneRef.current;
       const descriptionTwo = descriptionTwoRef.current;
+
+      const progressLines = progressRefs.current.filter(Boolean);
 
       if (
         !section ||
@@ -66,7 +75,6 @@ export default function Project() {
       }
 
       const introChildren = Array.from(introContent.children);
-
       const matchMedia = gsap.matchMedia();
 
       matchMedia.add(
@@ -76,11 +84,18 @@ export default function Project() {
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const {
-            desktop = false,
-            mobile = false,
-            reduceMotion = false,
-          } = context.conditions ?? {};
+          const { mobile = false, reduceMotion = false } =
+            context.conditions ?? {};
+
+          const setActiveProgress = (activeIndex) => {
+            progressLines.forEach((line, index) => {
+              if (!line) {
+                return;
+              }
+
+              line.dataset.active = index === activeIndex ? "true" : "false";
+            });
+          };
 
           if (reduceMotion) {
             gsap.set(sticky, {
@@ -107,40 +122,40 @@ export default function Project() {
               },
             );
 
+            progressLines.forEach((line) => {
+              if (line) {
+                line.dataset.active = "false";
+              }
+            });
+
             return undefined;
           }
 
           /*
-           * Initial section state.
-           *
-           * The complete sticky scene is hidden below the
-           * previous component and reveals upward.
+           * Initial scene state.
            */
           gsap.set(sticky, {
             clipPath: "inset(100% 0% 0% 0%)",
           });
 
-          /*
-           * Building scene begins in its normal position.
-           */
           gsap.set(imageScene, {
             yPercent: 0,
           });
 
+          /*
+           * A smaller starting scale keeps the
+           * architectural image sharper.
+           */
           gsap.set(image, {
-            scale: mobile ? 1.06 : 1.1,
-            yPercent: mobile ? 4 : 7,
+            scale: mobile ? 1.04 : 1.06,
+            yPercent: mobile ? 3 : 5,
             transformOrigin: "center center",
           });
 
           gsap.set(overlay, {
-            opacity: 0.4,
+            opacity: 0.42,
           });
 
-          /*
-           * Intro card is already positioned at the bottom-left,
-           * but its content starts hidden.
-           */
           gsap.set(intro, {
             autoAlpha: 0,
             y: mobile ? 52 : 76,
@@ -152,26 +167,21 @@ export default function Project() {
             y: mobile ? 20 : 28,
           });
 
-          /*
-           * The beige editorial section waits below the viewport.
-           */
           gsap.set(beigeScene, {
             yPercent: 100,
           });
 
-          /*
-           * Both editorial paragraphs remain hidden initially.
-           */
           gsap.set([descriptionOne, descriptionTwo], {
             autoAlpha: 0,
             y: mobile ? 38 : 58,
             pointerEvents: "none",
           });
 
+          setActiveProgress(0);
+
           /*
            * Phase 1:
-           * reveal the complete building composition
-           * from bottom to top as the section enters.
+           * reveal the complete Project section.
            */
           const entranceTimeline = gsap.timeline({
             defaults: {
@@ -215,6 +225,8 @@ export default function Project() {
               0,
             );
 
+          let activeProgressIndex = 0;
+
           /*
            * Phase 2:
            * complete Project storytelling sequence.
@@ -232,13 +244,6 @@ export default function Project() {
               scrub: mobile ? 0.65 : 0.95,
               invalidateOnRefresh: true,
 
-              /*
-               * Stable resting states:
-               *
-               * Intro composition
-               * First beige paragraph
-               * Second beige paragraph
-               */
               snap: {
                 snapTo: "labelsDirectional",
 
@@ -247,17 +252,69 @@ export default function Project() {
                   max: mobile ? 0.65 : 0.9,
                 },
 
-                delay: mobile ? 0.15 : 0.1,
+                delay: mobile ? 0.17 : 0.12,
                 ease: "power2.inOut",
                 inertia: false,
+              },
+
+              onUpdate: () => {
+                const currentTime = storyTimeline.time();
+
+                let nearestIndex = 0;
+                let nearestDistance = Number.POSITIVE_INFINITY;
+
+                progressLabels.forEach((label, index) => {
+                  const labelTime = storyTimeline.labels[label];
+
+                  if (typeof labelTime !== "number") {
+                    return;
+                  }
+
+                  const distance = Math.abs(currentTime - labelTime);
+
+                  if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestIndex = index;
+                  }
+                });
+
+                if (nearestIndex !== activeProgressIndex) {
+                  activeProgressIndex = nearestIndex;
+                  setActiveProgress(nearestIndex);
+                }
+              },
+
+              onRefresh: () => {
+                const currentTime = storyTimeline.time();
+
+                let nearestIndex = 0;
+                let nearestDistance = Number.POSITIVE_INFINITY;
+
+                progressLabels.forEach((label, index) => {
+                  const labelTime = storyTimeline.labels[label];
+
+                  if (typeof labelTime !== "number") {
+                    return;
+                  }
+
+                  const distance = Math.abs(currentTime - labelTime);
+
+                  if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestIndex = index;
+                  }
+                });
+
+                activeProgressIndex = nearestIndex;
+                setActiveProgress(nearestIndex);
               },
             },
           });
 
-          /*
-           * Intro card enters from below.
-           */
           storyTimeline
+            /*
+             * Intro card enters.
+             */
             .to(intro, {
               autoAlpha: 1,
               y: 0,
@@ -279,23 +336,23 @@ export default function Project() {
             .addLabel("project-intro")
 
             /*
-             * Leave the intro visible for reading.
+             * Intro reading time.
              */
             .to(
               {},
               {
-                duration: mobile ? 0.45 : 0.62,
+                duration: mobile ? 0.48 : 0.66,
               },
             )
 
             /*
-             * Building image and intro card move upward together.
+             * Building and intro composition move upward.
              *
-             * At the same time, the beige editorial background
-             * rises from the bottom.
+             * A slight overlap prevents a one-pixel seam
+             * between the image and beige scenes.
              */
             .to(imageScene, {
-              yPercent: -100,
+              yPercent: -101,
               duration: mobile ? 0.9 : 1.1,
               ease: "power2.inOut",
             })
@@ -310,7 +367,7 @@ export default function Project() {
             )
 
             /*
-             * First editorial block enters on the right.
+             * First editorial paragraph.
              */
             .to(descriptionOne, {
               autoAlpha: 1,
@@ -327,7 +384,7 @@ export default function Project() {
             .to(
               {},
               {
-                duration: mobile ? 0.55 : 0.78,
+                duration: mobile ? 0.58 : 0.82,
               },
             )
 
@@ -343,7 +400,7 @@ export default function Project() {
             })
 
             /*
-             * Small clean gap before the next paragraph.
+             * Small pause between paragraphs.
              */
             .to(
               {},
@@ -353,7 +410,7 @@ export default function Project() {
             )
 
             /*
-             * Second editorial block enters on the left.
+             * Second editorial paragraph.
              */
             .to(descriptionTwo, {
               autoAlpha: 1,
@@ -365,13 +422,12 @@ export default function Project() {
             .addLabel("project-location")
 
             /*
-             * Keep the final paragraph visible before
-             * releasing the sticky viewport.
+             * Final reading time.
              */
             .to(
               {},
               {
-                duration: mobile ? 0.65 : 0.9,
+                duration: mobile ? 0.68 : 0.95,
               },
             );
 
@@ -435,13 +491,13 @@ export default function Project() {
                 <h3 className={styles.title}>{projectContent.intro.title}</h3>
               </div>
 
-              <a
-                href={projectContent.intro.href}
+              <button
+                type="button"
                 className={styles.requestLink}
                 data-contact-popup
               >
-                {projectContent.intro.linkLabel}
-              </a>
+                {projectContent.intro.buttonLabel}
+              </button>
             </div>
           </article>
         </div>
@@ -464,9 +520,16 @@ export default function Project() {
         </div>
 
         <div className={styles.progress} aria-hidden="true">
-          <span className={styles.progressLine} />
-          <span className={styles.progressLine} />
-          <span className={styles.progressLine} />
+          {progressLabels.map((label, index) => (
+            <span
+              key={label}
+              ref={(element) => {
+                progressRefs.current[index] = element;
+              }}
+              className={styles.progressLine}
+              data-active={index === 0 ? "true" : "false"}
+            />
+          ))}
         </div>
       </div>
     </section>

@@ -16,6 +16,7 @@ import Contact from "@/components/Contact";
 import Footer from "@/components/Footer/Footer";
 import ContactPopup from "@/components/ContactPopup";
 import BackToTop from "@/components/BackToTop/BackToTop";
+import Chat from "@/components/Chat/Chat";
 
 import { gsap, useGSAP } from "@/lib/gsap";
 
@@ -303,6 +304,7 @@ export default function Home() {
 
       <ContactPopup />
       <BackToTop />
+      <Chat />
     </>
   );
 }

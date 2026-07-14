@@ -8,7 +8,7 @@
    *
    * 1. Building reveal
    * 2. Intro card
-   * 3. Image/intro move upward + beige reveal
+   * 3. Image and intro move upward
    * 4. First editorial paragraph
    * 5. Second editorial paragraph
    */
@@ -153,14 +153,26 @@
   color: #18191b;
 }
 
+/* =========================================================
+   Submit request button
+   ========================================================= */
+
 .requestLink {
   position: relative;
 
   align-self: flex-start;
 
   display: inline-flex;
+  align-items: center;
 
-  padding-bottom: 7px;
+  margin: 0;
+  padding: 0 0 7px;
+
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+
+  background: transparent;
 
   font-family: var(--font-body);
   font-size: 16px;
@@ -169,6 +181,11 @@
 
   color: #18191b;
   text-decoration: none;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  cursor: pointer;
 }
 
 .requestLink::before,
@@ -253,7 +270,7 @@
 
 /*
  * First text block:
- * middle-right, matching the Figma composition.
+ * middle-right.
  */
 .descriptionRight {
   top: 50%;
@@ -264,7 +281,7 @@
 
 /*
  * Second text block:
- * lower-left, matching the Figma composition.
+ * lower-left.
  */
 .descriptionLeft {
   bottom: clamp(70px, 12vh, 150px);
@@ -282,6 +299,7 @@
   z-index: 8;
 
   display: flex;
+  align-items: center;
   gap: 7px;
 
   pointer-events: none;
@@ -293,7 +311,20 @@
   width: 20px;
   height: 1px;
 
-  background: rgba(24, 25, 27, 0.34);
+  background: rgba(24, 25, 27, 0.24);
+
+  transform-origin: center center;
+
+  transition:
+    width 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 450ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.progressLine[data-active="true"] {
+  width: 38px;
+
+  background: #18191b;
 }
 
 /* =========================================================
@@ -430,6 +461,16 @@
   .progress {
     right: 20px;
     bottom: 20px;
+
+    gap: 5px;
+  }
+
+  .progressLine {
+    width: 14px;
+  }
+
+  .progressLine[data-active="true"] {
+    width: 27px;
   }
 }
 
@@ -459,6 +500,19 @@
     right: 18px;
     left: 18px;
   }
+
+  .progress {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .progressLine {
+    width: 12px;
+  }
+
+  .progressLine[data-active="true"] {
+    width: 23px;
+  }
 }
 
 /* =========================================================
@@ -477,8 +531,9 @@
     height: auto;
     min-height: auto;
 
-    clip-path: none !important;
     overflow: visible;
+
+    clip-path: none !important;
   }
 
   .imageScene,
@@ -494,6 +549,7 @@
 
   .introCard {
     opacity: 1 !important;
+    visibility: visible !important;
     transform: none !important;
   }
 
@@ -514,6 +570,7 @@
     margin: 0;
 
     opacity: 1 !important;
+    visibility: visible !important;
     transform: none !important;
   }
 
@@ -527,5 +584,10 @@
 
   .progress {
     display: none;
+  }
+
+  .requestLink::after,
+  .progressLine {
+    transition: none;
   }
 }
