@@ -1,8 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import {
+  gsap,
+  ScrollTrigger,
+  useGSAP,
+} from "@/lib/gsap";
 
 import styles from "./Header.module.css";
 
@@ -30,26 +39,70 @@ const menuItems = [
 ];
 
 /*
- * The Hero/About animation has three main stages:
+ * Shared Hero/About animation stages:
  *
  * 0.00 = Hero
  * 0.50 = Beige About panel
  * 1.00 = Complete About section
  *
- * The glass header activates during the final About stage.
+ * The glass header activates near the final stage.
  */
 const HEADER_CHANGE_PROGRESS = 0.66;
 
 export default function Header() {
   const headerRef = useRef(null);
+  const menuButtonRef = useRef(null);
   const menuRef = useRef(null);
+  const closeButtonRef = useRef(null);
+
   const menuTimelineRef = useRef(null);
   const previousOverflowRef = useRef("");
+  const pendingNavigationRef = useRef("");
 
   const [menuOpen, setMenuOpen] = useState(false);
 
   /*
-   * Header entrance animation and scroll colour state.
+   * Smoothly navigate to a section while accounting
+   * for the fixed header.
+   *
+   * The Hero always returns to the absolute page top.
+   */
+  const scrollToSection = useCallback((href) => {
+    if (!href) {
+      return;
+    }
+
+    if (href === "#home") {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+
+      return;
+    }
+
+    const target = document.querySelector(href);
+
+    if (!target) {
+      return;
+    }
+
+    const headerHeight =
+      headerRef.current?.getBoundingClientRect().height ?? 0;
+
+    const targetTop =
+      target.getBoundingClientRect().top +
+      window.scrollY -
+      headerHeight;
+
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: "smooth",
+    });
+  }, []);
+
+  /*
+   * Header entrance and scroll appearance.
    */
   useGSAP(
     () => {
@@ -59,59 +112,71 @@ export default function Header() {
         return undefined;
       }
 
-      const introTimeline = gsap.timeline({
-        defaults: {
-          ease: "power3.out",
-        },
-      });
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
 
-      introTimeline
-        .from(`.${styles.menuControl}`, {
-          opacity: 0,
-          y: -14,
-          duration: 0.9,
-        })
-        .from(
-          `.${styles.logo}`,
-          {
-            opacity: 0,
+      let introTimeline;
+
+      if (!reduceMotion) {
+        introTimeline = gsap.timeline({
+          defaults: {
+            ease: "power3.out",
+          },
+        });
+
+        introTimeline
+          .from(`.${styles.menuControl}`, {
+            autoAlpha: 0,
             y: -14,
             duration: 0.9,
-          },
-          "-=0.7",
-        )
-        .from(
-          `.${styles.callback}`,
-          {
-            opacity: 0,
-            y: -14,
-            duration: 0.9,
-          },
-          "-=0.7",
-        )
-        .from(
-          `.${styles.divider}`,
-          {
-            scaleX: 0,
-            transformOrigin: "left center",
-            duration: 1.2,
-          },
-          "-=0.55",
-        );
+          })
+          .from(
+            `.${styles.logo}`,
+            {
+              autoAlpha: 0,
+              y: -14,
+              duration: 0.9,
+            },
+            "-=0.7",
+          )
+          .from(
+            `.${styles.callback}`,
+            {
+              autoAlpha: 0,
+              y: -14,
+              duration: 0.9,
+            },
+            "-=0.7",
+          )
+          .from(
+            `.${styles.divider}`,
+            {
+              scaleX: 0,
+              transformOrigin: "left center",
+              duration: 1.2,
+            },
+            "-=0.55",
+          );
+      }
 
-      const heroScene = document.getElementById("hero-about-scene");
+      const heroScene = document.getElementById(
+        "hero-about-scene",
+      );
 
-      let scrollTrigger;
+      let headerScrollTrigger;
 
       if (heroScene) {
-        scrollTrigger = ScrollTrigger.create({
+        headerScrollTrigger = ScrollTrigger.create({
           trigger: heroScene,
           start: "top top",
           end: "bottom bottom",
 
           onUpdate: (self) => {
             header.dataset.scrolled =
-              self.progress >= HEADER_CHANGE_PROGRESS ? "true" : "false";
+              self.progress >= HEADER_CHANGE_PROGRESS
+                ? "true"
+                : "false";
           },
 
           onLeave: () => {
@@ -120,7 +185,9 @@ export default function Header() {
 
           onEnterBack: (self) => {
             header.dataset.scrolled =
-              self.progress >= HEADER_CHANGE_PROGRESS ? "true" : "false";
+              self.progress >= HEADER_CHANGE_PROGRESS
+                ? "true"
+                : "false";
           },
 
           onLeaveBack: () => {
@@ -129,27 +196,30 @@ export default function Header() {
 
           onRefresh: (self) => {
             header.dataset.scrolled =
-              self.progress >= HEADER_CHANGE_PROGRESS ? "true" : "false";
+              self.progress >= HEADER_CHANGE_PROGRESS
+                ? "true"
+                : "false";
           },
         });
       } else {
         /*
-         * Development fallback if the Hero/About scene
-         * is temporarily unavailable.
+         * Development fallback if the shared
+         * Hero/About scene is temporarily unavailable.
          */
-        scrollTrigger = ScrollTrigger.create({
+        headerScrollTrigger = ScrollTrigger.create({
           start: 80,
           end: "max",
 
           onUpdate: (self) => {
-            header.dataset.scrolled = self.scroll() > 80 ? "true" : "false";
+            header.dataset.scrolled =
+              self.scroll() > 80 ? "true" : "false";
           },
         });
       }
 
       return () => {
-        introTimeline.kill();
-        scrollTrigger?.kill();
+        introTimeline?.kill();
+        headerScrollTrigger?.kill();
       };
     },
     {
@@ -158,13 +228,13 @@ export default function Header() {
   );
 
   /*
-   * Full-screen menu reveal.
+   * Full-screen menu animation.
    *
-   * Opening:
+   * Open:
    * left to right.
    *
-   * Closing:
-   * right to left by reversing the same timeline.
+   * Close:
+   * reverse from right to left.
    */
   useGSAP(
     () => {
@@ -173,6 +243,10 @@ export default function Header() {
       if (!menu) {
         return undefined;
       }
+
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
 
       gsap.set(menu, {
         clipPath: "inset(0 100% 0 0)",
@@ -184,7 +258,9 @@ export default function Header() {
         paused: true,
 
         defaults: {
-          ease: "power4.inOut",
+          ease: reduceMotion
+            ? "none"
+            : "power4.inOut",
         },
 
         onStart: () => {
@@ -193,50 +269,98 @@ export default function Header() {
           });
         },
 
+        onComplete: () => {
+          /*
+           * Move keyboard focus into the open menu.
+           */
+          window.requestAnimationFrame(() => {
+            closeButtonRef.current?.focus({
+              preventScroll: true,
+            });
+          });
+        },
+
         onReverseComplete: () => {
           gsap.set(menu, {
             pointerEvents: "none",
           });
 
+          document.body.style.overflow =
+            previousOverflowRef.current;
+
           setMenuOpen(false);
+
+          const pendingHref =
+            pendingNavigationRef.current;
+
+          pendingNavigationRef.current = "";
+
+          if (pendingHref) {
+            /*
+             * Wait until the overlay has completely closed
+             * before smoothly moving to the selected section.
+             */
+            window.requestAnimationFrame(() => {
+              scrollToSection(pendingHref);
+            });
+          } else {
+            /*
+             * Return keyboard focus to the control
+             * that originally opened the menu.
+             */
+            window.requestAnimationFrame(() => {
+              menuButtonRef.current?.focus({
+                preventScroll: true,
+              });
+            });
+          }
         },
       });
+
+      const openDuration = reduceMotion ? 0.01 : 1.15;
+      const elementDuration = reduceMotion ? 0.01 : 0.7;
 
       timeline
         .to(menu, {
           clipPath: "inset(0 0% 0 0)",
-          duration: 1.15,
+          duration: openDuration,
         })
         .from(
           `.${styles.closeButton}`,
           {
-            opacity: 0,
-            rotate: -45,
-            duration: 0.6,
-            ease: "power3.out",
+            autoAlpha: 0,
+            rotate: reduceMotion ? 0 : -45,
+            duration: reduceMotion ? 0.01 : 0.6,
+            ease: reduceMotion
+              ? "none"
+              : "power3.out",
           },
-          0.45,
+          reduceMotion ? 0 : 0.45,
         )
         .from(
           `.${styles.menuLogo}`,
           {
-            opacity: 0,
-            y: -16,
-            duration: 0.7,
-            ease: "power3.out",
+            autoAlpha: 0,
+            y: reduceMotion ? 0 : -16,
+            duration: elementDuration,
+            ease: reduceMotion
+              ? "none"
+              : "power3.out",
           },
-          0.45,
+          reduceMotion ? 0 : 0.45,
         )
         .from(
           `.${styles.menuItem}`,
           {
-            opacity: 0,
-            x: -28,
-            duration: 0.7,
-            stagger: 0.07,
-            ease: "power3.out",
+            autoAlpha: 0,
+            x: reduceMotion ? 0 : -28,
+            duration: elementDuration,
+            stagger: reduceMotion ? 0 : 0.07,
+            ease: reduceMotion
+              ? "none"
+              : "power3.out",
           },
-          0.5,
+          reduceMotion ? 0 : 0.5,
         );
 
       menuTimelineRef.current = timeline;
@@ -256,31 +380,70 @@ export default function Header() {
       return;
     }
 
-    previousOverflowRef.current = document.body.style.overflow;
+    previousOverflowRef.current =
+      document.body.style.overflow;
 
     document.body.style.overflow = "hidden";
 
+    pendingNavigationRef.current = "";
+
     setMenuOpen(true);
 
-    menuTimelineRef.current?.play();
+    /*
+     * Restart instead of play so repeated openings
+     * always begin from the correct closed state.
+     */
+    menuTimelineRef.current?.restart();
   }, [menuOpen]);
 
   const closeMenu = useCallback(() => {
-    document.body.style.overflow = previousOverflowRef.current;
+    pendingNavigationRef.current = "";
 
-    menuTimelineRef.current?.reverse();
+    if (!menuTimelineRef.current) {
+      document.body.style.overflow =
+        previousOverflowRef.current;
+
+      setMenuOpen(false);
+      return;
+    }
+
+    menuTimelineRef.current.reverse();
   }, []);
 
-  const handleMenuLinkClick = useCallback(() => {
-    closeMenu();
-  }, [closeMenu]);
+  /*
+   * Logo and standard header navigation.
+   */
+  const handleHeaderNavigation = useCallback(
+    (event, href) => {
+      event.preventDefault();
+
+      scrollToSection(href);
+    },
+    [scrollToSection],
+  );
 
   /*
-   * Close the menu with Escape.
+   * Menu navigation first closes the overlay,
+   * then smoothly scrolls to the selected section.
+   */
+  const handleMenuNavigation = useCallback(
+    (event, href) => {
+      event.preventDefault();
+
+      pendingNavigationRef.current = href;
+
+      menuTimelineRef.current?.reverse();
+    },
+    [],
+  );
+
+  /*
+   * Escape-key support.
    */
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === "Escape" && menuOpen) {
+        event.preventDefault();
         closeMenu();
       }
     };
@@ -288,17 +451,34 @@ export default function Header() {
     window.addEventListener("keydown", handleEscape);
 
     return () => {
-      window.removeEventListener("keydown", handleEscape);
-
-      document.body.style.overflow = previousOverflowRef.current;
+      window.removeEventListener(
+        "keydown",
+        handleEscape,
+      );
     };
   }, [menuOpen, closeMenu]);
 
+  /*
+   * Ensure scrolling is restored if Header unmounts
+   * while the menu is open.
+   */
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow =
+        previousOverflowRef.current;
+    };
+  }, []);
+
   return (
     <>
-      <header ref={headerRef} className={styles.header} data-scrolled="false">
+      <header
+        ref={headerRef}
+        className={styles.header}
+        data-scrolled="false"
+      >
         <div className={styles.inner}>
           <button
+            ref={menuButtonRef}
             type="button"
             className={styles.menuControl}
             aria-label="Open navigation menu"
@@ -306,21 +486,43 @@ export default function Header() {
             aria-controls="oceara-menu"
             onClick={openMenu}
           >
-            <span className={styles.menuIcon} aria-hidden="true" />
+            <span
+              className={styles.menuIcon}
+              aria-hidden="true"
+            />
 
-            <span className={styles.menuText}>Menu</span>
+            <span className={styles.menuText}>
+              Menu
+            </span>
           </button>
 
-          <a href="#home" className={styles.logo} aria-label="Oceara home">
-            <span className={styles.logoMark} aria-hidden="true" />
+          <a
+            href="#home"
+            className={styles.logo}
+            aria-label="Return to the Oceara Hero section"
+            onClick={(event) =>
+              handleHeaderNavigation(event, "#home")
+            }
+          >
+            <span
+              className={styles.logoMark}
+              aria-hidden="true"
+            />
           </a>
 
-          <a href="#contact" className={styles.callback} data-contact-popup>
+          <a
+            href="#contact"
+            className={styles.callback}
+            data-contact-popup
+          >
             Request Callback
           </a>
         </div>
 
-        <div className={styles.divider} aria-hidden="true" />
+        <div
+          className={styles.divider}
+          aria-hidden="true"
+        />
       </header>
 
       <div
@@ -331,33 +533,51 @@ export default function Header() {
       >
         <div className={styles.menuBluePanel}>
           <button
+            ref={closeButtonRef}
             type="button"
             className={styles.closeButton}
             aria-label="Close navigation menu"
             onClick={closeMenu}
           >
-            <span className={styles.closeIcon} aria-hidden="true" />
+            <span
+              className={styles.closeIcon}
+              aria-hidden="true"
+            />
           </button>
 
           <a
             href="#home"
             className={styles.menuLogo}
-            aria-label="Oceara home"
-            onClick={handleMenuLinkClick}
+            aria-label="Return to the Oceara Hero section"
+            onClick={(event) =>
+              handleMenuNavigation(event, "#home")
+            }
           >
-            <span className={styles.menuLogoMark} aria-hidden="true" />
+            <span
+              className={styles.menuLogoMark}
+              aria-hidden="true"
+            />
           </a>
 
-          <nav className={styles.menuNavigation} aria-label="Main navigation">
+          <nav
+            className={styles.menuNavigation}
+            aria-label="Main navigation"
+          >
             <ul className={styles.menuList}>
-              {menuItems.map((item, index) => (
-                <li key={item.href} className={styles.menuItem}>
+              {menuItems.map((item) => (
+                <li
+                  key={item.href}
+                  className={styles.menuItem}
+                >
                   <a
                     href={item.href}
-                    className={`${styles.menuLink} ${
-                      index === 0 ? styles.menuLinkActive : ""
-                    }`}
-                    onClick={handleMenuLinkClick}
+                    className={styles.menuLink}
+                    onClick={(event) =>
+                      handleMenuNavigation(
+                        event,
+                        item.href,
+                      )
+                    }
                   >
                     {item.label}
                   </a>
@@ -367,7 +587,10 @@ export default function Header() {
           </nav>
         </div>
 
-        <div className={styles.menuImagePanel} aria-hidden="true" />
+        <div
+          className={styles.menuImagePanel}
+          aria-hidden="true"
+        />
       </div>
     </>
   );

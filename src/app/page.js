@@ -15,6 +15,7 @@ import Payment from "@/components/Payment";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer/Footer";
 import ContactPopup from "@/components/ContactPopup";
+import BackToTop from "@/components/BackToTop/BackToTop";
 
 import { gsap, useGSAP } from "@/lib/gsap";
 
@@ -287,7 +288,7 @@ export default function Home() {
 
         <MapSection />
 
-        <Location />
+        {/* <Location /> */}
 
         <SeaSection />
 
@@ -301,6 +302,7 @@ export default function Home() {
       </main>
 
       <ContactPopup />
+      <BackToTop />
     </>
   );
 }
