@@ -37,7 +37,9 @@ export default function Amenities() {
   const stickyRef = useRef(null);
   const imagePanelRef = useRef(null);
   const contentPanelRef = useRef(null);
+
   const itemRefs = useRef([]);
+  const progressRefs = useRef([]);
 
   useGSAP(
     () => {
@@ -45,14 +47,16 @@ export default function Amenities() {
       const sticky = stickyRef.current;
       const imagePanel = imagePanelRef.current;
       const contentPanel = contentPanelRef.current;
+
       const items = itemRefs.current.filter(Boolean);
+      const progressLines = progressRefs.current.filter(Boolean);
 
       if (
         !section ||
         !sticky ||
         !imagePanel ||
         !contentPanel ||
-        items.length === 0
+        items.length !== amenitiesData.length
       ) {
         return;
       }
@@ -66,18 +70,25 @@ export default function Amenities() {
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { mobile, reduceMotion } = context.conditions;
+          const { mobile = false, reduceMotion = false } =
+            context.conditions ?? {};
+
+          const setActiveProgress = (activeIndex) => {
+            progressLines.forEach((line, index) => {
+              if (!line) {
+                return;
+              }
+
+              line.dataset.active = index === activeIndex ? "true" : "false";
+            });
+          };
 
           if (reduceMotion) {
             gsap.set(sticky, {
-              clearProps: "clipPath",
+              clipPath: "none",
             });
 
-            gsap.set(imagePanel, {
-              clearProps: "transform",
-            });
-
-            gsap.set(contentPanel, {
+            gsap.set([imagePanel, contentPanel], {
               clearProps: "transform",
             });
 
@@ -89,28 +100,37 @@ export default function Amenities() {
               clearProps: "transform",
             });
 
+            progressLines.forEach((line) => {
+              if (line) {
+                line.dataset.active = "false";
+              }
+            });
+
             return;
           }
 
           /*
-           * Premium motion settings.
-           * Adjust only these values later if needed.
+           * Motion settings.
+           *
+           * These values keep the animation smooth
+           * and editorial without making it feel slow.
            */
           const travelDistance = mobile ? 64 : 88;
-          const readingHold = mobile ? 0.2 : 0.26;
+          const openingHold = mobile ? 0.26 : 0.34;
+          const readingHold = mobile ? 0.24 : 0.32;
           const exitDuration = mobile ? 0.4 : 0.46;
           const emptyGap = mobile ? 0.04 : 0.06;
           const enterDuration = mobile ? 0.56 : 0.64;
+          const finalHold = mobile ? 0.32 : 0.4;
 
           /*
-           * Reveal the complete Amenities scene
-           * vertically from the bottom.
+           * Initial section reveal from bottom to top.
            */
           gsap.set(sticky, {
             clipPath: "inset(100% 0% 0% 0%)",
           });
 
-          gsap.to(sticky, {
+          const revealTween = gsap.to(sticky, {
             clipPath: "inset(0% 0% 0% 0%)",
             ease: "none",
 
@@ -124,14 +144,13 @@ export default function Amenities() {
           });
 
           /*
-           * Subtle image movement while the
-           * section enters the viewport.
+           * Subtle image settling movement.
            */
-          gsap.fromTo(
+          const imageTween = gsap.fromTo(
             imagePanel,
             {
               yPercent: mobile ? 6 : 9,
-              scale: 1.035,
+              scale: mobile ? 1.025 : 1.035,
             },
             {
               yPercent: 0,
@@ -149,9 +168,9 @@ export default function Amenities() {
           );
 
           /*
-           * Right panel settles gently into position.
+           * Right panel settles gently into place.
            */
-          gsap.fromTo(
+          const contentTween = gsap.fromTo(
             contentPanel,
             {
               y: mobile ? 28 : 42,
@@ -171,8 +190,7 @@ export default function Amenities() {
           );
 
           /*
-           * Only the first item starts visible.
-           * The rest wait below the center.
+           * Only the first item is initially visible.
            */
           items.forEach((item, index) => {
             gsap.set(item, {
@@ -183,13 +201,17 @@ export default function Amenities() {
             });
           });
 
+          setActiveProgress(0);
+
+          let activeProgressIndex = 0;
+
           const timeline = gsap.timeline({
             scrollTrigger: {
               trigger: section,
               start: "top top",
               end: "bottom bottom",
 
-              scrub: mobile ? 0.6 : 0.9,
+              scrub: mobile ? 0.65 : 0.9,
               invalidateOnRefresh: true,
 
               snap: {
@@ -197,12 +219,45 @@ export default function Amenities() {
 
                 duration: {
                   min: 0.35,
-                  max: mobile ? 0.6 : 0.8,
+                  max: mobile ? 0.62 : 0.82,
                 },
 
-                delay: mobile ? 0.16 : 0.12,
+                delay: mobile ? 0.2 : 0.16,
                 ease: "power2.inOut",
                 inertia: false,
+              },
+
+              onUpdate: () => {
+                const duration = timeline.duration();
+
+                if (!duration) {
+                  return;
+                }
+
+                const currentTime = timeline.time();
+
+                let nearestIndex = 0;
+                let nearestDistance = Number.POSITIVE_INFINITY;
+
+                amenitiesData.forEach((_, index) => {
+                  const labelTime = timeline.labels[`item-${index}`];
+
+                  if (typeof labelTime !== "number") {
+                    return;
+                  }
+
+                  const distance = Math.abs(currentTime - labelTime);
+
+                  if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestIndex = index;
+                  }
+                });
+
+                if (nearestIndex !== activeProgressIndex) {
+                  activeProgressIndex = nearestIndex;
+                  setActiveProgress(nearestIndex);
+                }
               },
             },
           });
@@ -213,16 +268,23 @@ export default function Amenities() {
           timeline.addLabel("item-0", 0);
 
           /*
-           * Each transition:
-           * 1. brief reading hold
-           * 2. old text exits upward smoothly
-           * 3. tiny empty gap
-           * 4. new text rises from below and settles
+           * Give the first item enough time to be read
+           * before starting the transition sequence.
            */
-          for (let index = 0; index < items.length - 1; index += 1) {
+          timeline.to(
+            {},
+            {
+              duration: openingHold,
+            },
+          );
+
+          amenitiesData.slice(0, -1).forEach((_, index) => {
             const currentItem = items[index];
             const nextItem = items[index + 1];
 
+            /*
+             * Stable reading period.
+             */
             timeline.to(
               {},
               {
@@ -230,6 +292,9 @@ export default function Amenities() {
               },
             );
 
+            /*
+             * Current content exits upward.
+             */
             timeline.to(currentItem, {
               autoAlpha: 0,
               y: -travelDistance,
@@ -238,6 +303,9 @@ export default function Amenities() {
               ease: "power2.inOut",
             });
 
+            /*
+             * Small visual pause between items.
+             */
             timeline.to(
               {},
               {
@@ -245,6 +313,9 @@ export default function Amenities() {
               },
             );
 
+            /*
+             * Next content rises smoothly from below.
+             */
             timeline.fromTo(
               nextItem,
               {
@@ -262,18 +333,25 @@ export default function Amenities() {
             );
 
             timeline.addLabel(`item-${index + 1}`);
-          }
+          });
 
           /*
-           * Let the final item remain readable
-           * before the sticky section releases.
+           * Keep the final item readable before
+           * the sticky section releases.
            */
           timeline.to(
             {},
             {
-              duration: mobile ? 0.22 : 0.28,
+              duration: finalHold,
             },
           );
+
+          return () => {
+            timeline.kill();
+            revealTween.kill();
+            imageTween.kill();
+            contentTween.kill();
+          };
         },
       );
 
@@ -292,7 +370,8 @@ export default function Amenities() {
       id="amenities"
       className={styles.amenities}
       style={{
-        "--amenities-count": amenitiesData.length,
+        "--amenities-height": `${amenitiesData.length * 100}svh`,
+        "--amenities-mobile-height": `${amenitiesData.length * 90}svh`,
       }}
       aria-labelledby="amenities-heading"
     >
@@ -331,9 +410,6 @@ export default function Amenities() {
             ))}
           </div>
 
-          {/* <a href="#contact" className={styles.requestLink}>
-            Submit Request
-          </a> */}
           <button
             type="button"
             className={styles.requestLink}
@@ -343,8 +419,15 @@ export default function Amenities() {
           </button>
 
           <div className={styles.progress} aria-hidden="true">
-            {amenitiesData.map((item) => (
-              <span key={item.title} className={styles.progressLine} />
+            {amenitiesData.map((item, index) => (
+              <span
+                key={item.title}
+                ref={(element) => {
+                  progressRefs.current[index] = element;
+                }}
+                className={styles.progressLine}
+                data-active={index === 0 ? "true" : "false"}
+              />
             ))}
           </div>
         </div>

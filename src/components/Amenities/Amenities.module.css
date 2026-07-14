@@ -2,11 +2,11 @@
   position: relative;
 
   /*
-   * Five items require five viewport sections.
-   * The sticky viewport remains visible while
-   * the page supplies the scroll distance.
+   * The JavaScript supplies a reliable calculated
+   * scroll height through the custom property.
    */
-  height: calc(var(--amenities-count) * 100svh);
+  width: 100%;
+  height: var(--amenities-height);
 
   background: #f2ede5;
 }
@@ -28,10 +28,13 @@
   background: #f2ede5;
 
   clip-path: inset(100% 0% 0% 0%);
+
   will-change: clip-path;
 }
 
-/* Fixed curtain image */
+/* =========================================================
+   Fixed curtain image
+   ========================================================= */
 
 .imagePanel {
   position: relative;
@@ -44,13 +47,17 @@
 
   background: #1c1b17;
 
-  transform-origin: center;
+  transform-origin: center center;
+
   will-change: transform;
 }
 
 .image {
   object-fit: cover;
   object-position: center center;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .imageOverlay {
@@ -64,7 +71,9 @@
   pointer-events: none;
 }
 
-/* Right content panel */
+/* =========================================================
+   Right content panel
+   ========================================================= */
 
 .contentPanel {
   position: relative;
@@ -85,6 +94,10 @@
   will-change: transform;
 }
 
+/* =========================================================
+   Animated text items
+   ========================================================= */
+
 .items {
   position: relative;
 
@@ -94,8 +107,8 @@
 }
 
 /*
- * Every text item occupies the same position.
- * GSAP controls visibility and vertical movement.
+ * Every item occupies the same position.
+ * GSAP controls visibility and movement.
  */
 .item {
   position: absolute;
@@ -134,14 +147,25 @@
   color: rgba(24, 25, 27, 0.62);
 }
 
-/* Bottom request link */
+/* =========================================================
+   Submit request button
+   ========================================================= */
 
 .requestLink {
   position: absolute;
   bottom: clamp(70px, 8vh, 110px);
   left: clamp(70px, 9vw, 170px);
 
-  padding-bottom: 7px;
+  display: inline-block;
+
+  margin: 0;
+  padding: 0 0 7px;
+
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+
+  background: transparent;
 
   font-family: var(--font-body);
   font-size: 16px;
@@ -150,6 +174,10 @@
 
   color: #18191b;
   text-decoration: none;
+
+  appearance: none;
+  -webkit-appearance: none;
+
   cursor: pointer;
 }
 
@@ -173,7 +201,7 @@
   background: #18191b;
 
   transform: scaleX(0);
-  transform-origin: right;
+  transform-origin: right center;
 
   transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -181,18 +209,28 @@
 .requestLink:hover::after,
 .requestLink:focus-visible::after {
   transform: scaleX(1);
-  transform-origin: left;
+  transform-origin: left center;
 }
 
-/* Optional understated progress lines */
+.requestLink:focus-visible {
+  outline: 1px solid #18191b;
+  outline-offset: 6px;
+}
+
+/* =========================================================
+   Progress indicator
+   ========================================================= */
 
 .progress {
-    display: none;
   position: absolute;
   right: clamp(30px, 4vw, 70px);
   bottom: clamp(70px, 8vh, 110px);
 
+  display: flex;
+  align-items: center;
   gap: 7px;
+
+  pointer-events: none;
 }
 
 .progressLine {
@@ -202,9 +240,24 @@
   height: 1px;
 
   background: rgba(24, 25, 27, 0.2);
+
+  transform-origin: center center;
+
+  transition:
+    width 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 450ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Accessible hidden heading */
+.progressLine[data-active="true"] {
+  width: 34px;
+
+  background: #18191b;
+}
+
+/* =========================================================
+   Accessible hidden heading
+   ========================================================= */
 
 .visuallyHidden {
   position: absolute !important;
@@ -212,18 +265,22 @@
   width: 1px !important;
   height: 1px !important;
 
-  padding: 0 !important;
   margin: -1px !important;
+  padding: 0 !important;
 
   overflow: hidden !important;
+
   white-space: nowrap !important;
 
   border: 0 !important;
 
   clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
 }
 
-/* Tablet */
+/* =========================================================
+   Tablet
+   ========================================================= */
 
 @media (max-width: 1024px) {
   .contentPanel {
@@ -233,13 +290,19 @@
   .requestLink {
     left: clamp(38px, 6vw, 80px);
   }
+
+  .progress {
+    right: clamp(28px, 4vw, 48px);
+  }
 }
 
-/* Mobile */
+/* =========================================================
+   Mobile
+   ========================================================= */
 
 @media (max-width: 767px) {
   .amenities {
-    height: calc(var(--amenities-count) * 90svh);
+    height: var(--amenities-mobile-height);
   }
 
   .stickyViewport {
@@ -273,6 +336,7 @@
 
   .description {
     max-width: 350px;
+
     font-size: 16px;
   }
 
@@ -285,8 +349,50 @@
   .progress {
     right: 22px;
     bottom: 42px;
+
+    gap: 5px;
+  }
+
+  .progressLine {
+    width: 12px;
+  }
+
+  .progressLine[data-active="true"] {
+    width: 24px;
   }
 }
+
+/* =========================================================
+   Small mobile
+   ========================================================= */
+
+@media (max-width: 420px) {
+  .contentPanel {
+    padding-inline: 18px;
+  }
+
+  .requestLink {
+    left: 18px;
+
+    font-size: 15px;
+  }
+
+  .progress {
+    right: 18px;
+  }
+
+  .progressLine {
+    width: 10px;
+  }
+
+  .progressLine[data-active="true"] {
+    width: 20px;
+  }
+}
+
+/* =========================================================
+   Reduced motion
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .amenities {
@@ -295,17 +401,35 @@
 
   .stickyViewport {
     position: relative;
+    top: auto;
+
+    grid-template-columns: 1fr 1fr;
 
     height: auto;
     min-height: 100svh;
 
+    overflow: visible;
+
     clip-path: none !important;
+  }
+
+  .imagePanel {
+    min-height: 100svh;
+
+    transform: none !important;
+  }
+
+  .contentPanel {
+    min-height: 100svh;
+
+    transform: none !important;
   }
 
   .items {
     display: grid;
     gap: 34px;
 
+    max-width: 420px;
     min-height: auto;
   }
 
@@ -324,6 +448,36 @@
     position: relative;
     inset: auto;
 
+    align-self: flex-start;
+
     margin-top: 50px;
+  }
+
+  .progress {
+    display: none;
+  }
+
+  .requestLink::after,
+  .progressLine {
+    transition: none;
+  }
+}
+
+/* Reduced-motion mobile layout */
+
+@media (prefers-reduced-motion: reduce) and (max-width: 767px) {
+  .stickyViewport {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .imagePanel {
+    min-height: 55svh;
+  }
+
+  .contentPanel {
+    min-height: auto;
+
+    padding: 70px 22px;
   }
 }
