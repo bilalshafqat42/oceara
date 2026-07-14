@@ -369,6 +369,9 @@
 
 /* =========================================================
    Persistent toggle button
+
+   Colours matched to BackToTop's original branding: charcoal
+   base, cream hover/focus, navy active, 1px outline focus ring.
    ========================================================= */
 
 .toggleButton {
@@ -379,34 +382,60 @@
   width: 56px;
   height: 56px;
 
+  margin: 0;
+  padding: 0;
+
   color: #ffffff;
 
-  background: #333333;
-  border: none;
+  background: #3d3d3d;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+  box-shadow:
+    0 8px 20px rgba(24, 25, 27, 0.18),
+    0 2px 6px rgba(24, 25, 27, 0.08);
 
   cursor: pointer;
 
   transition:
-    background 180ms ease,
+    background-color 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 180ms ease;
 }
 
 .toggleButton:hover,
 .toggleButton:focus-visible {
-  background: #073d61;
+  color: #090909;
+
+  background: #f2ede5;
+  border-color: rgba(0, 0, 0, 0.85);
+  box-shadow:
+    0 12px 28px rgba(7, 61, 97, 0.28),
+    0 3px 8px rgba(24, 25, 27, 0.1);
+
   transform: translateY(-2px);
 }
 
+.toggleButton:active {
+  background: #052f4b;
+}
+
 .toggleButton:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 3px;
+  outline: 1px solid #073d61;
+  outline-offset: 5px;
 }
 
 /*
- * Icon sizing matches BackToTop's arrow exactly (13px desktop,
- * 12px mobile), so the two buttons feel like one family.
+ * Icon.
+ *
+ * The custom chat-icon.svg is applied as a CSS mask rather than
+ * an <img src>, so it always renders in the button's current text
+ * colour (white on the charcoal/navy states, #090909 on the cream
+ * hover state) regardless of whatever colour it was originally
+ * exported in. This keeps it visible and on-brand through every
+ * state automatically, the same way the open/chevron icon already
+ * does via currentColor.
  */
 .toggleIcon {
   display: flex;
@@ -415,6 +444,8 @@
 
   width: 18px;
   height: 18px;
+
+  color: inherit;
 }
 
 .toggleIconImage {
@@ -423,7 +454,16 @@
   width: 100%;
   height: 100%;
 
-  object-fit: contain;
+  background-color: currentColor;
+
+  -webkit-mask-image: url("/images/agent/chat-icon.svg");
+  mask-image: url("/images/agent/chat-icon.svg");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
 }
 
 /* =========================================================

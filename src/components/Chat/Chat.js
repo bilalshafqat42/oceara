@@ -314,18 +314,12 @@ export default function Chat() {
             </svg>
           ) : (
             // Custom brand icon, saved at public/images/agent/chat-icon.svg.
-            // Rendered as a plain <img>, so it needs to already be a light
-            // colour internally (white or near-white) to read against the
-            // dark button background in both its default and hover states.
-            // If it looks invisible once you check it in the browser, share
-            // the SVG markup and it can be inlined instead so it can inherit
-            // currentColor like the chevron above does.
-            <img
-              src="/images/agent/chat-icon.svg"
-              alt=""
-              aria-hidden="true"
-              className={styles.toggleIconImage}
-            />
+            // Applied as a CSS mask (see .toggleIconImage) instead of an
+            // <img src>, so it always picks up currentColor and stays
+            // visible whether the button is charcoal, navy, or the cream
+            // hover state, regardless of what colour the SVG was exported
+            // in originally.
+            <span className={styles.toggleIconImage} aria-hidden="true" />
           )}
         </span>
       </button>

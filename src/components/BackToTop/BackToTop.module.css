@@ -1,14 +1,31 @@
+/*
+ * Position is kept in sync with the Chat toggle button
+ * (components/Chat/Chat.module.css), so the two float side by
+ * side instead of stacking on top of each other:
+ *
+ * Chat:      right 24px / bottom 24px  (mobile: right 16px / bottom 16px)
+ * BackToTop: right 96px / bottom 24px  (mobile: right 78px / bottom 16px)
+ *
+ * BackToTop's right offset = Chat's right (24) + Chat's width (56)
+ * + a 16px gap = 96px. On mobile: Chat's right (16) + Chat's width
+ * (50) + a 12px gap = 78px. Bottom always matches Chat's bottom
+ * exactly, so they're level with each other.
+ *
+ * If Chat's position, width, or gap ever change, recalculate
+ * BackToTop's right offset using that same formula.
+ */
+
 .backToTop {
   position: fixed;
-  right: clamp(20px, 2.5vw, 44px);
-  bottom: clamp(22px, 3vw, 46px);
+  right: 96px;
+  bottom: 24px;
   z-index: 90;
 
   display: grid;
   place-items: center;
 
-  width: 54px;
-  height: 54px;
+  width: 56px;
+  height: 56px;
 
   margin: 0;
   padding: 0;
@@ -89,13 +106,17 @@
   outline-offset: 5px;
 }
 
-/* Tablet and mobile */
-
+/*
+ * Tablet.
+ *
+ * Only the button shrinks here. Position is intentionally left
+ * alone (inherits right: 96px / bottom: 24px from the base rule)
+ * because Chat doesn't change size until 480px either, so both
+ * buttons must stay level and side by side all the way down to
+ * that breakpoint.
+ */
 @media (max-width: 767px) {
   .backToTop {
-    right: 18px;
-    bottom: 20px;
-
     width: 50px;
     height: 50px;
   }
@@ -110,7 +131,7 @@
 
 @media (max-width: 480px) {
   .backToTop {
-    right: 14px;
+    right: 78px;
     bottom: 16px;
 
     width: 46px;
