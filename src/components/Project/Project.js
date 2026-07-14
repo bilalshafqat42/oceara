@@ -10,7 +10,8 @@ const projectContent = {
   intro: {
     eyebrow: "A Residential",
     title: "Retreat On Dubai Islands",
-    buttonLabel: "Submit Request",
+    buttonLabel: "Download Brochure",
+    brochureUrl: "/pdf/oceara-brochure.pdf",
   },
 
   description:
@@ -30,6 +31,9 @@ export default function Project() {
   const sectionRef = useRef(null);
   const stickyRef = useRef(null);
 
+  /*
+   * Desktop scene refs.
+   */
   const imageSceneRef = useRef(null);
   const imageRef = useRef(null);
   const overlayRef = useRef(null);
@@ -39,6 +43,16 @@ export default function Project() {
   const beigeSceneRef = useRef(null);
   const descriptionOneRef = useRef(null);
   const descriptionTwoRef = useRef(null);
+
+  /*
+   * Mobile-only scene refs.
+   */
+  const mobileSceneRef = useRef(null);
+  const mobileImageRevealRef = useRef(null);
+  const mobileImageRef = useRef(null);
+  const mobileOverlayRef = useRef(null);
+  const mobileStoryPanelRef = useRef(null);
+  const mobileItemRefs = useRef([]);
 
   const progressRefs = useRef([]);
 
@@ -57,24 +71,19 @@ export default function Project() {
       const descriptionOne = descriptionOneRef.current;
       const descriptionTwo = descriptionTwoRef.current;
 
+      const mobileScene = mobileSceneRef.current;
+      const mobileImageReveal = mobileImageRevealRef.current;
+      const mobileImage = mobileImageRef.current;
+      const mobileOverlay = mobileOverlayRef.current;
+      const mobileStoryPanel = mobileStoryPanelRef.current;
+      const mobileItems = mobileItemRefs.current.filter(Boolean);
+
       const progressLines = progressRefs.current.filter(Boolean);
 
-      if (
-        !section ||
-        !sticky ||
-        !imageScene ||
-        !image ||
-        !overlay ||
-        !intro ||
-        !introContent ||
-        !beigeScene ||
-        !descriptionOne ||
-        !descriptionTwo
-      ) {
+      if (!section || !sticky) {
         return undefined;
       }
 
-      const introChildren = Array.from(introContent.children);
       const matchMedia = gsap.matchMedia();
 
       matchMedia.add(
@@ -84,8 +93,11 @@ export default function Project() {
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { mobile = false, reduceMotion = false } =
-            context.conditions ?? {};
+          const {
+            desktop = false,
+            mobile = false,
+            reduceMotion = false,
+          } = context.conditions ?? {};
 
           const setActiveProgress = (activeIndex) => {
             progressLines.forEach((line, index) => {
@@ -93,34 +105,67 @@ export default function Project() {
                 return;
               }
 
-              line.dataset.active = index === activeIndex ? "true" : "false";
+              line.dataset.active =
+                index === activeIndex ? "true" : "false";
             });
           };
 
+          /*
+           * Reduced-motion fallback.
+           */
           if (reduceMotion) {
             gsap.set(sticky, {
               clipPath: "none",
             });
 
-            gsap.set(
-              [
-                imageScene,
-                image,
-                overlay,
-                intro,
-                ...introChildren,
-                beigeScene,
-                descriptionOne,
-                descriptionTwo,
-              ],
-              {
-                clearProps: "all",
-                autoAlpha: 1,
-                x: 0,
-                y: 0,
-                yPercent: 0,
-              },
-            );
+            if (desktop) {
+              const introChildren = introContent
+                ? Array.from(introContent.children)
+                : [];
+
+              gsap.set(
+                [
+                  imageScene,
+                  image,
+                  overlay,
+                  intro,
+                  ...introChildren,
+                  beigeScene,
+                  descriptionOne,
+                  descriptionTwo,
+                ].filter(Boolean),
+                {
+                  clearProps: "all",
+                  autoAlpha: 1,
+                  x: 0,
+                  y: 0,
+                  xPercent: 0,
+                  yPercent: 0,
+                },
+              );
+            }
+
+            if (mobile) {
+              gsap.set(
+                [
+                  mobileScene,
+                  mobileImageReveal,
+                  mobileImage,
+                  mobileOverlay,
+                  mobileStoryPanel,
+                  ...mobileItems,
+                ].filter(Boolean),
+                {
+                  clearProps: "all",
+                  autoAlpha: 1,
+                  x: 0,
+                  y: 0,
+                  xPercent: 0,
+                  yPercent: 0,
+                  clipPath: "none",
+                },
+              );
+            }
 
             progressLines.forEach((line) => {
               if (line) {
@@ -132,309 +177,545 @@ export default function Project() {
           }
 
           /*
-           * Initial scene state.
+           * =====================================================
+           * DESKTOP
+           *
+           * Existing desktop behaviour remains unchanged.
+           * =====================================================
            */
-          gsap.set(sticky, {
-            clipPath: "inset(100% 0% 0% 0%)",
-          });
+          if (desktop) {
+            if (
+              !imageScene ||
+              !image ||
+              !overlay ||
+              !intro ||
+              !introContent ||
+              !beigeScene ||
+              !descriptionOne ||
+              !descriptionTwo
+            ) {
+              return undefined;
+            }
 
-          gsap.set(imageScene, {
-            yPercent: 0,
-          });
+            const introChildren = Array.from(introContent.children);
 
-          /*
-           * A smaller starting scale keeps the
-           * architectural image sharper.
-           */
-          gsap.set(image, {
-            scale: mobile ? 1.04 : 1.06,
-            yPercent: mobile ? 3 : 5,
-            transformOrigin: "center center",
-          });
+            gsap.set(sticky, {
+              clipPath: "inset(100% 0% 0% 0%)",
+            });
 
-          gsap.set(overlay, {
-            opacity: 0.42,
-          });
+            gsap.set(imageScene, {
+              yPercent: 0,
+            });
 
-          gsap.set(intro, {
-            autoAlpha: 0,
-            y: mobile ? 52 : 76,
-            pointerEvents: "none",
-          });
+            gsap.set(image, {
+              scale: 1.06,
+              yPercent: 5,
+              transformOrigin: "center center",
+            });
 
-          gsap.set(introChildren, {
-            autoAlpha: 0,
-            y: mobile ? 20 : 28,
-          });
+            gsap.set(overlay, {
+              opacity: 0.42,
+            });
 
-          gsap.set(beigeScene, {
-            yPercent: 100,
-          });
+            gsap.set(intro, {
+              autoAlpha: 0,
+              y: 76,
+              pointerEvents: "none",
+            });
 
-          gsap.set([descriptionOne, descriptionTwo], {
-            autoAlpha: 0,
-            y: mobile ? 38 : 58,
-            pointerEvents: "none",
-          });
+            gsap.set(introChildren, {
+              autoAlpha: 0,
+              y: 28,
+            });
 
-          setActiveProgress(0);
+            gsap.set(beigeScene, {
+              yPercent: 100,
+            });
 
-          /*
-           * Phase 1:
-           * reveal the complete Project section.
-           */
-          const entranceTimeline = gsap.timeline({
-            defaults: {
-              ease: "none",
-            },
+            gsap.set([descriptionOne, descriptionTwo], {
+              autoAlpha: 0,
+              y: 58,
+              pointerEvents: "none",
+            });
 
-            scrollTrigger: {
-              trigger: section,
-              start: "top bottom",
-              end: "top top",
+            setActiveProgress(0);
 
-              scrub: mobile ? 0.55 : 0.8,
-              invalidateOnRefresh: true,
-            },
-          });
-
-          entranceTimeline
-            .to(
-              sticky,
-              {
-                clipPath: "inset(0% 0% 0% 0%)",
-                duration: 1,
+            const entranceTimeline = gsap.timeline({
+              defaults: {
+                ease: "none",
               },
-              0,
-            )
-            .to(
-              image,
-              {
-                scale: 1,
-                yPercent: 0,
-                duration: 1,
+
+              scrollTrigger: {
+                trigger: section,
+                start: "top bottom",
+                end: "top top",
+                scrub: 0.8,
+                invalidateOnRefresh: true,
               },
-              0,
-            )
-            .to(
-              overlay,
-              {
-                opacity: 1,
-                duration: 1,
+            });
+
+            entranceTimeline
+              .to(
+                sticky,
+                {
+                  clipPath: "inset(0% 0% 0% 0%)",
+                  duration: 1,
+                },
+                0,
+              )
+              .to(
+                image,
+                {
+                  scale: 1,
+                  yPercent: 0,
+                  duration: 1,
+                },
+                0,
+              )
+              .to(
+                overlay,
+                {
+                  opacity: 1,
+                  duration: 1,
+                },
+                0,
+              );
+
+            let activeProgressIndex = 0;
+
+            const storyTimeline = gsap.timeline({
+              defaults: {
+                ease: "none",
               },
-              0,
-            );
 
-          let activeProgressIndex = 0;
+              scrollTrigger: {
+                trigger: section,
+                start: "top top",
+                end: "bottom bottom",
 
-          /*
-           * Phase 2:
-           * complete Project storytelling sequence.
-           */
-          const storyTimeline = gsap.timeline({
-            defaults: {
-              ease: "none",
-            },
+                scrub: 0.95,
+                invalidateOnRefresh: true,
 
-            scrollTrigger: {
-              trigger: section,
-              start: "top top",
-              end: "bottom bottom",
+                snap: {
+                  snapTo: "labelsDirectional",
 
-              scrub: mobile ? 0.65 : 0.95,
-              invalidateOnRefresh: true,
+                  duration: {
+                    min: 0.35,
+                    max: 0.9,
+                  },
 
-              snap: {
-                snapTo: "labelsDirectional",
-
-                duration: {
-                  min: 0.35,
-                  max: mobile ? 0.65 : 0.9,
+                  delay: 0.12,
+                  ease: "power2.inOut",
+                  inertia: false,
                 },
 
-                delay: mobile ? 0.17 : 0.12,
-                ease: "power2.inOut",
-                inertia: false,
+                onUpdate: () => {
+                  const currentTime = storyTimeline.time();
+
+                  let nearestIndex = 0;
+                  let nearestDistance = Number.POSITIVE_INFINITY;
+
+                  progressLabels.forEach((label, index) => {
+                    const labelTime = storyTimeline.labels[label];
+
+                    if (typeof labelTime !== "number") {
+                      return;
+                    }
+
+                    const distance = Math.abs(
+                      currentTime - labelTime,
+                    );
+
+                    if (distance < nearestDistance) {
+                      nearestDistance = distance;
+                      nearestIndex = index;
+                    }
+                  });
+
+                  if (nearestIndex !== activeProgressIndex) {
+                    activeProgressIndex = nearestIndex;
+                    setActiveProgress(nearestIndex);
+                  }
+                },
               },
+            });
 
-              onUpdate: () => {
-                const currentTime = storyTimeline.time();
-
-                let nearestIndex = 0;
-                let nearestDistance = Number.POSITIVE_INFINITY;
-
-                progressLabels.forEach((label, index) => {
-                  const labelTime = storyTimeline.labels[label];
-
-                  if (typeof labelTime !== "number") {
-                    return;
-                  }
-
-                  const distance = Math.abs(currentTime - labelTime);
-
-                  if (distance < nearestDistance) {
-                    nearestDistance = distance;
-                    nearestIndex = index;
-                  }
-                });
-
-                if (nearestIndex !== activeProgressIndex) {
-                  activeProgressIndex = nearestIndex;
-                  setActiveProgress(nearestIndex);
-                }
-              },
-
-              onRefresh: () => {
-                const currentTime = storyTimeline.time();
-
-                let nearestIndex = 0;
-                let nearestDistance = Number.POSITIVE_INFINITY;
-
-                progressLabels.forEach((label, index) => {
-                  const labelTime = storyTimeline.labels[label];
-
-                  if (typeof labelTime !== "number") {
-                    return;
-                  }
-
-                  const distance = Math.abs(currentTime - labelTime);
-
-                  if (distance < nearestDistance) {
-                    nearestDistance = distance;
-                    nearestIndex = index;
-                  }
-                });
-
-                activeProgressIndex = nearestIndex;
-                setActiveProgress(nearestIndex);
-              },
-            },
-          });
-
-          storyTimeline
-            /*
-             * Intro card enters.
-             */
-            .to(intro, {
-              autoAlpha: 1,
-              y: 0,
-              pointerEvents: "auto",
-              duration: mobile ? 0.42 : 0.5,
-              ease: "power3.out",
-            })
-            .to(
-              introChildren,
-              {
+            storyTimeline
+              .to(intro, {
                 autoAlpha: 1,
                 y: 0,
-                duration: mobile ? 0.3 : 0.38,
-                stagger: 0.07,
+                pointerEvents: "auto",
+                duration: 0.5,
                 ease: "power3.out",
-              },
-              "-=0.24",
-            )
-            .addLabel("project-intro")
-
-            /*
-             * Intro reading time.
-             */
-            .to(
-              {},
-              {
-                duration: mobile ? 0.48 : 0.66,
-              },
-            )
-
-            /*
-             * Building and intro composition move upward.
-             *
-             * A slight overlap prevents a one-pixel seam
-             * between the image and beige scenes.
-             */
-            .to(imageScene, {
-              yPercent: -101,
-              duration: mobile ? 0.9 : 1.1,
-              ease: "power2.inOut",
-            })
-            .to(
-              beigeScene,
-              {
-                yPercent: 0,
-                duration: mobile ? 0.9 : 1.1,
+              })
+              .to(
+                introChildren,
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  duration: 0.38,
+                  stagger: 0.07,
+                  ease: "power3.out",
+                },
+                "-=0.24",
+              )
+              .addLabel("project-intro")
+              .to(
+                {},
+                {
+                  duration: 0.66,
+                },
+              )
+              .to(imageScene, {
+                yPercent: -101,
+                duration: 1.1,
                 ease: "power2.inOut",
-              },
-              "<",
-            )
+              })
+              .to(
+                beigeScene,
+                {
+                  yPercent: 0,
+                  duration: 1.1,
+                  ease: "power2.inOut",
+                },
+                "<",
+              )
+              .to(descriptionOne, {
+                autoAlpha: 1,
+                y: 0,
+                pointerEvents: "auto",
+                duration: 0.55,
+                ease: "power3.out",
+              })
+              .addLabel("project-description")
+              .to(
+                {},
+                {
+                  duration: 0.82,
+                },
+              )
+              .to(descriptionOne, {
+                autoAlpha: 0,
+                y: -52,
+                pointerEvents: "none",
+                duration: 0.48,
+                ease: "power2.inOut",
+              })
+              .to(
+                {},
+                {
+                  duration: 0.12,
+                },
+              )
+              .to(descriptionTwo, {
+                autoAlpha: 1,
+                y: 0,
+                pointerEvents: "auto",
+                duration: 0.55,
+                ease: "power3.out",
+              })
+              .addLabel("project-location")
+              .to(
+                {},
+                {
+                  duration: 0.95,
+                },
+              );
+
+            return () => {
+              entranceTimeline.kill();
+              storyTimeline.kill();
+            };
+          }
+
+          /*
+           * =====================================================
+           * MOBILE
+           *
+           * Beige section stays fixed.
+           * Image reveals from left to right and remains visible.
+           * Text changes in the bottom panel.
+           * =====================================================
+           */
+          if (mobile) {
+            if (
+              !mobileScene ||
+              !mobileImageReveal ||
+              !mobileImage ||
+              !mobileOverlay ||
+              !mobileStoryPanel ||
+              mobileItems.length !== 3
+            ) {
+              return undefined;
+            }
+
+            gsap.set(sticky, {
+              clipPath: "none",
+            });
 
             /*
-             * First editorial paragraph.
+             * Keep the whole mobile scene visible immediately.
              */
-            .to(descriptionOne, {
+            gsap.set(mobileScene, {
               autoAlpha: 1,
-              y: 0,
-              pointerEvents: "auto",
-              duration: mobile ? 0.44 : 0.55,
-              ease: "power3.out",
-            })
-            .addLabel("project-description")
+            });
 
             /*
-             * First paragraph reading time.
+             * Image is already positioned in its final place.
+             * The clip-path creates a left-to-right rolling reveal.
              */
-            .to(
-              {},
-              {
-                duration: mobile ? 0.58 : 0.82,
-              },
-            )
+            gsap.set(mobileImageReveal, {
+              clipPath: "inset(0% 100% 0% 0%)",
+            });
 
             /*
-             * First paragraph exits upward.
+             * Very small parallax preparation.
+             * The image remains sharp because the scale is subtle.
              */
-            .to(descriptionOne, {
-              autoAlpha: 0,
-              y: mobile ? -34 : -52,
-              pointerEvents: "none",
-              duration: mobile ? 0.38 : 0.48,
-              ease: "power2.inOut",
-            })
+            gsap.set(mobileImage, {
+              xPercent: -5,
+              scale: 1.035,
+              transformOrigin: "center center",
+            });
 
-            /*
-             * Small pause between paragraphs.
-             */
-            .to(
-              {},
-              {
-                duration: mobile ? 0.08 : 0.12,
-              },
-            )
+            gsap.set(mobileOverlay, {
+              opacity: 0.35,
+            });
 
-            /*
-             * Second editorial paragraph.
-             */
-            .to(descriptionTwo, {
+            gsap.set(mobileStoryPanel, {
               autoAlpha: 1,
-              y: 0,
-              pointerEvents: "auto",
-              duration: mobile ? 0.44 : 0.55,
-              ease: "power3.out",
-            })
-            .addLabel("project-location")
+            });
 
             /*
-             * Final reading time.
+             * Only the first story item begins visible.
              */
-            .to(
-              {},
-              {
-                duration: mobile ? 0.68 : 0.95,
-              },
+            mobileItems.forEach((item, index) => {
+              gsap.set(item, {
+                autoAlpha: index === 0 ? 1 : 0,
+                y: index === 0 ? 0 : 42,
+                pointerEvents: index === 0 ? "auto" : "none",
+                force3D: true,
+              });
+            });
+
+            const firstItemChildren = Array.from(
+              mobileItems[0].children,
             );
 
-          return () => {
-            entranceTimeline.kill();
-            storyTimeline.kill();
-          };
+            gsap.set(firstItemChildren, {
+              autoAlpha: 0,
+              y: 26,
+            });
+
+            setActiveProgress(0);
+
+            /*
+             * Initial horizontal image reveal.
+             */
+            const mobileRevealTimeline = gsap.timeline({
+              defaults: {
+                ease: "none",
+              },
+
+              scrollTrigger: {
+                trigger: section,
+                start: "top bottom",
+                end: "top top",
+
+                scrub: 0.7,
+                invalidateOnRefresh: true,
+              },
+            });
+
+            mobileRevealTimeline
+              .to(
+                mobileImageReveal,
+                {
+                  clipPath: "inset(0% 0% 0% 0%)",
+                  duration: 1,
+                },
+                0,
+              )
+              .to(
+                mobileImage,
+                {
+                  xPercent: 0,
+                  scale: 1,
+                  duration: 1,
+                },
+                0,
+              )
+              .to(
+                mobileOverlay,
+                {
+                  opacity: 1,
+                  duration: 1,
+                },
+                0,
+              );
+
+            let activeProgressIndex = 0;
+
+            /*
+             * Mobile story sequence.
+             *
+             * The image remains completely fixed.
+             * Only the beige-panel content changes.
+             */
+            const mobileStoryTimeline = gsap.timeline({
+              scrollTrigger: {
+                trigger: section,
+                start: "top top",
+                end: "bottom bottom",
+
+                scrub: 0.75,
+                invalidateOnRefresh: true,
+
+                snap: {
+                  snapTo: "labelsDirectional",
+
+                  duration: {
+                    min: 0.35,
+                    max: 0.65,
+                  },
+
+                  delay: 0.18,
+                  ease: "power2.inOut",
+                  inertia: false,
+                },
+
+                onUpdate: () => {
+                  const currentTime = mobileStoryTimeline.time();
+
+                  let nearestIndex = 0;
+                  let nearestDistance = Number.POSITIVE_INFINITY;
+
+                  progressLabels.forEach((label, index) => {
+                    const labelTime =
+                      mobileStoryTimeline.labels[label];
+
+                    if (typeof labelTime !== "number") {
+                      return;
+                    }
+
+                    const distance = Math.abs(
+                      currentTime - labelTime,
+                    );
+
+                    if (distance < nearestDistance) {
+                      nearestDistance = distance;
+                      nearestIndex = index;
+                    }
+                  });
+
+                  if (nearestIndex !== activeProgressIndex) {
+                    activeProgressIndex = nearestIndex;
+                    setActiveProgress(nearestIndex);
+                  }
+                },
+              },
+            });
+
+            /*
+             * First text content enters one element at a time.
+             */
+            mobileStoryTimeline
+              .to(firstItemChildren, {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.48,
+                stagger: 0.1,
+                ease: "power3.out",
+              })
+              .addLabel("project-intro")
+              .to(
+                {},
+                {
+                  duration: 0.68,
+                },
+              )
+
+              /*
+               * Intro exits upward.
+               */
+              .to(mobileItems[0], {
+                autoAlpha: 0,
+                y: -38,
+                pointerEvents: "none",
+                duration: 0.42,
+                ease: "power2.inOut",
+              })
+
+              /*
+               * Second text appears.
+               */
+              .fromTo(
+                mobileItems[1],
+                {
+                  autoAlpha: 0,
+                  y: 42,
+                  pointerEvents: "none",
+                },
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  pointerEvents: "auto",
+                  duration: 0.58,
+                  ease: "power3.out",
+                },
+              )
+              .addLabel("project-description")
+              .to(
+                {},
+                {
+                  duration: 0.82,
+                },
+              )
+
+              /*
+               * Second text exits upward.
+               */
+              .to(mobileItems[1], {
+                autoAlpha: 0,
+                y: -38,
+                pointerEvents: "none",
+                duration: 0.42,
+                ease: "power2.inOut",
+              })
+
+              /*
+               * Third text appears.
+               */
+              .fromTo(
+                mobileItems[2],
+                {
+                  autoAlpha: 0,
+                  y: 42,
+                  pointerEvents: "none",
+                },
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  pointerEvents: "auto",
+                  duration: 0.58,
+                  ease: "power3.out",
+                },
+              )
+              .addLabel("project-location")
+              .to(
+                {},
+                {
+                  duration: 0.9,
+                },
+              );
+
+            return () => {
+              mobileRevealTimeline.kill();
+              mobileStoryTimeline.kill();
+            };
+          }
+
+          return undefined;
         },
       );
 
@@ -455,12 +736,21 @@ export default function Project() {
       aria-labelledby="project-section-title"
     >
       <div ref={stickyRef} className={styles.stickyViewport}>
-        <h2 id="project-section-title" className={styles.visuallyHidden}>
+        <h2
+          id="project-section-title"
+          className={styles.visuallyHidden}
+        >
           Oceara Park Views project
         </h2>
 
-        {/* Building and intro composition */}
-        <div ref={imageSceneRef} className={styles.imageScene}>
+        {/* =====================================================
+            Desktop scene
+            ===================================================== */}
+
+        <div
+          ref={imageSceneRef}
+          className={styles.imageScene}
+        >
           <div className={styles.background}>
             <Image
               ref={imageRef}
@@ -484,26 +774,35 @@ export default function Project() {
             className={styles.introCard}
             aria-label="Oceara residential retreat"
           >
-            <div ref={introContentRef} className={styles.introContent}>
+            <div
+              ref={introContentRef}
+              className={styles.introContent}
+            >
               <div>
-                <p className={styles.eyebrow}>{projectContent.intro.eyebrow}</p>
+                <p className={styles.eyebrow}>
+                  {projectContent.intro.eyebrow}
+                </p>
 
-                <h3 className={styles.title}>{projectContent.intro.title}</h3>
+                <h3 className={styles.title}>
+                  {projectContent.intro.title}
+                </h3>
               </div>
 
-              <button
-                type="button"
+              <a
+                href={projectContent.intro.brochureUrl}
+                download="oceara-brochure.pdf"
                 className={styles.requestLink}
-                data-contact-popup
               >
                 {projectContent.intro.buttonLabel}
-              </button>
+              </a>
             </div>
           </article>
         </div>
 
-        {/* Beige editorial composition */}
-        <div ref={beigeSceneRef} className={styles.beigeScene}>
+        <div
+          ref={beigeSceneRef}
+          className={styles.beigeScene}
+        >
           <article
             ref={descriptionOneRef}
             className={`${styles.descriptionBlock} ${styles.descriptionRight}`}
@@ -519,7 +818,92 @@ export default function Project() {
           </article>
         </div>
 
-        <div className={styles.progress} aria-hidden="true">
+        {/* =====================================================
+            Mobile-only scene
+            ===================================================== */}
+
+        <div
+          ref={mobileSceneRef}
+          className={styles.mobileScene}
+        >
+          <div
+            ref={mobileImageRevealRef}
+            className={styles.mobileImageReveal}
+          >
+            <Image
+              ref={mobileImageRef}
+              src="/images/project/building.jpg"
+              alt="Oceara residential building overlooking Dubai Islands"
+              fill
+              quality={90}
+              sizes="100vw"
+              className={styles.mobileImage}
+            />
+
+            <div
+              ref={mobileOverlayRef}
+              className={styles.mobileImageOverlay}
+              aria-hidden="true"
+            />
+          </div>
+
+          <div
+            ref={mobileStoryPanelRef}
+            className={styles.mobileStoryPanel}
+          >
+            <div className={styles.mobileStoryItems}>
+              <article
+                ref={(element) => {
+                  mobileItemRefs.current[0] = element;
+                }}
+                className={styles.mobileStoryItem}
+              >
+                <p className={styles.mobileEyebrow}>
+                  {projectContent.intro.eyebrow}
+                </p>
+
+                <h3 className={styles.mobileTitle}>
+                  {projectContent.intro.title}
+                </h3>
+
+                <a
+                  href={projectContent.intro.brochureUrl}
+                  download="oceara-brochure.pdf"
+                  className={styles.mobileBrochureLink}
+                >
+                  {projectContent.intro.buttonLabel}
+                </a>
+              </article>
+
+              <article
+                ref={(element) => {
+                  mobileItemRefs.current[1] = element;
+                }}
+                className={styles.mobileStoryItem}
+              >
+                <p className={styles.mobileDescription}>
+                  {projectContent.description}
+                </p>
+              </article>
+
+              <article
+                ref={(element) => {
+                  mobileItemRefs.current[2] = element;
+                }}
+                className={styles.mobileStoryItem}
+              >
+                <p className={styles.mobileDescription}>
+                  {projectContent.location}
+                </p>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className={styles.progress}
+          aria-hidden="true"
+        >
           {progressLabels.map((label, index) => (
             <span
               key={label}

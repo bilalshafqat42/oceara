@@ -78,7 +78,7 @@
   position: relative;
 
   width: 100%;
-  height: 444px;
+  height: 200px;
 }
 
 .introPhoto {
@@ -142,7 +142,9 @@
 
   cursor: pointer;
 
-  transition: background 220ms ease, color 220ms ease;
+  transition:
+    background 220ms ease,
+    color 220ms ease;
 }
 
 .textUsButton:hover,
@@ -242,7 +244,9 @@
 
   cursor: pointer;
 
-  transition: background 180ms ease, color 180ms ease;
+  transition:
+    background 180ms ease,
+    color 180ms ease;
 }
 
 .closeButton:hover,
@@ -384,7 +388,9 @@
 
   cursor: pointer;
 
-  transition: background 180ms ease, transform 180ms ease;
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
 }
 
 .toggleButton:hover,
@@ -396,6 +402,28 @@
 .toggleButton:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 3px;
+}
+
+/*
+ * Icon sizing matches BackToTop's arrow exactly (13px desktop,
+ * 12px mobile), so the two buttons feel like one family.
+ */
+.toggleIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 18px;
+  height: 18px;
+}
+
+.toggleIconImage {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
 }
 
 /* =========================================================
@@ -413,6 +441,11 @@
   .toggleButton {
     width: 50px;
     height: 50px;
+  }
+
+  .toggleIcon {
+    width: 12px;
+    height: 12px;
   }
 }
 

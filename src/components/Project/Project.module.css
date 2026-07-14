@@ -4,13 +4,7 @@
   width: 100%;
 
   /*
-   * Scroll stages:
-   *
-   * 1. Building reveal
-   * 2. Intro card
-   * 3. Image and intro move upward
-   * 4. First editorial paragraph
-   * 5. Second editorial paragraph
+   * Desktop scroll stages remain unchanged.
    */
   height: 500vh;
   height: 500svh;
@@ -37,7 +31,7 @@
 }
 
 /* =========================================================
-   Building scene
+   Desktop building scene
    ========================================================= */
 
 .imageScene {
@@ -92,7 +86,7 @@
 }
 
 /* =========================================================
-   Intro card
+   Desktop intro card
    ========================================================= */
 
 .introCard {
@@ -154,13 +148,12 @@
 }
 
 /* =========================================================
-   Submit request button
+   Download brochure link
    ========================================================= */
 
-.requestLink {
+.requestLink,
+.mobileBrochureLink {
   position: relative;
-
-  align-self: flex-start;
 
   display: inline-flex;
   align-items: center;
@@ -170,7 +163,6 @@
 
   border: 0;
   border-radius: 0;
-  outline: 0;
 
   background: transparent;
 
@@ -182,14 +174,17 @@
   color: #18191b;
   text-decoration: none;
 
-  appearance: none;
-  -webkit-appearance: none;
-
   cursor: pointer;
 }
 
+.requestLink {
+  align-self: flex-start;
+}
+
 .requestLink::before,
-.requestLink::after {
+.requestLink::after,
+.mobileBrochureLink::before,
+.mobileBrochureLink::after {
   content: "";
 
   position: absolute;
@@ -200,11 +195,13 @@
   height: 1px;
 }
 
-.requestLink::before {
+.requestLink::before,
+.mobileBrochureLink::before {
   background: rgba(24, 25, 27, 0.3);
 }
 
-.requestLink::after {
+.requestLink::after,
+.mobileBrochureLink::after {
   background: #18191b;
 
   transform: scaleX(0);
@@ -214,18 +211,21 @@
 }
 
 .requestLink:hover::after,
-.requestLink:focus-visible::after {
+.requestLink:focus-visible::after,
+.mobileBrochureLink:hover::after,
+.mobileBrochureLink:focus-visible::after {
   transform: scaleX(1);
   transform-origin: left center;
 }
 
-.requestLink:focus-visible {
+.requestLink:focus-visible,
+.mobileBrochureLink:focus-visible {
   outline: 1px solid currentColor;
   outline-offset: 6px;
 }
 
 /* =========================================================
-   Beige editorial section
+   Desktop beige editorial scene
    ========================================================= */
 
 .beigeScene {
@@ -244,10 +244,6 @@
   will-change: transform;
 }
 
-/*
- * Each description remains independently positioned
- * inside the same beige viewport.
- */
 .descriptionBlock {
   position: absolute;
 
@@ -268,10 +264,6 @@
   margin: 0;
 }
 
-/*
- * First text block:
- * middle-right.
- */
 .descriptionRight {
   top: 50%;
   right: clamp(80px, 12vw, 190px);
@@ -279,13 +271,17 @@
   transform: translateY(-25%);
 }
 
-/*
- * Second text block:
- * lower-left.
- */
 .descriptionLeft {
   bottom: clamp(70px, 12vh, 150px);
   left: clamp(80px, 13vw, 210px);
+}
+
+/* =========================================================
+   Mobile scene is hidden on desktop
+   ========================================================= */
+
+.mobileScene {
+  display: none;
 }
 
 /* =========================================================
@@ -317,8 +313,7 @@
 
   transition:
     width 450ms cubic-bezier(0.16, 1, 0.3, 1),
-    background-color 450ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 450ms cubic-bezier(0.16, 1, 0.3, 1);
+    background-color 450ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .progressLine[data-active="true"] {
@@ -354,7 +349,7 @@
    Tablet
    ========================================================= */
 
-@media (max-width: 1100px) {
+@media (max-width: 1100px) and (min-width: 768px) {
   .introCard,
   .introContent {
     min-height: min(50vh, 480px);
@@ -384,83 +379,203 @@
 }
 
 /* =========================================================
-   Mobile
+   Mobile-only layout and animation scene
    ========================================================= */
 
 @media (max-width: 767px) {
   .project {
-    height: 430svh;
+    /*
+     * Three readable mobile story states.
+     */
+    height: 410svh;
+
+    background: #f2ede5;
   }
 
-  .backgroundImage {
-    object-position: 58% center;
+  .stickyViewport {
+    background: #f2ede5;
+
+    clip-path: none;
   }
 
-  .backgroundOverlay {
-    background: linear-gradient(
-      0deg,
-      rgba(5, 33, 45, 0.42) 0%,
-      rgba(5, 33, 45, 0.04) 68%
-    );
+  /*
+   * Desktop scenes are removed only on mobile.
+   */
+  .imageScene,
+  .beigeScene {
+    display: none;
   }
 
-  .introCard {
-    right: 18px;
-    bottom: 22px;
-    left: 18px;
+  .mobileScene {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
 
-    width: auto;
-    min-height: 42svh;
+    display: grid;
+    grid-template-rows: 53% 47%;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #f2ede5;
+    color: #18191b;
   }
 
-  .introContent {
-    min-height: 42svh;
+  /*
+   * Full-width mobile building image.
+   *
+   * The wrapper occupies the complete first grid row.
+   * GSAP still reveals it from left to right using clip-path.
+   */
+  .mobileImageReveal {
+    position: relative;
 
-    padding: 52px 25px 38px;
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+
+    overflow: hidden;
+
+    background: #d9e4eb;
+
+    clip-path: inset(0% 100% 0% 0%);
+
+    will-change: clip-path;
   }
 
-  .eyebrow {
+  /*
+   * Updated focal position requested for mobile.
+   */
+  .mobileImage {
+    object-fit: cover;
+    object-position: 44% center;
+
+    transform-origin: center center;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    will-change: transform;
+  }
+
+  .mobileImageOverlay {
+    position: absolute;
+    inset: 0;
+
+    background:
+      linear-gradient(90deg, rgba(5, 33, 45, 0.08) 0%, transparent 48%),
+      linear-gradient(0deg, rgba(5, 33, 45, 0.2) 0%, transparent 54%);
+
+    pointer-events: none;
+
+    will-change: opacity;
+  }
+
+  /*
+   * Permanent beige text area.
+   * It does not move while the text content changes.
+   */
+  .mobileStoryPanel {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    padding: 54px 28px 54px;
+
+    overflow: hidden;
+
+    background: #f2ede5;
+    color: #18191b;
+  }
+
+  .mobileStoryItems {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+    min-height: 230px;
+  }
+
+  /*
+   * Each mobile story item occupies the same position.
+   * GSAP controls opacity and vertical movement.
+   */
+  .mobileStoryItem {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+
+    visibility: hidden;
+    opacity: 0;
+
+    will-change: transform, opacity;
+  }
+
+  .mobileStoryItem:first-child {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .mobileEyebrow {
+    margin: 0 0 10px;
+
+    font-family: var(--font-curve);
     font-size: 30px;
+    font-weight: 400;
+    line-height: 1;
+
+    color: #18191b;
   }
 
-  .title {
+  .mobileTitle {
     max-width: 340px;
+    margin: 0;
 
+    font-family: var(--font-heading);
     font-size: 34px;
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+
+    color: #18191b;
   }
 
-  .requestLink {
+  .mobileDescription {
+    max-width: 100%;
+    margin: 0;
+
+    font-family: var(--font-body);
     font-size: 15px;
+    font-weight: 400;
+    line-height: 1.62;
+
+    color: #18191b;
   }
 
-  .descriptionBlock {
-    right: 22px;
-    left: 22px;
+  .mobileBrochureLink {
+    align-self: flex-start;
 
-    width: auto;
-    max-width: none;
+    margin-top: auto;
 
     font-size: 15px;
-    line-height: 1.6;
-  }
-
-  .descriptionRight {
-    top: 46%;
-    right: 22px;
-    left: 22px;
-
-    transform: translateY(-50%);
-  }
-
-  .descriptionLeft {
-    right: 22px;
-    bottom: 68px;
-    left: 22px;
   }
 
   .progress {
     right: 20px;
     bottom: 20px;
+    z-index: 10;
 
     gap: 5px;
   }
@@ -479,26 +594,42 @@
    ========================================================= */
 
 @media (max-width: 480px) {
-  .introCard {
-    right: 14px;
-    left: 14px;
+  .mobileScene {
+    grid-template-rows: 52% 48%;
   }
 
-  .introContent {
-    padding: 46px 22px 34px;
+  /*
+   * Keep the building image full width
+   * on smaller mobile devices as well.
+   */
+  .mobileImageReveal {
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
   }
 
-  .eyebrow {
+  .mobileImage {
+    object-position: 44% center;
+  }
+
+  .mobileStoryPanel {
+    padding: 46px 22px 46px;
+  }
+
+  .mobileEyebrow {
     font-size: 28px;
   }
 
-  .title {
+  .mobileTitle {
+    max-width: 320px;
+
     font-size: 31px;
   }
 
-  .descriptionBlock {
-    right: 18px;
-    left: 18px;
+  .mobileDescription {
+    font-size: 14px;
+    line-height: 1.6;
   }
 
   .progress {
@@ -536,6 +667,20 @@
     clip-path: none !important;
   }
 
+  .progress {
+    display: none;
+  }
+
+  .requestLink::after,
+  .mobileBrochureLink::after,
+  .progressLine {
+    transition: none;
+  }
+}
+
+/* Reduced-motion desktop */
+
+@media (prefers-reduced-motion: reduce) and (min-width: 768px) {
   .imageScene,
   .beigeScene {
     position: relative;
@@ -581,13 +726,65 @@
   .descriptionLeft {
     margin-right: auto;
   }
+}
 
-  .progress {
-    display: none;
+/* Reduced-motion mobile */
+
+@media (prefers-reduced-motion: reduce) and (max-width: 767px) {
+  .mobileScene {
+    position: relative;
+    inset: auto;
+
+    display: block;
+
+    width: 100%;
+    height: auto;
+
+    padding: 0;
+
+    overflow: visible;
   }
 
-  .requestLink::after,
-  .progressLine {
-    transition: none;
+  .mobileImageReveal {
+    width: 100%;
+    height: 60svh;
+
+    margin: 0;
+
+    clip-path: none !important;
+  }
+
+  .mobileImage {
+    object-position: 44% center;
+  }
+
+  .mobileStoryPanel {
+    height: auto;
+
+    padding: 60px 22px;
+  }
+
+  .mobileStoryItems {
+    display: grid;
+    gap: 54px;
+
+    height: auto;
+    min-height: auto;
+  }
+
+  .mobileStoryItem {
+    position: relative;
+    inset: auto;
+
+    height: auto;
+
+    visibility: visible;
+    opacity: 1;
+
+    transform: none !important;
+  }
+
+  .mobileBrochureLink {
+    margin-top: 36px;
   }
 }

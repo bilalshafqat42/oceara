@@ -295,36 +295,39 @@ export default function Chat() {
         aria-label={isOpen ? "Minimise chat" : "Open chat"}
         aria-expanded={isOpen}
       >
-        {isOpen ? (
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path
-              d="M6 9l6 6 6-6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
+        <span className={styles.toggleIcon}>
+          {isOpen ? (
+            <svg
+              viewBox="0 0 24 24"
+              width="100%"
+              height="100%"
+              aria-hidden="true"
+            >
+              <path
+                d="M6 9l6 6 6-6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          ) : (
+            // Custom brand icon, saved at public/images/agent/chat-icon.svg.
+            // Rendered as a plain <img>, so it needs to already be a light
+            // colour internally (white or near-white) to read against the
+            // dark button background in both its default and hover states.
+            // If it looks invisible once you check it in the browser, share
+            // the SVG markup and it can be inlined instead so it can inherit
+            // currentColor like the chevron above does.
+            <img
+              src="/images/agent/chat-icon.svg"
+              alt=""
+              aria-hidden="true"
+              className={styles.toggleIconImage}
             />
-          </svg>
-        ) : (
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path
-              d="M4 6h16v12H4z"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinejoin="round"
-              fill="none"
-            />
-            <path
-              d="M4 7l8 6 8-6"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
-        )}
+          )}
+        </span>
       </button>
     </div>
   );
