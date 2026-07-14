@@ -37,6 +37,10 @@ const galleryItems = [
   },
 ];
 
+const DRAG_DISTANCE_THRESHOLD = 64;
+const DRAG_VELOCITY_THRESHOLD = 0.45;
+const DRAG_RESISTANCE = 0.72;
+
 const getLoopedIndex = (index) => {
   return (index + galleryItems.length) % galleryItems.length;
 };
@@ -53,26 +57,40 @@ export default function Gallery() {
   const activeIndexRef = useRef(0);
   const animationRef = useRef(null);
 
+  const dragStateRef = useRef({
+    isDragging: false,
+    pointerId: null,
+    startX: 0,
+    currentX: 0,
+    startTime: 0,
+    moved: false,
+    basePositions: [],
+  });
+
+  const ignoreClickRef = useRef(false);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   /*
-   * Exact Figma dimensions on desktop:
+   * Exact desktop dimensions:
    *
-   * Centre image: 670 × 768
-   * Side image:   210 × 446
+   * Centre: 670 × 768
+   * Side:   210 × 446
    *
-   * Side vertical offset:
-   * 768 - 446 = 322px
-   *
-   * That makes the side images align with the
-   * bottom edge of the centre image.
+   * On mobile only, the centre image is reduced
+   * by 10% compared with the previous mobile width.
    */
   const getResponsiveSizes = useCallback(() => {
     const viewportWidth = carouselRef.current?.clientWidth || window.innerWidth;
 
     if (viewportWidth <= 480) {
-      const centreWidth = viewportWidth * 0.78;
+      /*
+       * Previous value: 78vw
+       * New value: 78vw × 0.9 = 70.2vw
+       */
+      const centreWidth = viewportWidth * 0.702;
       const centreHeight = centreWidth * (768 / 670);
 
       const sideWidth = Math.max(48, viewportWidth * 0.11);
@@ -88,7 +106,11 @@ export default function Gallery() {
     }
 
     if (viewportWidth <= 767) {
-      const centreWidth = viewportWidth * 0.74;
+      /*
+       * Previous value: 74vw
+       * New value: 74vw × 0.9 = 66.6vw
+       */
+      const centreWidth = viewportWidth * 0.666;
       const centreHeight = centreWidth * (768 / 670);
 
       const sideWidth = Math.max(62, viewportWidth * 0.13);
@@ -135,6 +157,9 @@ export default function Gallery() {
       };
     }
 
+    /*
+     * Desktop remains unchanged.
+     */
     return {
       centreWidth: 670,
       centreHeight: 768,
@@ -160,114 +185,107 @@ export default function Gallery() {
     return "hidden";
   }, []);
 
-const getCardState = useCallback(
-  (cardIndex, nextActiveIndex) => {
-    const carousel = carouselRef.current;
+  const getCardState = useCallback(
+    (cardIndex, nextActiveIndex) => {
+      const carousel = carouselRef.current;
 
-    if (!carousel) {
-      return null;
-    }
+      if (!carousel) {
+        return null;
+      }
 
-    const {
-      centreWidth,
-      centreHeight,
-      sideWidth,
-      sideHeight,
-      sideYOffset,
-    } = getResponsiveSizes();
+      const { centreWidth, centreHeight, sideWidth, sideHeight, sideYOffset } =
+        getResponsiveSizes();
 
-    const carouselWidth = carousel.clientWidth;
-    const position = getCardPosition(cardIndex, nextActiveIndex);
+      const carouselWidth = carousel.clientWidth;
+      const position = getCardPosition(cardIndex, nextActiveIndex);
 
-    const leftX = -(carouselWidth / 2) + sideWidth / 2;
-    const rightX = carouselWidth / 2 - sideWidth / 2;
+      const leftX = -(carouselWidth / 2) + sideWidth / 2;
+      const rightX = carouselWidth / 2 - sideWidth / 2;
 
-    if (position === "centre") {
+      if (position === "centre") {
+        return {
+          position: "centre",
+          x: 0,
+          y: 0,
+          width: centreWidth,
+          imageHeight: centreHeight,
+          cardOpacity: 1,
+          contentOpacity: 1,
+          contentY: 0,
+          visibility: "visible",
+          zIndex: 4,
+          pointerEvents: "auto",
+        };
+      }
+
+      if (position === "left") {
+        return {
+          position: "left",
+          x: leftX,
+          y: sideYOffset,
+          width: sideWidth,
+          imageHeight: sideHeight,
+          cardOpacity: 0.62,
+          contentOpacity: 0,
+          contentY: 14,
+          visibility: "visible",
+          zIndex: 2,
+          pointerEvents: "auto",
+        };
+      }
+
+      if (position === "right") {
+        return {
+          position: "right",
+          x: rightX,
+          y: sideYOffset,
+          width: sideWidth,
+          imageHeight: sideHeight,
+          cardOpacity: 0.62,
+          contentOpacity: 0,
+          contentY: 14,
+          visibility: "visible",
+          zIndex: 2,
+          pointerEvents: "auto",
+        };
+      }
+
       return {
-        position: "centre",
+        position: "hidden",
         x: 0,
-        y: 0,
-        width: centreWidth,
-        imageHeight: centreHeight,
-        cardOpacity: 1,
-        contentOpacity: 1,
-        contentY: 0,
-        visibility: "visible",
-        zIndex: 4,
-        pointerEvents: "auto",
-      };
-    }
-
-    if (position === "left") {
-      return {
-        position: "left",
-        x: leftX,
         y: sideYOffset,
         width: sideWidth,
         imageHeight: sideHeight,
-        cardOpacity: 0.62,
+        cardOpacity: 0,
         contentOpacity: 0,
         contentY: 14,
-        visibility: "visible",
-        zIndex: 2,
-        pointerEvents: "auto",
+        visibility: "hidden",
+        zIndex: 1,
+        pointerEvents: "none",
       };
-    }
-
-    if (position === "right") {
-      return {
-        position: "right",
-        x: rightX,
-        y: sideYOffset,
-        width: sideWidth,
-        imageHeight: sideHeight,
-        cardOpacity: 0.62,
-        contentOpacity: 0,
-        contentY: 14,
-        visibility: "visible",
-        zIndex: 2,
-        pointerEvents: "auto",
-      };
-    }
-
-    return {
-      position: "hidden",
-      x: 0,
-      y: sideYOffset,
-      width: sideWidth,
-      imageHeight: sideHeight,
-      cardOpacity: 0,
-      contentOpacity: 0,
-      contentY: 14,
-      visibility: "hidden",
-      zIndex: 1,
-      pointerEvents: "none",
-    };
-  },
-  [getCardPosition, getResponsiveSizes],
-);
+    },
+    [getCardPosition, getResponsiveSizes],
+  );
 
   const positionCards = useCallback(
-    ({ nextActiveIndex, immediate = false, duration = 0.95, onComplete }) => {
+    ({ nextActiveIndex, immediate = false, duration = 1.05, onComplete }) => {
       const cards = cardRefs.current;
       const imageWrappers = imageWrapperRefs.current;
       const contents = contentRefs.current;
 
-      if (
-        cards.filter(Boolean).length !== galleryItems.length ||
-        imageWrappers.filter(Boolean).length !== galleryItems.length ||
-        contents.filter(Boolean).length !== galleryItems.length
-      ) {
+      const allElementsReady =
+        cards.filter(Boolean).length === galleryItems.length &&
+        imageWrappers.filter(Boolean).length === galleryItems.length &&
+        contents.filter(Boolean).length === galleryItems.length;
+
+      if (!allElementsReady) {
         onComplete?.();
         return;
       }
 
       animationRef.current?.kill();
+      animationRef.current = null;
 
-      /*
-       * Immediate positioning is used during the first render
-       * and browser resizing.
-       */
       if (immediate) {
         cards.forEach((card, index) => {
           const imageWrapper = imageWrappers[index];
@@ -311,10 +329,6 @@ const getCardState = useCallback(
         },
 
         onComplete: () => {
-          /*
-           * Ensure every card finishes in its exact state.
-           * This prevents leftover transforms after several loops.
-           */
           cards.forEach((card, index) => {
             const state = getCardState(index, nextActiveIndex);
 
@@ -334,6 +348,10 @@ const getCardState = useCallback(
           animationRef.current = null;
           onComplete?.();
         },
+
+        onInterrupt: () => {
+          animationRef.current = null;
+        },
       });
 
       animationRef.current = timeline;
@@ -352,11 +370,8 @@ const getCardState = useCallback(
         const willBecomeHidden = state.position === "hidden";
 
         /*
-         * The card that was previously hidden must not travel
-         * behind the centre image.
-         *
-         * Position it immediately at its new side location while
-         * invisible, then fade it in gently.
+         * Hidden card enters directly from its new edge
+         * rather than travelling visibly behind the centre.
          */
         if (isCurrentlyHidden && !willBecomeHidden) {
           gsap.set(card, {
@@ -386,18 +401,18 @@ const getCardState = useCallback(
             {
               autoAlpha: state.cardOpacity,
               pointerEvents: state.pointerEvents,
-              duration: 0.42,
-              ease: "power2.out",
+              duration: 0.48,
+              ease: "power3.out",
             },
-            duration * 0.48,
+            duration * 0.46,
           );
 
           return;
         }
 
         /*
-         * A card leaving the visible carousel fades out in its
-         * current position. It does not travel behind the others.
+         * Card leaving the visible carousel fades out
+         * without looping visibly behind the images.
          */
         if (willBecomeHidden) {
           timeline.to(
@@ -405,7 +420,7 @@ const getCardState = useCallback(
             {
               autoAlpha: 0,
               y: 14,
-              duration: 0.2,
+              duration: 0.24,
               ease: "power2.in",
             },
             0,
@@ -416,7 +431,7 @@ const getCardState = useCallback(
             {
               autoAlpha: 0,
               pointerEvents: "none",
-              duration: 0.35,
+              duration: 0.4,
               ease: "power2.in",
             },
             0,
@@ -428,7 +443,7 @@ const getCardState = useCallback(
               visibility: "hidden",
               zIndex: 1,
             },
-            0.36,
+            0.41,
           );
 
           timeline.set(
@@ -436,7 +451,7 @@ const getCardState = useCallback(
             {
               height: state.imageHeight,
             },
-            0.36,
+            0.41,
           );
 
           card.dataset.position = "hidden";
@@ -444,12 +459,6 @@ const getCardState = useCallback(
           return;
         }
 
-        /*
-         * Normal visible movement:
-         *
-         * side → centre
-         * centre → side
-         */
         card.dataset.position = state.position;
 
         timeline.to(
@@ -464,7 +473,7 @@ const getCardState = useCallback(
             zIndex: state.zIndex,
             pointerEvents: state.pointerEvents,
             duration,
-            ease: "power3.inOut",
+            ease: "power4.inOut",
           },
           0,
         );
@@ -474,7 +483,7 @@ const getCardState = useCallback(
           {
             height: state.imageHeight,
             duration,
-            ease: "power3.inOut",
+            ease: "power4.inOut",
           },
           0,
         );
@@ -485,10 +494,10 @@ const getCardState = useCallback(
             {
               autoAlpha: 1,
               y: 0,
-              duration: 0.46,
+              duration: 0.5,
               ease: "power3.out",
             },
-            duration * 0.52,
+            duration * 0.54,
           );
         } else {
           timeline.to(
@@ -496,7 +505,7 @@ const getCardState = useCallback(
             {
               autoAlpha: 0,
               y: 14,
-              duration: 0.22,
+              duration: 0.24,
               ease: "power2.in",
             },
             0,
@@ -505,6 +514,251 @@ const getCardState = useCallback(
       });
     },
     [getCardState],
+  );
+
+  const selectSlide = useCallback(
+    (nextIndex) => {
+      if (isAnimating || nextIndex === activeIndexRef.current) {
+        return;
+      }
+
+      setIsAnimating(true);
+
+      activeIndexRef.current = nextIndex;
+      setActiveIndex(nextIndex);
+
+      positionCards({
+        nextActiveIndex: nextIndex,
+        duration: 1.05,
+
+        onComplete: () => {
+          setIsAnimating(false);
+        },
+      });
+    },
+    [isAnimating, positionCards],
+  );
+
+  const showPrevious = useCallback(() => {
+    selectSlide(getLoopedIndex(activeIndexRef.current - 1));
+  }, [selectSlide]);
+
+  const showNext = useCallback(() => {
+    selectSlide(getLoopedIndex(activeIndexRef.current + 1));
+  }, [selectSlide]);
+
+  /*
+   * Return cards to their normal position when a drag
+   * is released without reaching the switching threshold.
+   */
+  const resetAfterDrag = useCallback(() => {
+    const cards = cardRefs.current.filter(Boolean);
+
+    const timeline = gsap.timeline({
+      defaults: {
+        overwrite: true,
+      },
+
+      onComplete: () => {
+        animationRef.current = null;
+      },
+    });
+
+    animationRef.current = timeline;
+
+    cards.forEach((card, index) => {
+      const state = getCardState(index, activeIndexRef.current);
+
+      if (!state || state.position === "hidden") {
+        return;
+      }
+
+      timeline.to(
+        card,
+        {
+          x: state.x,
+          duration: 0.62,
+          ease: "power3.out",
+        },
+        0,
+      );
+    });
+  }, [getCardState]);
+
+  const handlePointerDown = useCallback(
+    (event) => {
+      if (isAnimating || event.button > 0) {
+        return;
+      }
+
+      const carousel = carouselRef.current;
+
+      if (!carousel) {
+        return;
+      }
+
+      animationRef.current?.kill();
+      animationRef.current = null;
+
+      const basePositions = cardRefs.current.map((card, index) => {
+        const state = getCardState(index, activeIndexRef.current);
+
+        return {
+          card,
+          position: state?.position,
+          baseX: state?.x ?? 0,
+        };
+      });
+
+      dragStateRef.current = {
+        isDragging: true,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        currentX: event.clientX,
+        startTime: performance.now(),
+        moved: false,
+        basePositions,
+      };
+
+      ignoreClickRef.current = false;
+
+      carousel.setPointerCapture?.(event.pointerId);
+
+      setIsDragging(true);
+    },
+    [getCardState, isAnimating],
+  );
+
+  const handlePointerMove = useCallback((event) => {
+    const dragState = dragStateRef.current;
+
+    if (!dragState.isDragging || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const rawDistance = event.clientX - dragState.startX;
+    const resistedDistance = rawDistance * DRAG_RESISTANCE;
+
+    dragState.currentX = event.clientX;
+
+    if (Math.abs(rawDistance) > 5) {
+      dragState.moved = true;
+      ignoreClickRef.current = true;
+    }
+
+    dragState.basePositions.forEach(({ card, position, baseX }) => {
+      if (!card || position === "hidden") {
+        return;
+      }
+
+      let movement = resistedDistance;
+
+      /*
+       * Side cards move slightly less than the centre,
+       * creating a subtle depth effect during dragging.
+       */
+      if (position === "left" || position === "right") {
+        movement *= 0.86;
+      }
+
+      gsap.set(card, {
+        x: baseX + movement,
+      });
+    });
+  }, []);
+
+  const finishPointerDrag = useCallback(
+    (event) => {
+      const dragState = dragStateRef.current;
+
+      if (!dragState.isDragging || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const carousel = carouselRef.current;
+      const distance = dragState.currentX - dragState.startX;
+      const elapsed = Math.max(performance.now() - dragState.startTime, 1);
+
+      const velocity = distance / elapsed;
+
+      dragStateRef.current.isDragging = false;
+      dragStateRef.current.pointerId = null;
+
+      carousel?.releasePointerCapture?.(event.pointerId);
+
+      setIsDragging(false);
+
+      const shouldChangeSlide =
+        Math.abs(distance) >= DRAG_DISTANCE_THRESHOLD ||
+        Math.abs(velocity) >= DRAG_VELOCITY_THRESHOLD;
+
+      if (!shouldChangeSlide) {
+        resetAfterDrag();
+        return;
+      }
+
+      /*
+       * Dragging left reveals the next image.
+       * Dragging right reveals the previous image.
+       */
+      if (distance < 0) {
+        showNext();
+      } else {
+        showPrevious();
+      }
+
+      window.setTimeout(() => {
+        ignoreClickRef.current = false;
+      }, 80);
+    },
+    [resetAfterDrag, showNext, showPrevious],
+  );
+
+  const handlePointerCancel = useCallback(
+    (event) => {
+      const dragState = dragStateRef.current;
+
+      if (!dragState.isDragging || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      dragStateRef.current.isDragging = false;
+      dragStateRef.current.pointerId = null;
+
+      carouselRef.current?.releasePointerCapture?.(event.pointerId);
+
+      setIsDragging(false);
+      resetAfterDrag();
+    },
+    [resetAfterDrag],
+  );
+
+  const handleCardClick = useCallback(
+    (event, index) => {
+      if (ignoreClickRef.current) {
+        event.preventDefault();
+        ignoreClickRef.current = false;
+        return;
+      }
+
+      selectSlide(index);
+    },
+    [selectSlide],
+  );
+
+  const handleKeyDown = useCallback(
+    (event) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showPrevious();
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        showNext();
+      }
+    },
+    [showPrevious, showNext],
   );
 
   useGSAP(
@@ -565,7 +819,7 @@ const getCardState = useCallback(
             .to(heading.children, {
               autoAlpha: 1,
               y: 0,
-              duration: 0.8,
+              duration: 0.82,
               stagger: 0.1,
               ease: "power3.out",
             })
@@ -585,7 +839,7 @@ const getCardState = useCallback(
 
                   return 0;
                 },
-                duration: 0.85,
+                duration: 0.9,
                 stagger: 0.06,
                 ease: "power3.out",
               },
@@ -604,6 +858,14 @@ const getCardState = useCallback(
         window.clearTimeout(resizeTimer);
 
         resizeTimer = window.setTimeout(() => {
+          animationRef.current?.kill();
+          animationRef.current = null;
+
+          dragStateRef.current.isDragging = false;
+
+          setIsDragging(false);
+          setIsAnimating(false);
+
           positionCards({
             nextActiveIndex: activeIndexRef.current,
             immediate: true,
@@ -618,58 +880,14 @@ const getCardState = useCallback(
         window.removeEventListener("resize", handleResize);
 
         animationRef.current?.kill();
+        animationRef.current = null;
+
         matchMedia.revert();
       };
     },
     {
       scope: sectionRef,
     },
-  );
-
-  const selectSlide = useCallback(
-    (nextIndex) => {
-      if (isAnimating || nextIndex === activeIndexRef.current) {
-        return;
-      }
-
-      setIsAnimating(true);
-
-      activeIndexRef.current = nextIndex;
-      setActiveIndex(nextIndex);
-
-      positionCards({
-        nextActiveIndex: nextIndex,
-        duration: 1,
-
-        onComplete: () => {
-          setIsAnimating(false);
-        },
-      });
-    },
-    [isAnimating, positionCards],
-  );
-
-  const showPrevious = useCallback(() => {
-    selectSlide(getLoopedIndex(activeIndexRef.current - 1));
-  }, [selectSlide]);
-
-  const showNext = useCallback(() => {
-    selectSlide(getLoopedIndex(activeIndexRef.current + 1));
-  }, [selectSlide]);
-
-  const handleKeyDown = useCallback(
-    (event) => {
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        showPrevious();
-      }
-
-      if (event.key === "ArrowRight") {
-        event.preventDefault();
-        showNext();
-      }
-    },
-    [showPrevious, showNext],
   );
 
   return (
@@ -691,9 +909,14 @@ const getCardState = useCallback(
       <div
         ref={carouselRef}
         className={styles.carousel}
+        data-dragging={isDragging ? "true" : "false"}
         role="region"
         aria-roledescription="carousel"
-        aria-label="Oceara lifestyle gallery"
+        aria-label="Oceara lifestyle gallery. Drag horizontally to change image."
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishPointerDrag}
+        onPointerCancel={handlePointerCancel}
       >
         {galleryItems.map((item, index) => {
           const initialPosition =
@@ -705,6 +928,8 @@ const getCardState = useCallback(
                   ? "left"
                   : "hidden";
 
+          const isCurrentSlide = index === activeIndex;
+
           return (
             <article
               key={item.image}
@@ -713,17 +938,22 @@ const getCardState = useCallback(
               }}
               className={styles.card}
               data-position={initialPosition}
+              aria-hidden={
+                initialPosition === "hidden" && !isCurrentSlide
+                  ? "true"
+                  : undefined
+              }
             >
               <button
                 type="button"
                 className={styles.cardButton}
-                disabled={isAnimating || index === activeIndex}
+                disabled={isAnimating || isCurrentSlide}
                 aria-label={
-                  index === activeIndex
+                  isCurrentSlide
                     ? `${item.title}, current image`
                     : `Show ${item.title}`
                 }
-                onClick={() => selectSlide(index)}
+                onClick={(event) => handleCardClick(event, index)}
               >
                 <span
                   ref={(element) => {
@@ -736,7 +966,14 @@ const getCardState = useCallback(
                     alt={item.alt}
                     fill
                     quality={90}
-                    sizes="(max-width: 767px) 78vw, 670px"
+                    draggable={false}
+                    sizes="
+                      (max-width: 480px) 70.2vw,
+                      (max-width: 767px) 66.6vw,
+                      (max-width: 1024px) 58vw,
+                      (max-width: 1350px) 50vw,
+                      670px
+                    "
                     className={styles.image}
                   />
                 </span>

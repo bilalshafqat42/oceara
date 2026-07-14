@@ -50,10 +50,10 @@
  */
 .backToTop:hover,
 .backToTop:focus-visible {
-  background: #073d61;
-  color: #ffffff;
+  background: #f2ede5;
+  color: #090909;
 
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: rgba(0, 0, 0, 0.85);
 
   box-shadow:
     0 12px 28px rgba(7, 61, 97, 0.28),

@@ -6,11 +6,6 @@
 
   width: 100%;
 
-  /*
-   * The section is allowed to be taller than one viewport
-   * because the exact 670 × 768 centre image must fit with
-   * the heading and bottom text.
-   */
   min-height: 1120px;
 
   padding: 140px 0 82px;
@@ -70,29 +65,29 @@
   flex: 0 0 auto;
 
   width: 100vw;
-
-  /*
-   * 768px image
-   * + 28px content margin
-   * + approximately 112px content height
-   */
   height: 910px;
 
   margin: 0;
 
   overflow: visible;
+
+  cursor: grab;
+
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+
+  -webkit-tap-highlight-color: transparent;
 }
 
-/*
- * Every gallery card stays mounted.
- *
- * GSAP changes:
- * - horizontal location;
- * - vertical location;
- * - card width;
- * - image height;
- * - opacity.
- */
+.carousel[data-dragging="true"] {
+  cursor: grabbing;
+}
+
+.carousel[data-dragging="true"] .cardButton {
+  cursor: grabbing;
+}
+
 .card {
   position: absolute;
   top: 0;
@@ -146,6 +141,8 @@
   color: inherit;
 
   cursor: pointer;
+
+  touch-action: pan-y;
 }
 
 .cardButton:disabled {
@@ -184,6 +181,13 @@
   object-fit: cover;
   object-position: center center;
 
+  pointer-events: none;
+
+  user-select: none;
+  -webkit-user-select: none;
+
+  -webkit-user-drag: none;
+
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 
@@ -195,6 +199,13 @@
 .card[data-position="left"]:hover .image,
 .card[data-position="right"]:hover .image {
   transform: translateZ(0) scale(1.025);
+}
+
+/*
+ * Disable hover zoom while actively dragging.
+ */
+.carousel[data-dragging="true"] .image {
+  transform: translateZ(0) scale(1) !important;
 }
 
 /* =========================================================
@@ -331,7 +342,7 @@
   }
 
   .carousel {
-    height: min(88vw, 800px);
+    height: min(calc(66.5vw + 150px), 800px);
   }
 }
 
@@ -361,10 +372,17 @@
   }
 
   .carousel {
-    height: min(132vw, 670px);
+    /*
+     * Centre image is 10% smaller:
+     *
+     * 66.6vw × 768/670 = approximately 76.35vw.
+     * Additional height is reserved for the card text.
+     */
+    height: min(calc(76.35vw + 144px), 735px);
   }
 
   .cardContent {
+    width: min(100%, 560px);
     min-height: 104px;
 
     margin-top: 20px;
@@ -412,7 +430,10 @@
   }
 
   .carousel {
-    height: min(145vw, 640px);
+    /*
+     * 70.2vw × 768/670 = approximately 80.47vw.
+     */
+    height: min(calc(80.47vw + 132px), 590px);
   }
 }
 
@@ -427,5 +448,9 @@
   .cardContent,
   .image {
     transition: none !important;
+  }
+
+  .carousel {
+    scroll-behavior: auto;
   }
 }
