@@ -1,14 +1,7 @@
 .mapSection {
   position: relative;
 
-  display: grid;
-  grid-template-columns:
-    minmax(340px, 42%)
-    minmax(0, 58%);
-
   width: 100%;
-  min-height: 100vh;
-  min-height: 100svh;
 
   overflow: hidden;
 
@@ -17,32 +10,29 @@
 }
 
 /* =========================================================
-   Left content
+   Full-width heading
    ========================================================= */
 
-.contentPanel {
+.sectionHeader {
   position: relative;
-  z-index: 2;
+  z-index: 3;
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
 
-  min-width: 0;
-  min-height: 100vh;
-  min-height: 100svh;
+  width: 100%;
 
-  padding: clamp(100px, 10vw, 170px) clamp(50px, 8vw, 130px);
+  padding: clamp(110px, 10vw, 165px) clamp(24px, 6vw, 100px)
+    clamp(82px, 8vw, 122px);
 
   background: #f2ede5;
-}
 
-.headingGroup {
-  margin-bottom: 34px;
+  text-align: center;
 }
 
 .eyebrow {
-  margin: 0 0 7px;
+  margin: 0 0 8px;
 
   font-family: var(--font-curve);
   font-size: 32px;
@@ -53,7 +43,6 @@
 }
 
 .heading {
-  max-width: 520px;
   margin: 0;
 
   font-family: var(--font-heading);
@@ -66,141 +55,40 @@
 }
 
 .description {
-  max-width: 470px;
-  margin: 0 0 56px;
+  width: min(100%, 850px);
+  margin: clamp(38px, 4vw, 56px) auto 0;
 
   font-family: var(--font-body);
   font-size: 18px;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.55;
 
-  color: rgba(24, 25, 27, 0.82);
+  color: rgba(24, 25, 27, 0.86);
 }
 
 /* =========================================================
-   Location list
+   Full-width map
    ========================================================= */
 
-.locationList {
-  display: flex;
-  flex-direction: column;
-
-  width: 100%;
-  max-width: 520px;
-
-  border-top: 1px solid rgba(24, 25, 27, 0.18);
-}
-
-.locationItem {
+.mapStage {
   position: relative;
 
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 22px;
-
   width: 100%;
-
-  padding: 22px 0;
-
-  border: 0;
-  border-bottom: 1px solid rgba(24, 25, 27, 0.18);
-
-  background: transparent;
-  color: #18191b;
-
-  text-align: left;
-
-  cursor: pointer;
-
-  transition:
-    padding-left 400ms cubic-bezier(0.16, 1, 0.3, 1),
-    color 400ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.locationItem::before {
-  content: "";
-
-  position: absolute;
-  top: 50%;
-  left: 0;
-
-  width: 6px;
-  height: 6px;
-
-  border-radius: 50%;
-
-  background: #123f2a;
-
-  opacity: 0;
-
-  transform: translateY(-50%) scale(0);
-
-  transition:
-    opacity 300ms ease,
-    transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.locationItem:hover,
-.locationItem:focus-visible,
-.locationItem[data-active="true"] {
-  padding-left: 17px;
-}
-
-.locationItem:hover::before,
-.locationItem:focus-visible::before,
-.locationItem[data-active="true"]::before {
-  opacity: 1;
-
-  transform: translateY(-50%) scale(1);
-}
-
-.locationItem:focus-visible {
-  outline: 1px solid #18191b;
-  outline-offset: 4px;
-}
-
-.locationName {
-  min-width: 0;
-
-  font-family: var(--font-heading);
-  font-size: 17px;
-  font-weight: 400;
-  line-height: 1.3;
-
-  color: #18191b;
-}
-
-.locationTime {
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.3;
-
-  color: rgba(24, 25, 27, 0.58);
-
-  white-space: nowrap;
-}
-
-/* =========================================================
-   Map panel
-   ========================================================= */
-
-.mapPanel {
-  position: relative;
-
-  min-width: 0;
-  min-height: 100vh;
-  min-height: 100svh;
+  height: 100vh;
+  height: 100svh;
+  min-height: 900px;
 
   overflow: hidden;
 
   background: #d9e4eb;
+
+  isolation: isolate;
 }
 
 .map {
   position: absolute;
   inset: 0;
+  z-index: 1;
 
   width: 100%;
   height: 100%;
@@ -216,20 +104,237 @@
   outline: none;
 }
 
-/*
- * Hide navigation control groups.
- *
- * NavigationControl is not added in JavaScript,
- * but this prevents controls from appearing if
- * they are accidentally added later.
- */
-
-.mapPanel :global(.mapboxgl-ctrl-group) {
+.mapStage :global(.mapboxgl-ctrl-group) {
   display: none !important;
 }
 
 /* =========================================================
-   Main project marker
+   Travel overlay
+   ========================================================= */
+
+.travelOverlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+
+  width: min(43vw, 640px);
+
+  pointer-events: none;
+}
+
+/*
+ * This is the only element that reveals
+ * from left to right while scrolling.
+ *
+ * The map stays fully visible underneath.
+ */
+.overlayBackground {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  width: 100%;
+  height: 100%;
+
+  background: linear-gradient(
+    90deg,
+    rgba(242, 237, 229, 1) 0%,
+    rgba(242, 237, 229, 0.99) 48%,
+    rgba(242, 237, 229, 0.86) 68%,
+    rgba(242, 237, 229, 0.42) 84%,
+    rgba(242, 237, 229, 0) 100%
+  );
+
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+
+  clip-path: inset(0% 100% 0% 0%);
+
+  will-change: clip-path;
+}
+
+.travelContent {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+
+  width: 100%;
+  height: 100%;
+
+  padding: clamp(70px, 8vw, 120px) clamp(42px, 6vw, 104px);
+
+  pointer-events: none;
+}
+
+.travelList {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 4.5vh, 54px);
+
+  width: min(100%, 390px);
+
+  pointer-events: auto;
+}
+
+.travelItem {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+
+  width: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+  color: #18191b;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    padding-left 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 350ms ease;
+}
+
+.travelItem::before {
+  content: "";
+
+  position: absolute;
+  top: 17px;
+  left: 0;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #123f2a;
+
+  opacity: 0;
+
+  transform: translateY(-50%) scale(0);
+
+  transition:
+    opacity 300ms ease,
+    transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.travelItem:hover,
+.travelItem:focus-visible,
+.travelItem[data-active="true"] {
+  padding-left: 20px;
+}
+
+.travelItem:hover::before,
+.travelItem:focus-visible::before,
+.travelItem[data-active="true"]::before {
+  opacity: 1;
+
+  transform: translateY(-50%) scale(1);
+}
+
+.travelItem:focus-visible {
+  outline: 1px solid #18191b;
+  outline-offset: 8px;
+}
+
+.travelTime {
+  font-family: var(--font-heading);
+  font-size: clamp(34px, 3vw, 48px);
+  font-weight: 400;
+  line-height: 1;
+
+  color: #18191b;
+}
+
+.travelName {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.35;
+
+  color: rgba(24, 25, 27, 0.82);
+}
+
+/* =========================================================
+   See Directions
+   ========================================================= */
+
+.directionsLink {
+  position: relative;
+
+  display: inline-block;
+
+  /*
+   * Requested 200px space between the
+   * final travel item and this link.
+   */
+  margin-top: 200px;
+  padding: 0 0 7px;
+
+  color: #18191b;
+
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+
+  text-decoration: none;
+
+  pointer-events: auto;
+}
+
+.directionsLink::before,
+.directionsLink::after {
+  content: "";
+
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  height: 1px;
+}
+
+.directionsLink::before {
+  background: rgba(24, 25, 27, 0.3);
+}
+
+.directionsLink::after {
+  background: #18191b;
+
+  transform: scaleX(0);
+  transform-origin: right center;
+
+  transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.directionsLink:hover::after,
+.directionsLink:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.directionsLink:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 6px;
+}
+
+/* =========================================================
+   Project marker
    ========================================================= */
 
 .projectMarker,
@@ -249,8 +354,8 @@
   display: grid;
   place-items: center;
 
-  width: 64px;
-  height: 82px;
+  width: 70px;
+  height: 90px;
 }
 
 .projectMarkerInner {
@@ -258,21 +363,21 @@
 
   display: block;
 
-  width: 54px;
-  height: 54px;
+  width: 58px;
+  height: 58px;
 
   border: 3px solid #f2ede5;
   border-radius: 50% 50% 50% 0;
 
   background: #123f2a;
 
-  transform: rotate(-45deg) scale(0.92);
+  transform: rotate(-45deg) scale(0.94);
 
-  box-shadow: 0 14px 30px rgba(18, 63, 42, 0.28);
+  box-shadow: 0 16px 36px rgba(18, 63, 42, 0.28);
 
   transition:
-    transform 400ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 400ms ease;
+    transform 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 450ms ease;
 }
 
 .projectMarkerInner::before {
@@ -282,8 +387,8 @@
   top: 50%;
   left: 50%;
 
-  width: 20px;
-  height: 20px;
+  width: 21px;
+  height: 21px;
 
   border: 3px solid #f2ede5;
   border-radius: 50%;
@@ -296,7 +401,7 @@
 .projectMarker[data-active="true"] .projectMarkerInner {
   transform: rotate(-45deg) scale(1);
 
-  box-shadow: 0 18px 38px rgba(18, 63, 42, 0.38);
+  box-shadow: 0 20px 42px rgba(18, 63, 42, 0.38);
 }
 
 .projectMarker:focus-visible,
@@ -306,15 +411,15 @@
 }
 
 /* =========================================================
-   Nearby destination markers
+   Destination markers
    ========================================================= */
 
 .locationMarker {
   display: grid;
   place-items: center;
 
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
 }
 
 .locationMarkerInner {
@@ -328,160 +433,105 @@
 
   background: #123f2a;
 
-  box-shadow: 0 3px 10px rgba(18, 63, 42, 0.24);
+  box-shadow: 0 3px 10px rgba(18, 63, 42, 0.26);
 
   transition:
-    transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 350ms ease;
+    transform 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 400ms ease;
 }
 
 .locationMarker:hover .locationMarkerInner,
 .locationMarker:focus-visible .locationMarkerInner,
 .locationMarker[data-active="true"] .locationMarkerInner {
-  transform: scale(1.5);
+  transform: scale(1.65);
 
-  box-shadow: 0 5px 15px rgba(18, 63, 42, 0.35);
+  box-shadow: 0 6px 17px rgba(18, 63, 42, 0.38);
 }
 
 /* =========================================================
-   Permanent map labels
+   Permanent labels
    ========================================================= */
 
-.mapPopup,
-.projectPopup {
+.map :global(.mapboxgl-popup) {
   pointer-events: none;
 }
 
-.mapPopup :global(.mapboxgl-popup-content) {
-  min-width: 182px;
+.map :global(.mapboxgl-popup-content) {
+  min-width: 178px;
 
-  padding: 16px 18px;
+  padding: 13px 16px;
 
-  border: 0;
   border-radius: 0;
 
-  background: rgba(242, 237, 229, 0.97);
-
+  background: rgba(242, 237, 229, 0.95);
   color: #18191b;
 
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+
   box-shadow: 0 14px 38px rgba(24, 25, 27, 0.1);
-
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
-.projectPopup :global(.mapboxgl-popup-content) {
-  min-width: 194px;
-
-  padding: 17px 19px;
+.map :global(.mapboxgl-popup-tip) {
+  display: none;
 }
 
-/* Popup arrows */
-
-.mapPopup :global(.mapboxgl-popup-tip) {
-  border-top-color: rgba(242, 237, 229, 0.97);
-}
-
-.mapPopup:global(.mapboxgl-popup-anchor-bottom) :global(.mapboxgl-popup-tip) {
-  border-top-color: rgba(242, 237, 229, 0.97);
-}
-
-.mapPopup:global(.mapboxgl-popup-anchor-top) :global(.mapboxgl-popup-tip) {
-  border-bottom-color: rgba(242, 237, 229, 0.97);
-}
-
-.mapPopup:global(.mapboxgl-popup-anchor-left) :global(.mapboxgl-popup-tip) {
-  border-right-color: rgba(242, 237, 229, 0.97);
-}
-
-.mapPopup:global(.mapboxgl-popup-anchor-right) :global(.mapboxgl-popup-tip) {
-  border-left-color: rgba(242, 237, 229, 0.97);
-}
-
-/* Popup text */
-
-.popupContent {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-
-  width: 100%;
-}
-
-.popupContent strong,
-.popupContent span {
+.mapLabelContent strong,
+.mapLabelContent span {
   display: block;
 }
 
-.popupContent strong {
-  margin: 0;
+.mapLabelContent strong {
+  margin: 0 0 4px;
 
   font-family: var(--font-heading);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.3;
 
   color: #18191b;
 }
 
-.popupContent span {
-  margin: 0;
-
+.mapLabelContent span {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
   line-height: 1.4;
 
   color: rgba(24, 25, 27, 0.58);
 }
 
-.projectPopupContent strong {
-  font-size: 16px;
-}
-
-.projectPopupContent span {
-  font-size: 13px;
+.projectLabelContent strong {
+  font-size: 15px;
 }
 
 /* =========================================================
    Mapbox attribution
    ========================================================= */
 
-/*
- * The Mapbox wordmark and attribution must
- * remain visible when using Mapbox-hosted maps.
- *
- * This styling keeps them minimal and removes
- * the expandable circular information button.
- */
-
-.mapPanel :global(.mapboxgl-ctrl-bottom-left) {
+.mapStage :global(.mapboxgl-ctrl-bottom-left) {
   left: 5px;
   bottom: 4px;
 }
 
-.mapPanel :global(.mapboxgl-ctrl-bottom-right) {
+.mapStage :global(.mapboxgl-ctrl-bottom-right) {
   right: 5px;
   bottom: 4px;
 }
 
-/* Mapbox wordmark */
-
-.mapPanel :global(.mapboxgl-ctrl-logo) {
+.mapStage :global(.mapboxgl-ctrl-logo) {
   width: 65px;
   height: 20px;
 
   margin: 0;
 
-  opacity: 0.4;
+  opacity: 0.28;
 
-  transform: scale(0.7);
+  transform: scale(0.62);
   transform-origin: left bottom;
 }
 
-/* Attribution text */
-
-.mapPanel :global(.mapboxgl-ctrl-attrib) {
+.mapStage :global(.mapboxgl-ctrl-attrib) {
   display: block;
 
   margin: 0;
@@ -490,46 +540,35 @@
   border: 0;
   border-radius: 0;
 
-  background: rgba(242, 237, 229, 0.7);
+  background: rgba(242, 237, 229, 0.65);
 
-  color: rgba(24, 25, 27, 0.58);
+  color: rgba(24, 25, 27, 0.46);
 
   font-family: var(--font-body);
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 400;
   line-height: 1.2;
 
   box-shadow: none;
-
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
 
-.mapPanel :global(.mapboxgl-ctrl-attrib a) {
+.mapStage :global(.mapboxgl-ctrl-attrib a) {
   color: inherit;
   text-decoration: none;
 }
 
-.mapPanel :global(.mapboxgl-ctrl-attrib a:hover) {
-  text-decoration: underline;
-}
-
-/*
- * Remove the circular expandable information icon.
- */
-
-.mapPanel :global(.mapboxgl-ctrl-attrib-button) {
+.mapStage :global(.mapboxgl-ctrl-attrib-button) {
   display: none !important;
 }
 
 /* =========================================================
-   Map error
+   Error state
    ========================================================= */
 
 .mapError {
   position: absolute;
   inset: 0;
-  z-index: 10;
+  z-index: 20;
 
   display: grid;
   place-items: center;
@@ -546,42 +585,44 @@
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.6;
-  text-align: center;
 
   color: #18191b;
+
+  text-align: center;
 }
 
 /* =========================================================
    Tablet
    ========================================================= */
 
-@media (max-width: 1024px) {
-  .mapSection {
-    grid-template-columns:
-      minmax(300px, 45%)
-      minmax(0, 55%);
+@media (max-width: 1100px) {
+  .sectionHeader {
+    padding-top: 120px;
+    padding-bottom: 90px;
   }
 
-  .contentPanel {
-    padding-inline: 48px;
+  .travelOverlay {
+    width: min(49vw, 510px);
   }
 
-  .mapPopup :global(.mapboxgl-popup-content) {
-    min-width: 160px;
-
-    padding: 14px 15px;
+  .travelContent {
+    padding-inline: 50px;
   }
 
-  .projectPopup :global(.mapboxgl-popup-content) {
-    min-width: 174px;
+  .travelList {
+    max-width: 335px;
   }
 
-  .popupContent strong {
-    font-size: 14px;
+  .travelTime {
+    font-size: 38px;
   }
 
-  .popupContent span {
-    font-size: 11px;
+  .travelName {
+    font-size: 16px;
+  }
+
+  .directionsLink {
+    margin-top: 160px;
   }
 }
 
@@ -590,14 +631,8 @@
    ========================================================= */
 
 @media (max-width: 767px) {
-  .mapSection {
-    grid-template-columns: 1fr;
-  }
-
-  .contentPanel {
-    min-height: auto;
-
-    padding: 100px 22px 72px;
+  .sectionHeader {
+    padding: 96px 22px 72px;
   }
 
   .eyebrow {
@@ -609,35 +644,87 @@
   }
 
   .description {
-    margin-bottom: 42px;
+    max-width: 560px;
+    margin-top: 30px;
 
     font-size: 16px;
+    line-height: 1.55;
   }
 
-  .locationItem {
-    padding-block: 19px;
+  .mapStage {
+    height: 120svh;
+    min-height: 930px;
   }
 
-  .locationName {
-    font-size: 16px;
+  .travelOverlay {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+    height: auto;
+    min-height: 520px;
   }
 
-  .locationTime {
-    font-size: 13px;
+  .overlayBackground {
+    background: linear-gradient(
+      0deg,
+      rgba(242, 237, 229, 1) 0%,
+      rgba(242, 237, 229, 0.98) 68%,
+      rgba(242, 237, 229, 0) 100%
+    );
   }
 
-  .mapPanel {
-    min-height: 68svh;
+  .travelContent {
+    position: relative;
+
+    justify-content: flex-end;
+
+    min-height: 520px;
+
+    padding: 135px 22px 34px;
+  }
+
+  .travelList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px 22px;
+
+    width: 100%;
+    max-width: none;
+  }
+
+  .travelItem {
+    gap: 5px;
+  }
+
+  .travelTime {
+    font-size: 31px;
+  }
+
+  .travelName {
+    font-size: 14px;
+  }
+
+  /*
+   * A slightly smaller gap on mobile prevents
+   * the content from exceeding the section.
+   */
+  .directionsLink {
+    margin-top: 100px;
+
+    font-size: 15px;
   }
 
   .projectMarker {
-    width: 54px;
-    height: 70px;
+    width: 56px;
+    height: 72px;
   }
 
   .projectMarkerInner {
-    width: 46px;
-    height: 46px;
+    width: 47px;
+    height: 47px;
   }
 
   .projectMarkerInner::before {
@@ -647,38 +734,18 @@
     border-width: 2px;
   }
 
-  .mapPopup :global(.mapboxgl-popup-content) {
-    min-width: 138px;
+  .map :global(.mapboxgl-popup-content) {
+    min-width: 142px;
 
-    padding: 11px 12px;
+    padding: 10px 12px;
   }
 
-  .projectPopup :global(.mapboxgl-popup-content) {
-    min-width: 154px;
-
-    padding: 12px 13px;
-  }
-
-  .popupContent {
-    gap: 3px;
-  }
-
-  .popupContent strong,
-  .projectPopupContent strong {
+  .mapLabelContent strong {
     font-size: 12px;
   }
 
-  .popupContent span,
-  .projectPopupContent span {
+  .mapLabelContent span {
     font-size: 10px;
-  }
-
-  .mapPanel :global(.mapboxgl-ctrl-attrib) {
-    font-size: 7px;
-  }
-
-  .mapPanel :global(.mapboxgl-ctrl-logo) {
-    transform: scale(0.62);
   }
 }
 
@@ -687,8 +754,8 @@
    ========================================================= */
 
 @media (max-width: 480px) {
-  .contentPanel {
-    padding-inline: 18px;
+  .sectionHeader {
+    padding: 88px 18px 64px;
   }
 
   .eyebrow {
@@ -699,28 +766,28 @@
     font-size: 31px;
   }
 
-  .locationItem {
-    gap: 14px;
-  }
-
-  .locationName {
+  .description {
     font-size: 15px;
   }
 
-  .locationTime {
-    font-size: 12px;
+  .mapStage {
+    min-height: 900px;
   }
 
-  .mapPanel {
-    min-height: 72svh;
+  .travelContent {
+    padding-inline: 18px;
   }
 
-  .mapPopup :global(.mapboxgl-popup-content) {
-    min-width: 124px;
+  .travelList {
+    gap: 23px 16px;
   }
 
-  .projectPopup :global(.mapboxgl-popup-content) {
-    min-width: 142px;
+  .travelTime {
+    font-size: 28px;
+  }
+
+  .travelName {
+    font-size: 13px;
   }
 }
 
@@ -729,8 +796,19 @@
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .locationItem,
-  .locationItem::before,
+  .overlayBackground {
+    clip-path: none !important;
+  }
+
+  .travelItem,
+  .directionsLink {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .travelItem,
+  .travelItem::before,
+  .directionsLink::after,
   .projectMarkerInner,
   .locationMarkerInner {
     transition: none;
