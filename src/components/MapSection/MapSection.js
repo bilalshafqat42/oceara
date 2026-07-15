@@ -10,8 +10,11 @@ const MAPBOX_STYLE_URL =
   "mapbox://styles/refinedubai/cmrj946d7001k01r45t5vgnju";
 
 /*
- * Mapbox coordinates use:
+ * Mapbox coordinates always follow:
  * [longitude, latitude]
+ *
+ * Confirm the final approved project coordinate
+ * before the website is published.
  */
 const projectLocation = {
   id: "project",
@@ -69,7 +72,11 @@ const destinations = [
 
 const allLocations = [projectLocation, ...destinations];
 
-const createAllLocationsBounds = () => {
+/*
+ * Creates one geographic boundary containing
+ * the project and every listed destination.
+ */
+function createAllLocationsBounds() {
   const bounds = new mapboxgl.LngLatBounds();
 
   allLocations.forEach((location) => {
@@ -77,13 +84,13 @@ const createAllLocationsBounds = () => {
   });
 
   return bounds;
-};
+}
 
 /*
  * Google Maps uses the visitor's current location
- * when the origin parameter is omitted.
+ * automatically when the origin is omitted.
  */
-const createGoogleMapsUrl = () => {
+function createGoogleMapsUrl() {
   const [longitude, latitude] = projectLocation.coordinates;
 
   const parameters = new URLSearchParams({
@@ -94,7 +101,7 @@ const createGoogleMapsUrl = () => {
   });
 
   return `https://www.google.com/maps/dir/?${parameters.toString()}`;
-};
+}
 
 export default function MapSection() {
   const sectionRef = useRef(null);
@@ -113,7 +120,9 @@ export default function MapSection() {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const mapItemsRef = useRef([]);
+
   const resizeTimerRef = useRef(null);
+  const mapFailureTimerRef = useRef(null);
 
   const [activeLocationId, setActiveLocationId] = useState(projectLocation.id);
 
@@ -123,10 +132,11 @@ export default function MapSection() {
   /*
    * Complete-section entrance and exit.
    *
-   * The section fades in when entering the viewport.
-   * It fades upward and out as the user leaves it.
-   * Scrubbing automatically reverses the effect when
-   * the user scrolls back upward.
+   * The entrance is intentionally subtle so it does not
+   * compete with the heading and destination animations.
+   *
+   * The exit begins late, allowing visitors enough time
+   * to read and interact with the map.
    */
   useGSAP(
     () => {
@@ -160,23 +170,23 @@ export default function MapSection() {
           }
 
           /*
-           * Initial section entrance.
+           * Subtle fade-up as the complete section enters.
            */
           const entranceTween = gsap.fromTo(
             sectionInner,
             {
               autoAlpha: 0,
-              y: mobile ? 28 : 44,
+              y: mobile ? 12 : 20,
             },
             {
               autoAlpha: 1,
               y: 0,
-              duration: mobile ? 0.85 : 1,
-              ease: "power3.out",
+              duration: mobile ? 0.7 : 0.85,
+              ease: "power2.out",
 
               scrollTrigger: {
                 trigger: section,
-                start: "top 84%",
+                start: "top 90%",
                 toggleActions: "play none none reverse",
                 invalidateOnRefresh: true,
               },
@@ -184,28 +194,24 @@ export default function MapSection() {
           );
 
           /*
-           * Exit effect near the end of the section.
+           * Late fade-out as the section leaves.
+           *
+           * A normal gsap.to() is used here so it does not
+           * compete with the entrance animation during refresh.
            */
-          const exitTween = gsap.fromTo(
-            sectionInner,
-            {
-              autoAlpha: 1,
-              y: 0,
-            },
-            {
-              autoAlpha: 0,
-              y: mobile ? -24 : -40,
-              ease: "none",
+          const exitTween = gsap.to(sectionInner, {
+            autoAlpha: 0,
+            y: mobile ? -18 : -28,
+            ease: "none",
 
-              scrollTrigger: {
-                trigger: section,
-                start: mobile ? "bottom 42%" : "bottom 48%",
-                end: "bottom top",
-                scrub: mobile ? 0.5 : 0.7,
-                invalidateOnRefresh: true,
-              },
+            scrollTrigger: {
+              trigger: section,
+              start: mobile ? "bottom 22%" : "bottom 28%",
+              end: "bottom top",
+              scrub: mobile ? 0.45 : 0.65,
+              invalidateOnRefresh: true,
             },
-          );
+          });
 
           return () => {
             entranceTween.kill();
@@ -224,7 +230,7 @@ export default function MapSection() {
   );
 
   /*
-   * Heading and map content animations.
+   * Heading, overlay and destination animations.
    */
   useGSAP(
     () => {
@@ -300,21 +306,21 @@ export default function MapSection() {
           }
 
           /*
-           * Heading initial states.
+           * Heading starting positions.
            */
           gsap.set(eyebrow, {
             autoAlpha: 0,
-            y: 26,
+            y: 24,
           });
 
           gsap.set(heading, {
             autoAlpha: 0,
-            y: 36,
+            y: 34,
           });
 
           gsap.set(description, {
             autoAlpha: 0,
-            y: 30,
+            y: 28,
           });
 
           /*
@@ -324,7 +330,7 @@ export default function MapSection() {
           const headingTimeline = gsap.timeline({
             scrollTrigger: {
               trigger: sectionHeader,
-              start: "top 78%",
+              start: "top 80%",
               toggleActions: "play none none reverse",
               invalidateOnRefresh: true,
             },
@@ -334,7 +340,7 @@ export default function MapSection() {
             .to(eyebrow, {
               autoAlpha: 1,
               y: 0,
-              duration: 0.72,
+              duration: 0.68,
               ease: "power3.out",
             })
             .to(
@@ -342,24 +348,24 @@ export default function MapSection() {
               {
                 autoAlpha: 1,
                 y: 0,
-                duration: 0.82,
+                duration: 0.8,
                 ease: "power3.out",
               },
-              "-=0.46",
+              "-=0.42",
             )
             .to(
               description,
               {
                 autoAlpha: 1,
                 y: 0,
-                duration: 0.82,
+                duration: 0.78,
                 ease: "power3.out",
               },
-              "-=0.4",
+              "-=0.36",
             );
 
           /*
-           * Desktop beige overlay.
+           * Desktop beige overlay reveals from left to right.
            */
           gsap.set(overlayBackground, {
             clipPath: "inset(0% 100% 0% 0%)",
@@ -367,12 +373,12 @@ export default function MapSection() {
 
           gsap.set(travelItems, {
             autoAlpha: 0,
-            y: 44,
+            y: 42,
           });
 
           gsap.set(directionsLink, {
             autoAlpha: 0,
-            y: 28,
+            y: 26,
           });
 
           const overlayTween = gsap.to(overlayBackground, {
@@ -389,15 +395,17 @@ export default function MapSection() {
           });
 
           /*
-           * Slightly slower stagger so each destination
-           * has enough time to be noticed.
+           * Destination items appear individually.
+           *
+           * A 0.2-second stagger gives each destination
+           * separation without making the sequence feel slow.
            */
-          const destinationStagger = 0.22;
+          const destinationStagger = 0.2;
 
           const itemsTimeline = gsap.timeline({
             scrollTrigger: {
               trigger: mapStage,
-              start: "top 55%",
+              start: "top 56%",
               toggleActions: "play none none reverse",
               invalidateOnRefresh: true,
             },
@@ -409,22 +417,25 @@ export default function MapSection() {
               {
                 autoAlpha: 1,
                 y: 0,
-                duration: 0.84,
+                duration: 0.8,
                 ease: "power3.out",
               },
               index * destinationStagger,
             );
           });
 
+          /*
+           * See Directions enters after the final destination.
+           */
           itemsTimeline.to(
             directionsLink,
             {
               autoAlpha: 1,
               y: 0,
-              duration: 0.72,
+              duration: 0.7,
               ease: "power3.out",
             },
-            travelItems.length * destinationStagger + 0.14,
+            travelItems.length * destinationStagger + 0.12,
           );
 
           return () => {
@@ -474,7 +485,7 @@ export default function MapSection() {
           }
 
           /*
-           * Keep heading visible on mobile.
+           * Mobile section heading remains immediately visible.
            */
           gsap.set([eyebrow, heading, description], {
             autoAlpha: 1,
@@ -517,7 +528,7 @@ export default function MapSection() {
           const mobileItemsTween = gsap.to(travelItems, {
             autoAlpha: 1,
             y: 0,
-            duration: 0.66,
+            duration: 0.64,
             stagger: 0.14,
             ease: "power3.out",
 
@@ -532,7 +543,7 @@ export default function MapSection() {
           const mobileDirectionsTween = gsap.to(directionsLink, {
             autoAlpha: 1,
             y: 0,
-            duration: 0.64,
+            duration: 0.62,
             ease: "power3.out",
 
             scrollTrigger: {
@@ -583,6 +594,8 @@ export default function MapSection() {
     setMapLoaded(false);
     setMapError("");
 
+    let mapDidLoad = false;
+
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       accessToken,
@@ -605,8 +618,7 @@ export default function MapSection() {
     mapRef.current = map;
 
     /*
-     * Prevent page scrolling over the map from
-     * changing the map zoom.
+     * Prevent page scrolling over the map from zooming it.
      */
     map.scrollZoom.disable();
     map.boxZoom.disable();
@@ -618,6 +630,9 @@ export default function MapSection() {
      */
     map.touchZoomRotate.disableRotation();
 
+    /*
+     * Keep required Mapbox attribution visible.
+     */
     map.addControl(
       new mapboxgl.AttributionControl({
         compact: false,
@@ -728,6 +743,10 @@ export default function MapSection() {
       let padding;
 
       if (isMobile) {
+        /*
+         * The mobile destination cards overlay the map.
+         * Extra top padding keeps important markers visible.
+         */
         const overlaySpace = Math.min(
           Math.round(window.innerHeight * 0.38),
           350,
@@ -765,6 +784,10 @@ export default function MapSection() {
     };
 
     const handleMapLoad = () => {
+      mapDidLoad = true;
+
+      window.clearTimeout(mapFailureTimerRef.current);
+
       map.resize();
 
       window.requestAnimationFrame(() => {
@@ -781,6 +804,10 @@ export default function MapSection() {
       window.clearTimeout(resizeTimerRef.current);
 
       resizeTimerRef.current = window.setTimeout(() => {
+        if (!mapRef.current) {
+          return;
+        }
+
         map.resize();
 
         showAllLocations({
@@ -789,21 +816,27 @@ export default function MapSection() {
       }, 180);
     };
 
+    /*
+     * General Mapbox errors are logged but do not
+     * immediately cover a working or loading map.
+     */
     const handleMapError = (event) => {
       console.error("Mapbox error:", event.error);
+    };
 
-      /*
-       * Avoid covering a working map because of a
-       * temporary individual tile or font error.
-       */
-      if (!map.loaded() && !map.isStyleLoaded()) {
+    /*
+     * Show a fatal message only if the map has not
+     * successfully loaded after a reasonable period.
+     */
+    mapFailureTimerRef.current = window.setTimeout(() => {
+      if (!mapDidLoad) {
         setMapLoaded(false);
 
         setMapError(
-          "The map could not be loaded. Check the Mapbox token and published custom style.",
+          "The map could not be loaded. Check the Mapbox access token and published custom style.",
         );
       }
-    };
+    }, 12000);
 
     map.on("load", handleMapLoad);
     map.on("error", handleMapError);
@@ -812,6 +845,7 @@ export default function MapSection() {
 
     return () => {
       window.clearTimeout(resizeTimerRef.current);
+      window.clearTimeout(mapFailureTimerRef.current);
 
       window.removeEventListener("resize", handleResize);
 
@@ -835,7 +869,7 @@ export default function MapSection() {
   }, []);
 
   /*
-   * Synchronise active markers with destination cards.
+   * Synchronise active map markers with the cards.
    */
   useEffect(() => {
     mapItemsRef.current.forEach(({ id, element }) => {
@@ -892,6 +926,7 @@ export default function MapSection() {
           <div
             ref={mapContainerRef}
             className={styles.map}
+            role="application"
             aria-label="Interactive map showing Oceara Park Views and nearby Dubai destinations"
           />
 

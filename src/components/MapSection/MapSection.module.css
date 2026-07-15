@@ -9,6 +9,19 @@
   color: #18191b;
 }
 
+/*
+ * Animated wrapper for the complete section.
+ */
+.sectionInner {
+  position: relative;
+
+  width: 100%;
+
+  background: #f2ede5;
+
+  will-change: transform, opacity;
+}
+
 /* =========================================================
    Full-width heading
    ========================================================= */
@@ -570,9 +583,9 @@
 
   margin: 0;
 
-  opacity: 0.28;
+  opacity: 0.45;
 
-  transform: scale(0.62);
+  transform: scale(0.68);
   transform-origin: left bottom;
 }
 
@@ -585,14 +598,14 @@
   border: 0;
   border-radius: 0;
 
-  background: rgba(242, 237, 229, 0.65);
+  background: rgba(242, 237, 229, 0.72);
 
   font-family: var(--font-body);
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 400;
   line-height: 1.2;
 
-  color: rgba(24, 25, 27, 0.46);
+  color: rgba(24, 25, 27, 0.58);
 
   box-shadow: none;
 }
@@ -696,9 +709,6 @@
     line-height: 1.55;
   }
 
-  /*
-   * Complete mobile map scene fits in one viewport.
-   */
   .mapStage {
     position: relative;
 
@@ -713,9 +723,6 @@
     background: #d9e4eb;
   }
 
-  /*
-   * Map occupies the complete mobile viewport.
-   */
   .map {
     position: absolute;
     inset: 0;
@@ -736,10 +743,6 @@
     min-height: 0;
   }
 
-  /*
-   * Destination panel overlays the map instead
-   * of taking separate vertical space.
-   */
   .travelOverlay {
     position: absolute;
     top: 0;
@@ -755,9 +758,6 @@
     pointer-events: none;
   }
 
-  /*
-   * Beige gradient reveals from top to bottom.
-   */
   .overlayBackground {
     position: absolute;
     inset: 0;
@@ -779,8 +779,6 @@
     -webkit-backdrop-filter: blur(5px);
 
     clip-path: inset(0% 0% 100% 0%);
-
-    box-shadow: none;
 
     pointer-events: none;
 
@@ -805,9 +803,6 @@
     pointer-events: none;
   }
 
-  /*
-   * Four cards in two rows and two columns.
-   */
   .travelList {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -832,9 +827,6 @@
     padding: 0;
   }
 
-  /*
-   * Compact clickable destination cards.
-   */
   .travelItem {
     position: relative;
 
@@ -869,8 +861,7 @@
       padding-left 450ms cubic-bezier(0.16, 1, 0.3, 1),
       background-color 350ms ease,
       border-color 350ms ease,
-      box-shadow 350ms ease,
-      transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow 350ms ease;
   }
 
   .travelItem::before {
@@ -907,7 +898,10 @@
 
     box-shadow: 0 12px 30px rgba(24, 25, 27, 0.08);
 
-    transform: translateY(-2px);
+    /*
+     * No persistent vertical movement on touch devices.
+     */
+    transform: none;
   }
 
   .travelItem:hover::before,
@@ -942,9 +936,6 @@
     -webkit-line-clamp: 2;
   }
 
-  /*
-   * Directions remains beneath the four cards.
-   */
   .directionsLink {
     align-self: flex-start;
 
@@ -956,9 +947,6 @@
     pointer-events: auto;
   }
 
-  /*
-   * Smaller marker sizes for the mobile map.
-   */
   .projectMarker {
     width: 54px;
     height: 70px;
@@ -986,9 +974,6 @@
     height: 8px;
   }
 
-  /*
-   * Compact permanent map labels.
-   */
   .map :global(.mapboxgl-popup-content) {
     min-width: 126px;
     max-width: 150px;
@@ -1162,13 +1147,23 @@
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
+  .sectionInner {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
   .overlayBackground {
     clip-path: none !important;
   }
 
+  .eyebrow,
+  .heading,
+  .description,
   .travelItem,
   .directionsLink {
     opacity: 1 !important;
+    visibility: visible !important;
     transform: none !important;
   }
 
