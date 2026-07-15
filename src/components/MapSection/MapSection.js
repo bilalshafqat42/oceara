@@ -10,7 +10,7 @@ const MAPBOX_STYLE_URL =
   "mapbox://styles/refinedubai/cmrj946d7001k01r45t5vgnju";
 
 /*
- * Mapbox coordinates always use:
+ * Mapbox coordinates use:
  * [longitude, latitude]
  */
 const projectLocation = {
@@ -69,10 +69,6 @@ const destinations = [
 
 const allLocations = [projectLocation, ...destinations];
 
-/*
- * Create one geographic boundary containing
- * the project and all destinations.
- */
 const createAllLocationsBounds = () => {
   const bounds = new mapboxgl.LngLatBounds();
 
@@ -85,7 +81,7 @@ const createAllLocationsBounds = () => {
 
 /*
  * Google Maps uses the visitor's current location
- * automatically because the origin is omitted.
+ * when the origin parameter is omitted.
  */
 const createGoogleMapsUrl = () => {
   const [longitude, latitude] = projectLocation.coordinates;
@@ -102,6 +98,13 @@ const createGoogleMapsUrl = () => {
 
 export default function MapSection() {
   const sectionRef = useRef(null);
+  const sectionInnerRef = useRef(null);
+
+  const sectionHeaderRef = useRef(null);
+  const eyebrowRef = useRef(null);
+  const headingRef = useRef(null);
+  const descriptionRef = useRef(null);
+
   const mapStageRef = useRef(null);
   const overlayBackgroundRef = useRef(null);
   const travelListRef = useRef(null);
@@ -112,31 +115,134 @@ export default function MapSection() {
   const mapItemsRef = useRef([]);
   const resizeTimerRef = useRef(null);
 
-  const [activeLocationId, setActiveLocationId] = useState(
-    projectLocation.id,
-  );
+  const [activeLocationId, setActiveLocationId] = useState(projectLocation.id);
 
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState("");
 
   /*
-   * Destination panel entrance animation.
+   * Complete-section entrance and exit.
    *
-   * Desktop:
-   * Beige overlay reveals from left to right.
-   *
-   * Mobile:
-   * Beige gradient reveals from top to bottom.
-   * Destination cards rise and fade in one by one.
+   * The section fades in when entering the viewport.
+   * It fades upward and out as the user leaves it.
+   * Scrubbing automatically reverses the effect when
+   * the user scrolls back upward.
    */
   useGSAP(
     () => {
+      const section = sectionRef.current;
+      const sectionInner = sectionInnerRef.current;
+
+      if (!section || !sectionInner) {
+        return undefined;
+      }
+
+      const matchMedia = gsap.matchMedia();
+
+      matchMedia.add(
+        {
+          desktop: "(min-width: 768px)",
+          mobile: "(max-width: 767px)",
+          reduceMotion: "(prefers-reduced-motion: reduce)",
+        },
+        (context) => {
+          const { mobile = false, reduceMotion = false } =
+            context.conditions ?? {};
+
+          if (reduceMotion) {
+            gsap.set(sectionInner, {
+              autoAlpha: 1,
+              y: 0,
+              clearProps: "transform",
+            });
+
+            return undefined;
+          }
+
+          /*
+           * Initial section entrance.
+           */
+          const entranceTween = gsap.fromTo(
+            sectionInner,
+            {
+              autoAlpha: 0,
+              y: mobile ? 28 : 44,
+            },
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: mobile ? 0.85 : 1,
+              ease: "power3.out",
+
+              scrollTrigger: {
+                trigger: section,
+                start: "top 84%",
+                toggleActions: "play none none reverse",
+                invalidateOnRefresh: true,
+              },
+            },
+          );
+
+          /*
+           * Exit effect near the end of the section.
+           */
+          const exitTween = gsap.fromTo(
+            sectionInner,
+            {
+              autoAlpha: 1,
+              y: 0,
+            },
+            {
+              autoAlpha: 0,
+              y: mobile ? -24 : -40,
+              ease: "none",
+
+              scrollTrigger: {
+                trigger: section,
+                start: mobile ? "bottom 42%" : "bottom 48%",
+                end: "bottom top",
+                scrub: mobile ? 0.5 : 0.7,
+                invalidateOnRefresh: true,
+              },
+            },
+          );
+
+          return () => {
+            entranceTween.kill();
+            exitTween.kill();
+          };
+        },
+      );
+
+      return () => {
+        matchMedia.revert();
+      };
+    },
+    {
+      scope: sectionRef,
+    },
+  );
+
+  /*
+   * Heading and map content animations.
+   */
+  useGSAP(
+    () => {
+      const sectionHeader = sectionHeaderRef.current;
+      const eyebrow = eyebrowRef.current;
+      const heading = headingRef.current;
+      const description = descriptionRef.current;
+
       const mapStage = mapStageRef.current;
       const overlayBackground = overlayBackgroundRef.current;
       const travelList = travelListRef.current;
       const directionsLink = directionsRef.current;
 
       if (
+        !sectionHeader ||
+        !eyebrow ||
+        !heading ||
+        !description ||
         !mapStage ||
         !overlayBackground ||
         !travelList ||
@@ -155,19 +261,31 @@ export default function MapSection() {
 
       const matchMedia = gsap.matchMedia();
 
+      /*
+       * =====================================================
+       * Desktop animations
+       * =====================================================
+       */
       matchMedia.add(
         {
           desktop: "(min-width: 768px)",
-          mobile: "(max-width: 767px)",
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const {
-            mobile = false,
-            reduceMotion = false,
-          } = context.conditions ?? {};
+          const { desktop = false, reduceMotion = false } =
+            context.conditions ?? {};
+
+          if (!desktop) {
+            return undefined;
+          }
 
           if (reduceMotion) {
+            gsap.set([eyebrow, heading, description], {
+              autoAlpha: 1,
+              y: 0,
+              clearProps: "transform",
+            });
+
             gsap.set(overlayBackground, {
               clipPath: "inset(0% 0% 0% 0%)",
             });
@@ -175,25 +293,86 @@ export default function MapSection() {
             gsap.set([...travelItems, directionsLink], {
               autoAlpha: 1,
               y: 0,
+              clearProps: "transform",
             });
 
             return undefined;
           }
 
+          /*
+           * Heading initial states.
+           */
+          gsap.set(eyebrow, {
+            autoAlpha: 0,
+            y: 26,
+          });
+
+          gsap.set(heading, {
+            autoAlpha: 0,
+            y: 36,
+          });
+
+          gsap.set(description, {
+            autoAlpha: 0,
+            y: 30,
+          });
+
+          /*
+           * Heading sequence:
+           * eyebrow → heading → description.
+           */
+          const headingTimeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: sectionHeader,
+              start: "top 78%",
+              toggleActions: "play none none reverse",
+              invalidateOnRefresh: true,
+            },
+          });
+
+          headingTimeline
+            .to(eyebrow, {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.72,
+              ease: "power3.out",
+            })
+            .to(
+              heading,
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.82,
+                ease: "power3.out",
+              },
+              "-=0.46",
+            )
+            .to(
+              description,
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.82,
+                ease: "power3.out",
+              },
+              "-=0.4",
+            );
+
+          /*
+           * Desktop beige overlay.
+           */
           gsap.set(overlayBackground, {
-            clipPath: mobile
-              ? "inset(0% 0% 100% 0%)"
-              : "inset(0% 100% 0% 0%)",
+            clipPath: "inset(0% 100% 0% 0%)",
           });
 
           gsap.set(travelItems, {
             autoAlpha: 0,
-            y: mobile ? 24 : 42,
+            y: 44,
           });
 
           gsap.set(directionsLink, {
             autoAlpha: 0,
-            y: mobile ? 18 : 32,
+            y: 28,
           });
 
           const overlayTween = gsap.to(overlayBackground, {
@@ -202,44 +381,172 @@ export default function MapSection() {
 
             scrollTrigger: {
               trigger: mapStage,
-              start: mobile ? "top 88%" : "top 82%",
-              end: mobile ? "top 56%" : "top 34%",
-              scrub: mobile ? 0.65 : 0.8,
+              start: "top 84%",
+              end: "top 36%",
+              scrub: 0.8,
               invalidateOnRefresh: true,
             },
           });
 
-          const itemsTween = gsap.to(travelItems, {
-            autoAlpha: 1,
-            y: 0,
-            duration: mobile ? 0.62 : 0.82,
-            stagger: mobile ? 0.11 : 0.16,
-            ease: "power3.out",
+          /*
+           * Slightly slower stagger so each destination
+           * has enough time to be noticed.
+           */
+          const destinationStagger = 0.22;
 
+          const itemsTimeline = gsap.timeline({
             scrollTrigger: {
               trigger: mapStage,
-              start: mobile ? "top 68%" : "top 45%",
-              once: true,
+              start: "top 55%",
+              toggleActions: "play none none reverse",
+              invalidateOnRefresh: true,
             },
           });
 
-          const directionsTween = gsap.to(directionsLink, {
+          travelItems.forEach((item, index) => {
+            itemsTimeline.to(
+              item,
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.84,
+                ease: "power3.out",
+              },
+              index * destinationStagger,
+            );
+          });
+
+          itemsTimeline.to(
+            directionsLink,
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.72,
+              ease: "power3.out",
+            },
+            travelItems.length * destinationStagger + 0.14,
+          );
+
+          return () => {
+            headingTimeline.kill();
+            overlayTween.kill();
+            itemsTimeline.kill();
+          };
+        },
+      );
+
+      /*
+       * =====================================================
+       * Mobile animations
+       * =====================================================
+       */
+      matchMedia.add(
+        {
+          mobile: "(max-width: 767px)",
+          reduceMotion: "(prefers-reduced-motion: reduce)",
+        },
+        (context) => {
+          const { mobile = false, reduceMotion = false } =
+            context.conditions ?? {};
+
+          if (!mobile) {
+            return undefined;
+          }
+
+          if (reduceMotion) {
+            gsap.set([eyebrow, heading, description], {
+              autoAlpha: 1,
+              y: 0,
+              clearProps: "transform",
+            });
+
+            gsap.set(overlayBackground, {
+              clipPath: "inset(0% 0% 0% 0%)",
+            });
+
+            gsap.set([...travelItems, directionsLink], {
+              autoAlpha: 1,
+              y: 0,
+              clearProps: "transform",
+            });
+
+            return undefined;
+          }
+
+          /*
+           * Keep heading visible on mobile.
+           */
+          gsap.set([eyebrow, heading, description], {
             autoAlpha: 1,
             y: 0,
-            duration: mobile ? 0.62 : 0.8,
+          });
+
+          /*
+           * Mobile beige overlay rolls from top to bottom.
+           */
+          gsap.set(overlayBackground, {
+            clipPath: "inset(0% 0% 100% 0%)",
+          });
+
+          gsap.set(travelItems, {
+            autoAlpha: 0,
+            y: 24,
+          });
+
+          gsap.set(directionsLink, {
+            autoAlpha: 0,
+            y: 18,
+          });
+
+          const mobileOverlayTween = gsap.to(overlayBackground, {
+            clipPath: "inset(0% 0% 0% 0%)",
+            ease: "none",
+
+            scrollTrigger: {
+              trigger: mapStage,
+              start: "top 88%",
+              end: "top 56%",
+              scrub: 0.65,
+              invalidateOnRefresh: true,
+            },
+          });
+
+          /*
+           * Mobile 2×2 cards fade upward one by one.
+           */
+          const mobileItemsTween = gsap.to(travelItems, {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.66,
+            stagger: 0.14,
             ease: "power3.out",
 
             scrollTrigger: {
               trigger: mapStage,
-              start: mobile ? "top 58%" : "top 32%",
-              once: true,
+              start: "top 68%",
+              toggleActions: "play none none reverse",
+              invalidateOnRefresh: true,
+            },
+          });
+
+          const mobileDirectionsTween = gsap.to(directionsLink, {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.64,
+            ease: "power3.out",
+
+            scrollTrigger: {
+              trigger: mapStage,
+              start: "top 57%",
+              toggleActions: "play none none reverse",
+              invalidateOnRefresh: true,
             },
           });
 
           return () => {
-            overlayTween.kill();
-            itemsTween.kill();
-            directionsTween.kill();
+            mobileOverlayTween.kill();
+            mobileItemsTween.kill();
+            mobileDirectionsTween.kill();
           };
         },
       );
@@ -257,8 +564,7 @@ export default function MapSection() {
    * Mapbox initialisation.
    */
   useEffect(() => {
-    const accessToken =
-      process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    const accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
     if (!accessToken) {
       setMapLoaded(false);
@@ -299,8 +605,8 @@ export default function MapSection() {
     mapRef.current = map;
 
     /*
-     * Prevent mouse scrolling over the map
-     * from zooming the map.
+     * Prevent page scrolling over the map from
+     * changing the map zoom.
      */
     map.scrollZoom.disable();
     map.boxZoom.disable();
@@ -308,13 +614,10 @@ export default function MapSection() {
     map.keyboard.disable();
 
     /*
-     * Touch users can zoom but cannot rotate.
+     * Touch zoom remains available, but rotation is disabled.
      */
     map.touchZoomRotate.disableRotation();
 
-    /*
-     * Keep required attribution visible.
-     */
     map.addControl(
       new mapboxgl.AttributionControl({
         compact: false,
@@ -334,10 +637,7 @@ export default function MapSection() {
         ? styles.projectMarker
         : styles.locationMarker;
 
-      markerButton.setAttribute(
-        "aria-label",
-        `Focus map on ${location.name}`,
-      );
+      markerButton.setAttribute("aria-label", `Focus map on ${location.name}`);
 
       markerButton.dataset.locationId = location.id;
 
@@ -375,8 +675,7 @@ export default function MapSection() {
 
       const labelName = document.createElement("strong");
 
-      labelName.textContent =
-        location.shortName || location.name;
+      labelName.textContent = location.shortName || location.name;
 
       const labelTime = document.createElement("span");
 
@@ -419,25 +718,16 @@ export default function MapSection() {
     });
 
     /*
-     * Fit all markers into the visible map area.
+     * Fit all markers into the available map area.
      */
     const showAllLocations = ({ duration = 0 } = {}) => {
-      const isMobile = window.matchMedia(
-        "(max-width: 767px)",
-      ).matches;
+      const isMobile = window.matchMedia("(max-width: 767px)").matches;
 
-      const isTablet = window.matchMedia(
-        "(max-width: 1100px)",
-      ).matches;
+      const isTablet = window.matchMedia("(max-width: 1100px)").matches;
 
       let padding;
 
       if (isMobile) {
-        /*
-         * The destination cards overlay the upper map.
-         * Extra top padding keeps the project marker and
-         * destination labels below the card area.
-         */
         const overlaySpace = Math.min(
           Math.round(window.innerHeight * 0.38),
           350,
@@ -503,8 +793,8 @@ export default function MapSection() {
       console.error("Mapbox error:", event.error);
 
       /*
-       * Do not cover a working map because of a
-       * temporary tile, font or image error.
+       * Avoid covering a working map because of a
+       * temporary individual tile or font error.
        */
       if (!map.loaded() && !map.isStyleLoaded()) {
         setMapLoaded(false);
@@ -529,16 +819,8 @@ export default function MapSection() {
       map.off("error", handleMapError);
 
       mapItemsRef.current.forEach(
-        ({
-          marker,
-          popup,
-          element,
-          focusLocation,
-        }) => {
-          element.removeEventListener(
-            "click",
-            focusLocation,
-          );
+        ({ marker, popup, element, focusLocation }) => {
+          element.removeEventListener("click", focusLocation);
 
           popup.remove();
           marker.remove();
@@ -553,12 +835,11 @@ export default function MapSection() {
   }, []);
 
   /*
-   * Synchronise the active marker appearance.
+   * Synchronise active markers with destination cards.
    */
   useEffect(() => {
     mapItemsRef.current.forEach(({ id, element }) => {
-      element.dataset.active =
-        id === activeLocationId ? "true" : "false";
+      element.dataset.active = id === activeLocationId ? "true" : "false";
     });
   }, [activeLocationId]);
 
@@ -586,114 +867,99 @@ export default function MapSection() {
       className={styles.mapSection}
       aria-labelledby="location-map-title"
     >
-      <header className={styles.sectionHeader}>
-        <p className={styles.eyebrow}>
-          Connected To The
-        </p>
+      <div ref={sectionInnerRef} className={styles.sectionInner}>
+        <header ref={sectionHeaderRef} className={styles.sectionHeader}>
+          <p ref={eyebrowRef} className={styles.eyebrow}>
+            Connected To The
+          </p>
 
-        <h2
-          id="location-map-title"
-          className={styles.heading}
-        >
-          City, Grounded By Nature
-        </h2>
-
-        <p className={styles.description}>
-          Enjoy the tranquillity of island living while
-          remaining effortlessly connected to Dubai&apos;s
-          most important destinations, business districts,
-          lifestyle hubs and leisure experiences.
-        </p>
-      </header>
-
-      <div
-        ref={mapStageRef}
-        className={styles.mapStage}
-      >
-        <div
-          ref={mapContainerRef}
-          className={styles.map}
-          aria-label="Interactive map showing Oceara Park Views and nearby Dubai destinations"
-        />
-
-        {!mapLoaded && !mapError ? (
-          <div
-            className={styles.mapLoading}
-            aria-live="polite"
-            aria-label="Loading interactive map"
+          <h2
+            ref={headingRef}
+            id="location-map-title"
+            className={styles.heading}
           >
-            <span>Loading Map</span>
-          </div>
-        ) : null}
+            City, Grounded By Nature
+          </h2>
 
-        <div
-          className={styles.travelOverlay}
-          aria-label="Travel times from Oceara Park Views"
-        >
+          <p ref={descriptionRef} className={styles.description}>
+            Enjoy the tranquillity of island living while remaining effortlessly
+            connected to Dubai&apos;s most important destinations, business
+            districts, lifestyle hubs and leisure experiences.
+          </p>
+        </header>
+
+        <div ref={mapStageRef} className={styles.mapStage}>
           <div
-            ref={overlayBackgroundRef}
-            className={styles.overlayBackground}
-            aria-hidden="true"
+            ref={mapContainerRef}
+            className={styles.map}
+            aria-label="Interactive map showing Oceara Park Views and nearby Dubai destinations"
           />
 
-          <div className={styles.travelContent}>
-            <ul
-              ref={travelListRef}
-              className={styles.travelList}
+          {!mapLoaded && !mapError ? (
+            <div
+              className={styles.mapLoading}
+              aria-live="polite"
+              aria-label="Loading interactive map"
             >
-              {destinations.map((destination) => {
-                const isActive =
-                  activeLocationId === destination.id;
+              <span>Loading Map</span>
+            </div>
+          ) : null}
 
-                return (
-                  <li
-                    key={destination.id}
-                    className={styles.travelListItem}
-                  >
-                    <button
-                      type="button"
-                      className={styles.travelItem}
-                      data-active={
-                        isActive ? "true" : "false"
-                      }
-                      aria-pressed={isActive}
-                      onClick={() =>
-                        handleDestinationClick(destination)
-                      }
-                    >
-                      <span className={styles.travelTime}>
-                        {destination.time}
-                      </span>
-
-                      <span className={styles.travelName}>
-                        {destination.name}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-
-            <a
-              ref={directionsRef}
-              href={createGoogleMapsUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.directionsLink}
-            >
-              See Directions
-            </a>
-          </div>
-        </div>
-
-        {mapError ? (
           <div
-            className={styles.mapError}
-            role="alert"
+            className={styles.travelOverlay}
+            aria-label="Travel times from Oceara Park Views"
           >
-            <p>{mapError}</p>
+            <div
+              ref={overlayBackgroundRef}
+              className={styles.overlayBackground}
+              aria-hidden="true"
+            />
+
+            <div className={styles.travelContent}>
+              <ul ref={travelListRef} className={styles.travelList}>
+                {destinations.map((destination) => {
+                  const isActive = activeLocationId === destination.id;
+
+                  return (
+                    <li key={destination.id} className={styles.travelListItem}>
+                      <button
+                        type="button"
+                        className={styles.travelItem}
+                        data-active={isActive ? "true" : "false"}
+                        aria-pressed={isActive}
+                        onClick={() => handleDestinationClick(destination)}
+                      >
+                        <span className={styles.travelTime}>
+                          {destination.time}
+                        </span>
+
+                        <span className={styles.travelName}>
+                          {destination.name}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <a
+                ref={directionsRef}
+                href={createGoogleMapsUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.directionsLink}
+              >
+                See Directions
+              </a>
+            </div>
           </div>
-        ) : null}
+
+          {mapError ? (
+            <div className={styles.mapError} role="alert">
+              <p>{mapError}</p>
+            </div>
+          ) : null}
+        </div>
       </div>
     </section>
   );

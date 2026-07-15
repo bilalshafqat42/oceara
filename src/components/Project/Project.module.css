@@ -595,7 +595,7 @@
 
 @media (max-width: 480px) {
   .mobileScene {
-    grid-template-rows: 52% 48%;
+    grid-template-rows: 60% 40%;
   }
 
   /*

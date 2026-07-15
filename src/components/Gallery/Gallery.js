@@ -840,50 +840,111 @@ export default function Gallery() {
             y: mobile ? 20 : 32,
           });
 
-          const visibleCards = cardRefs.current.filter(Boolean);
+          /*
+           * Gallery entrance reveals piece by piece rather than the
+           * whole card fading in as one unit:
+           *
+           * 1. Centre image fades up.
+           * 2. Centre title/description fades up shortly after.
+           * 3. Side images fade up shortly after that.
+           *
+           * The card elements themselves keep whatever opacity
+           * positionCards already gave them (1 for centre, 0.62 for
+           * the sides, set earlier via the immediate positionCards
+           * call above), so only the image and text pieces inside
+           * each card animate here, not the cards themselves.
+           */
+          const fadeUpDistance = mobile ? 18 : 26;
 
-          gsap.set(visibleCards, {
-            autoAlpha: 0,
-          });
+          const centreCardIndex = cardRefs.current.findIndex(
+            (card) => card?.dataset.position === "centre",
+          );
+
+          const sideImages = imageWrapperRefs.current.filter(
+            (element, index) => {
+              const position = cardRefs.current[index]?.dataset.position;
+
+              return position === "left" || position === "right";
+            },
+          );
+
+          const centreImage =
+            centreCardIndex >= 0
+              ? imageWrapperRefs.current[centreCardIndex]
+              : null;
+          const centreContent =
+            centreCardIndex >= 0 ? contentRefs.current[centreCardIndex] : null;
+
+          if (centreImage) {
+            gsap.set(centreImage, { autoAlpha: 0, y: fadeUpDistance });
+          }
+
+          if (centreContent) {
+            gsap.set(centreContent, { autoAlpha: 0, y: fadeUpDistance });
+          }
+
+          if (sideImages.length) {
+            gsap.set(sideImages, { autoAlpha: 0, y: fadeUpDistance });
+          }
 
           const entranceTimeline = gsap.timeline({
             scrollTrigger: {
               trigger: section,
               start: "top 80%",
-              once: true,
+              // Scrolling down past the trigger plays the fade-up
+              // entrance. Scrolling back up past that same point
+              // reverses it, so it toggles instead of only firing once.
+              toggleActions: "play none none reverse",
             },
           });
 
-          entranceTimeline
-            .to(heading.children, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.82,
-              stagger: 0.1,
-              ease: "power3.out",
-            })
-            .to(
-              visibleCards,
+          entranceTimeline.to(heading.children, {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.82,
+            stagger: 0.1,
+            ease: "power3.out",
+          });
+
+          if (centreImage) {
+            entranceTimeline.to(
+              centreImage,
               {
-                autoAlpha: (index) => {
-                  const position = visibleCards[index]?.dataset.position;
-
-                  if (position === "centre") {
-                    return 1;
-                  }
-
-                  if (position === "left" || position === "right") {
-                    return 0.62;
-                  }
-
-                  return 0;
-                },
-                duration: 0.9,
-                stagger: 0.06,
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.85,
                 ease: "power3.out",
               },
               "-=0.42",
             );
+          }
+
+          if (centreContent) {
+            entranceTimeline.to(
+              centreContent,
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.7,
+                ease: "power3.out",
+              },
+              "<+=0.16",
+            );
+          }
+
+          if (sideImages.length) {
+            entranceTimeline.to(
+              sideImages,
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.8,
+                stagger: 0.08,
+                ease: "power3.out",
+              },
+              "<+=0.22",
+            );
+          }
 
           return () => {
             entranceTimeline.kill();
