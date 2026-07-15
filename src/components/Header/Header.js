@@ -1,17 +1,8 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  gsap,
-  ScrollTrigger,
-  useGSAP,
-} from "@/lib/gsap";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 
 import styles from "./Header.module.css";
 
@@ -87,13 +78,10 @@ export default function Header() {
       return;
     }
 
-    const headerHeight =
-      headerRef.current?.getBoundingClientRect().height ?? 0;
+    const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
 
     const targetTop =
-      target.getBoundingClientRect().top +
-      window.scrollY -
-      headerHeight;
+      target.getBoundingClientRect().top + window.scrollY - headerHeight;
 
     window.scrollTo({
       top: Math.max(0, targetTop),
@@ -160,9 +148,7 @@ export default function Header() {
           );
       }
 
-      const heroScene = document.getElementById(
-        "hero-about-scene",
-      );
+      const heroScene = document.getElementById("hero-about-scene");
 
       let headerScrollTrigger;
 
@@ -174,9 +160,7 @@ export default function Header() {
 
           onUpdate: (self) => {
             header.dataset.scrolled =
-              self.progress >= HEADER_CHANGE_PROGRESS
-                ? "true"
-                : "false";
+              self.progress >= HEADER_CHANGE_PROGRESS ? "true" : "false";
           },
 
           onLeave: () => {
@@ -185,9 +169,7 @@ export default function Header() {
 
           onEnterBack: (self) => {
             header.dataset.scrolled =
-              self.progress >= HEADER_CHANGE_PROGRESS
-                ? "true"
-                : "false";
+              self.progress >= HEADER_CHANGE_PROGRESS ? "true" : "false";
           },
 
           onLeaveBack: () => {
@@ -196,9 +178,7 @@ export default function Header() {
 
           onRefresh: (self) => {
             header.dataset.scrolled =
-              self.progress >= HEADER_CHANGE_PROGRESS
-                ? "true"
-                : "false";
+              self.progress >= HEADER_CHANGE_PROGRESS ? "true" : "false";
           },
         });
       } else {
@@ -211,8 +191,7 @@ export default function Header() {
           end: "max",
 
           onUpdate: (self) => {
-            header.dataset.scrolled =
-              self.scroll() > 80 ? "true" : "false";
+            header.dataset.scrolled = self.scroll() > 80 ? "true" : "false";
           },
         });
       }
@@ -258,9 +237,7 @@ export default function Header() {
         paused: true,
 
         defaults: {
-          ease: reduceMotion
-            ? "none"
-            : "power4.inOut",
+          ease: reduceMotion ? "none" : "power4.inOut",
         },
 
         onStart: () => {
@@ -285,13 +262,11 @@ export default function Header() {
             pointerEvents: "none",
           });
 
-          document.body.style.overflow =
-            previousOverflowRef.current;
+          document.body.style.overflow = previousOverflowRef.current;
 
           setMenuOpen(false);
 
-          const pendingHref =
-            pendingNavigationRef.current;
+          const pendingHref = pendingNavigationRef.current;
 
           pendingNavigationRef.current = "";
 
@@ -331,9 +306,7 @@ export default function Header() {
             autoAlpha: 0,
             rotate: reduceMotion ? 0 : -45,
             duration: reduceMotion ? 0.01 : 0.6,
-            ease: reduceMotion
-              ? "none"
-              : "power3.out",
+            ease: reduceMotion ? "none" : "power3.out",
           },
           reduceMotion ? 0 : 0.45,
         )
@@ -343,9 +316,7 @@ export default function Header() {
             autoAlpha: 0,
             y: reduceMotion ? 0 : -16,
             duration: elementDuration,
-            ease: reduceMotion
-              ? "none"
-              : "power3.out",
+            ease: reduceMotion ? "none" : "power3.out",
           },
           reduceMotion ? 0 : 0.45,
         )
@@ -356,9 +327,7 @@ export default function Header() {
             x: reduceMotion ? 0 : -28,
             duration: elementDuration,
             stagger: reduceMotion ? 0 : 0.07,
-            ease: reduceMotion
-              ? "none"
-              : "power3.out",
+            ease: reduceMotion ? "none" : "power3.out",
           },
           reduceMotion ? 0 : 0.5,
         );
@@ -380,8 +349,7 @@ export default function Header() {
       return;
     }
 
-    previousOverflowRef.current =
-      document.body.style.overflow;
+    previousOverflowRef.current = document.body.style.overflow;
 
     document.body.style.overflow = "hidden";
 
@@ -400,8 +368,7 @@ export default function Header() {
     pendingNavigationRef.current = "";
 
     if (!menuTimelineRef.current) {
-      document.body.style.overflow =
-        previousOverflowRef.current;
+      document.body.style.overflow = previousOverflowRef.current;
 
       setMenuOpen(false);
       return;
@@ -426,16 +393,13 @@ export default function Header() {
    * Menu navigation first closes the overlay,
    * then smoothly scrolls to the selected section.
    */
-  const handleMenuNavigation = useCallback(
-    (event, href) => {
-      event.preventDefault();
+  const handleMenuNavigation = useCallback((event, href) => {
+    event.preventDefault();
 
-      pendingNavigationRef.current = href;
+    pendingNavigationRef.current = href;
 
-      menuTimelineRef.current?.reverse();
-    },
-    [],
-  );
+    menuTimelineRef.current?.reverse();
+  }, []);
 
   /*
    * Escape-key support.
@@ -451,10 +415,7 @@ export default function Header() {
     window.addEventListener("keydown", handleEscape);
 
     return () => {
-      window.removeEventListener(
-        "keydown",
-        handleEscape,
-      );
+      window.removeEventListener("keydown", handleEscape);
     };
   }, [menuOpen, closeMenu]);
 
@@ -464,18 +425,13 @@ export default function Header() {
    */
   useEffect(() => {
     return () => {
-      document.body.style.overflow =
-        previousOverflowRef.current;
+      document.body.style.overflow = previousOverflowRef.current;
     };
   }, []);
 
   return (
     <>
-      <header
-        ref={headerRef}
-        className={styles.header}
-        data-scrolled="false"
-      >
+      <header ref={headerRef} className={styles.header} data-scrolled="false">
         <div className={styles.inner}>
           <button
             ref={menuButtonRef}
@@ -486,43 +442,26 @@ export default function Header() {
             aria-controls="oceara-menu"
             onClick={openMenu}
           >
-            <span
-              className={styles.menuIcon}
-              aria-hidden="true"
-            />
+            <span className={styles.menuIcon} aria-hidden="true" />
 
-            <span className={styles.menuText}>
-              Menu
-            </span>
+            <span className={styles.menuText}>Menu</span>
           </button>
 
           <a
             href="#home"
             className={styles.logo}
             aria-label="Return to the Oceara Hero section"
-            onClick={(event) =>
-              handleHeaderNavigation(event, "#home")
-            }
+            onClick={(event) => handleHeaderNavigation(event, "#home")}
           >
-            <span
-              className={styles.logoMark}
-              aria-hidden="true"
-            />
+            <span className={styles.logoMark} aria-hidden="true" />
           </a>
 
-          <a
-            href="#contact"
-            className={styles.callback}
-            data-contact-popup
-          >
+          <a href="#contact" className={styles.callback} data-contact-popup>
             Request Callback
           </a>
         </div>
 
-        <div
-          className={styles.divider}
-          aria-hidden="true"
-        />
+        <div className={styles.divider} aria-hidden="true" />
       </header>
 
       <div
@@ -539,45 +478,26 @@ export default function Header() {
             aria-label="Close navigation menu"
             onClick={closeMenu}
           >
-            <span
-              className={styles.closeIcon}
-              aria-hidden="true"
-            />
+            <span className={styles.closeIcon} aria-hidden="true" />
           </button>
 
           <a
             href="#home"
             className={styles.menuLogo}
             aria-label="Return to the Oceara Hero section"
-            onClick={(event) =>
-              handleMenuNavigation(event, "#home")
-            }
+            onClick={(event) => handleMenuNavigation(event, "#home")}
           >
-            <span
-              className={styles.menuLogoMark}
-              aria-hidden="true"
-            />
+            <span className={styles.menuLogoMark} aria-hidden="true" />
           </a>
 
-          <nav
-            className={styles.menuNavigation}
-            aria-label="Main navigation"
-          >
+          <nav className={styles.menuNavigation} aria-label="Main navigation">
             <ul className={styles.menuList}>
               {menuItems.map((item) => (
-                <li
-                  key={item.href}
-                  className={styles.menuItem}
-                >
+                <li key={item.href} className={styles.menuItem}>
                   <a
                     href={item.href}
                     className={styles.menuLink}
-                    onClick={(event) =>
-                      handleMenuNavigation(
-                        event,
-                        item.href,
-                      )
-                    }
+                    onClick={(event) => handleMenuNavigation(event, item.href)}
                   >
                     {item.label}
                   </a>
@@ -587,9 +507,18 @@ export default function Header() {
           </nav>
         </div>
 
+        {/*
+         * Manager request: clicking the image also closes the
+         * menu, same as the close button. Kept aria-hidden and
+         * without button semantics on purpose, it's a decorative
+         * panel and a supplementary mouse/touch convenience; the
+         * close button and Escape key remain the accessible ways
+         * to close this for keyboard and screen reader users.
+         */}
         <div
           className={styles.menuImagePanel}
           aria-hidden="true"
+          onClick={closeMenu}
         />
       </div>
     </>
