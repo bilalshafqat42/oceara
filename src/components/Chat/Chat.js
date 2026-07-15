@@ -49,15 +49,10 @@ export default function Chat() {
 
   const handleSendPlaceholder = useCallback((event) => {
     event.preventDefault();
-
-    /*
-     * Message sending will be connected when
-     * the final chat workflow is approved.
-     */
   }, []);
 
   /*
-   * Close the open widget with Escape.
+   * Close the widget when Escape is pressed.
    */
   useEffect(() => {
     if (!isOpen) {
@@ -78,8 +73,7 @@ export default function Chat() {
   }, [isOpen, closeWidget]);
 
   /*
-   * Move keyboard focus into the active panel
-   * and return it to the toggle when closed.
+   * Manage keyboard focus between widget states.
    */
   useLayoutEffect(() => {
     if (isFirstRenderRef.current) {
@@ -104,7 +98,7 @@ export default function Chat() {
   }, [widgetState]);
 
   /*
-   * Animate between closed, introduction and chat states.
+   * Intro and chat-panel animations.
    */
   useGSAP(
     () => {
@@ -230,8 +224,7 @@ export default function Chat() {
   );
 
   /*
-   * Keep the current subtle floating-button movement.
-   * SVG swapping itself is handled entirely by CSS.
+   * Floating-button hover movement.
    */
   const handleToggleMouseEnter = useCallback(() => {
     const button = toggleButtonRef.current;
@@ -390,7 +383,6 @@ export default function Chat() {
         <div className={styles.messageList}>
           <div className={styles.messageBubble}>
             <p>Hi, there</p>
-
             <p>I&apos;m Kai, how can I help?</p>
           </div>
 
@@ -446,31 +438,9 @@ export default function Chat() {
           className={styles.toggleVisual}
           aria-hidden="true"
         >
-          {isOpen ? (
-            <span className={styles.openIcon}>
-              <svg
-                viewBox="0 0 24 24"
-                width="100%"
-                height="100%"
-                aria-hidden="true"
-              >
-                <path
-                  d="M6 9l6 6 6-6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </svg>
-            </span>
-          ) : (
-            <span className={styles.closedIcons}>
-              <span className={styles.darkIcon} />
-
-              <span className={styles.lightIcon} />
-            </span>
-          )}
+          <span className={styles.darkIcon} />
+          <span className={styles.lightIcon} />
+          <span className={styles.closeIcon} />
         </span>
       </button>
     </div>

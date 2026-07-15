@@ -17,7 +17,7 @@
 }
 
 /* =========================================================
-   Shared card styling
+   Shared panel styling
    ========================================================= */
 
 .introCard,
@@ -272,16 +272,13 @@
 
   transition:
     background-color 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
+    color 180ms ease;
 }
 
 .closeButton:hover,
 .closeButton:focus-visible {
   background: rgba(7, 61, 97, 0.06);
   color: #073d61;
-
-  transform: rotate(4deg);
 }
 
 .closeButton:focus-visible {
@@ -415,7 +412,7 @@
 }
 
 /* =========================================================
-   Persistent chat toggle
+   Floating chat button
    ========================================================= */
 
 .toggleButton {
@@ -434,10 +431,6 @@
   border-radius: 50%;
   outline: 0;
 
-  /*
-   * The exported SVG artwork contains the complete
-   * circular button design.
-   */
   background: transparent;
 
   cursor: pointer;
@@ -448,10 +441,6 @@
 
   will-change: transform;
 }
-
-/* =========================================================
-   Toggle visual wrapper
-   ========================================================= */
 
 .toggleVisual {
   position: relative;
@@ -472,23 +461,12 @@
 }
 
 /* =========================================================
-   Closed-state SVG artwork
+   Original vector SVG artwork
    ========================================================= */
 
-.closedIcons {
-  position: absolute;
-  inset: 0;
-
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  border-radius: 50%;
-}
-
 .darkIcon,
-.lightIcon {
+.lightIcon,
+.closeIcon {
   position: absolute;
   inset: 0;
 
@@ -503,6 +481,8 @@
   background-position: center center;
   background-size: contain;
 
+  opacity: 0;
+
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 
@@ -513,8 +493,11 @@
     transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/*
+ * Normal closed-state artwork.
+ */
 .darkIcon {
-  z-index: 2;
+  z-index: 1;
 
   background-image: url("/icons/chat-dark.svg");
 
@@ -522,77 +505,67 @@
   transform: scale(1);
 }
 
+/*
+ * Closed-state hover artwork.
+ */
 .lightIcon {
-  z-index: 3;
+  z-index: 2;
 
   background-image: url("/icons/chat-light.svg");
 
-  opacity: 0;
   transform: scale(0.96);
 }
 
 /*
- * Dark artwork normally, light artwork on hover
- * and keyboard focus.
+ * Open/minimise artwork.
  */
-.toggleButton:hover .darkIcon,
-.toggleButton:focus-visible .darkIcon {
+.closeIcon {
+  z-index: 3;
+
+  background-image: url("/icons/chat-close.svg");
+
+  transform: scale(0.96);
+}
+
+/* =========================================================
+   Closed-state interactions
+   ========================================================= */
+
+.toggleButton[data-open="false"]:hover .darkIcon,
+.toggleButton[data-open="false"]:focus-visible .darkIcon {
   opacity: 0;
   transform: scale(0.96);
 }
 
-.toggleButton:hover .lightIcon,
-.toggleButton:focus-visible .lightIcon {
+.toggleButton[data-open="false"]:hover .lightIcon,
+.toggleButton[data-open="false"]:focus-visible .lightIcon {
   opacity: 1;
   transform: scale(1);
 }
 
 /* =========================================================
-   Open-state chevron
+   Open-state artwork
    ========================================================= */
 
-.openIcon {
-  position: absolute;
-  inset: 0;
-
-  display: grid;
-  place-items: center;
-
-  width: 100%;
-  height: 100%;
-
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-
-  background: #3d3d3d;
-  color: #ffffff;
-
-  box-shadow:
-    0 8px 20px rgba(24, 25, 27, 0.18),
-    0 2px 6px rgba(24, 25, 27, 0.08);
-
-  transition:
-    background-color 400ms cubic-bezier(0.16, 1, 0.3, 1),
-    color 400ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 400ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1);
+.toggleButton[data-open="true"] .darkIcon,
+.toggleButton[data-open="true"] .lightIcon {
+  opacity: 0;
+  transform: scale(0.96);
 }
 
-.openIcon svg {
-  width: 18px;
-  height: 18px;
+.toggleButton[data-open="true"] .closeIcon {
+  opacity: 1;
+  transform: scale(1);
 }
 
-.toggleButton:hover .openIcon,
-.toggleButton:focus-visible .openIcon {
-  border-color: rgba(0, 0, 0, 0.85);
-
-  background: #f2ede5;
-  color: #090909;
-
-  box-shadow:
-    0 12px 28px rgba(7, 61, 97, 0.2),
-    0 3px 8px rgba(24, 25, 27, 0.08);
+/*
+ * The open close-icon remains the supplied SVG.
+ * A small scale change provides feedback without
+ * replacing or recolouring the original artwork.
+ */
+.toggleButton[data-open="true"]:hover .closeIcon,
+.toggleButton[data-open="true"]:focus-visible .closeIcon {
+  transform: scale(1.035);
 }
 
 .toggleButton:hover .toggleVisual,
@@ -634,11 +607,6 @@
     width: 50px;
     height: 50px;
   }
-
-  .openIcon svg {
-    width: 16px;
-    height: 16px;
-  }
 }
 
 /* =========================================================
@@ -650,26 +618,30 @@
   .toggleVisual,
   .darkIcon,
   .lightIcon,
-  .openIcon {
+  .closeIcon {
     transform: none !important;
   }
 
   .darkIcon,
   .lightIcon,
-  .openIcon,
+  .closeIcon,
   .textUsButton,
   .closeButton,
   .sendButton {
     transition: none;
   }
 
-  .toggleButton:hover .darkIcon,
-  .toggleButton:focus-visible .darkIcon {
+  .toggleButton[data-open="false"]:hover .darkIcon,
+  .toggleButton[data-open="false"]:focus-visible .darkIcon {
     opacity: 0;
   }
 
-  .toggleButton:hover .lightIcon,
-  .toggleButton:focus-visible .lightIcon {
+  .toggleButton[data-open="false"]:hover .lightIcon,
+  .toggleButton[data-open="false"]:focus-visible .lightIcon {
+    opacity: 1;
+  }
+
+  .toggleButton[data-open="true"] .closeIcon {
     opacity: 1;
   }
 }
