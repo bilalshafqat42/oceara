@@ -170,52 +170,64 @@ export default function MapSection() {
           }
 
           /*
-           * Subtle fade-up as the complete section enters.
-           */
-          const entranceTween = gsap.fromTo(
-            sectionInner,
-            {
-              autoAlpha: 0,
-              y: mobile ? 12 : 20,
-            },
-            {
-              autoAlpha: 1,
-              y: 0,
-              duration: mobile ? 0.7 : 0.85,
-              ease: "power2.out",
-
-              scrollTrigger: {
-                trigger: section,
-                start: "top 90%",
-                toggleActions: "play none none reverse",
-                invalidateOnRefresh: true,
-              },
-            },
-          );
-
-          /*
-           * Late fade-out as the section leaves.
+           * Single continuous scrub instead of two separate tweens.
            *
-           * A normal gsap.to() is used here so it does not
-           * compete with the entrance animation during refresh.
+           * The previous version used a one-shot "entrance" tween
+           * (toggled by scroll direction) and a separate scrubbed
+           * "exit" tween, both controlling the same autoAlpha/y
+           * properties on sectionInner. Two independent tweens
+           * fighting over the same properties on the same target is
+           * what caused the whole section to snap to invisible when
+           * scrolling back up, even after removing "reverse" from
+           * the entrance's toggleActions.
+           *
+           * This timeline is scrubbed across the section's entire
+           * visible range: "top bottom" (the moment any part of the
+           * section first appears at the bottom of the viewport) to
+           * "bottom top" (the moment none of it is left on screen).
+           * Only one thing ever controls these properties now, and
+           * scrub-based animation is inherently and smoothly
+           * reversible in both scroll directions, no toggleActions
+           * or manual reverse logic needed at all.
            */
-          const exitTween = gsap.to(sectionInner, {
-            autoAlpha: 0,
-            y: mobile ? -18 : -28,
-            ease: "none",
-
+          const sectionTimeline = gsap.timeline({
             scrollTrigger: {
               trigger: section,
-              start: mobile ? "bottom 22%" : "bottom 28%",
+              start: "top bottom",
               end: "bottom top",
-              scrub: mobile ? 0.45 : 0.65,
+              scrub: mobile ? 0.5 : 0.65,
               invalidateOnRefresh: true,
             },
           });
 
+          sectionTimeline
+            .fromTo(
+              sectionInner,
+              {
+                autoAlpha: 0,
+                y: mobile ? 12 : 20,
+              },
+              {
+                autoAlpha: 1,
+                y: 0,
+                ease: "power2.out",
+                duration: 0.15,
+              },
+              0,
+            )
+            .to(
+              sectionInner,
+              {
+                autoAlpha: 0,
+                y: mobile ? -18 : -28,
+                ease: "power2.in",
+                duration: 0.15,
+              },
+              0.85,
+            );
+
           return () => {
-            entranceTween.kill();
-            exitTween.kill();
+            sectionTimeline.kill();
           };
         },
       );
@@ -326,12 +338,17 @@ export default function MapSection() {
           /*
            * Heading sequence:
            * eyebrow → heading → description.
+           *
+           * Last toggleAction is "none", not "reverse": this section
+           * fades out as a whole via the dedicated exit scrub in the
+           * effect above, so the heading shouldn't independently
+           * re-hide itself on upward scroll too.
            */
           const headingTimeline = gsap.timeline({
             scrollTrigger: {
               trigger: sectionHeader,
               start: "top 80%",
-              toggleActions: "play none none reverse",
+              toggleActions: "play none none none",
               invalidateOnRefresh: true,
             },
           });
@@ -399,6 +416,9 @@ export default function MapSection() {
            *
            * A 0.2-second stagger gives each destination
            * separation without making the sequence feel slow.
+           *
+           * Last toggleAction is "none", not "reverse", for the
+           * same reason as above.
            */
           const destinationStagger = 0.2;
 
@@ -406,7 +426,7 @@ export default function MapSection() {
             scrollTrigger: {
               trigger: mapStage,
               start: "top 56%",
-              toggleActions: "play none none reverse",
+              toggleActions: "play none none none",
               invalidateOnRefresh: true,
             },
           });
@@ -524,6 +544,10 @@ export default function MapSection() {
 
           /*
            * Mobile 2×2 cards fade upward one by one.
+           *
+           * Last toggleAction is "none", not "reverse", so cards
+           * don't re-hide on upward scroll, same reasoning as the
+           * desktop timelines above.
            */
           const mobileItemsTween = gsap.to(travelItems, {
             autoAlpha: 1,
@@ -535,7 +559,7 @@ export default function MapSection() {
             scrollTrigger: {
               trigger: mapStage,
               start: "top 68%",
-              toggleActions: "play none none reverse",
+              toggleActions: "play none none none",
               invalidateOnRefresh: true,
             },
           });
@@ -549,7 +573,7 @@ export default function MapSection() {
             scrollTrigger: {
               trigger: mapStage,
               start: "top 57%",
-              toggleActions: "play none none reverse",
+              toggleActions: "play none none none",
               invalidateOnRefresh: true,
             },
           });
