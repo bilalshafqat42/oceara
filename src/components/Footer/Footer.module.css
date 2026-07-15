@@ -27,6 +27,8 @@
   min-height: 645px;
 
   padding: 116px clamp(70px, 8.5vw, 116px) 76px;
+
+  will-change: transform;
 }
 
 /* Logo */
@@ -307,6 +309,10 @@ a.value:focus-visible,
 /* Reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
+  .inner {
+    transform: none !important;
+  }
+
   .inner > * {
     opacity: 1 !important;
     transform: none !important;

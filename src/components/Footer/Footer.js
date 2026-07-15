@@ -24,28 +24,67 @@ export default function Footer() {
 
       matchMedia.add(
         {
+          desktop: "(min-width: 601px)",
+          mobile: "(max-width: 600px)",
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { reduceMotion } = context.conditions;
+          const { mobile, reduceMotion } = context.conditions;
 
           if (reduceMotion) {
+            gsap.set(content, {
+              clearProps: "transform",
+            });
+
             gsap.set(items, {
               clearProps: "all",
-              opacity: 1,
+              autoAlpha: 1,
             });
 
             return;
           }
 
+          /*
+           * Parallax:
+           *
+           * The whole content block drifts up into place a
+           * little slower than the page scroll as the footer
+           * enters the viewport, then settles as it centres.
+           */
+          gsap.fromTo(
+            content,
+            {
+              y: mobile ? 32 : 60,
+            },
+            {
+              y: 0,
+              ease: "none",
+
+              scrollTrigger: {
+                trigger: footer,
+                start: "top bottom",
+                end: "top 45%",
+
+                scrub: 0.6,
+                invalidateOnRefresh: true,
+              },
+            },
+          );
+
+          /*
+           * Text entrance:
+           *
+           * Each block fades up from below and appears
+           * one at a time, with a small delay between them.
+           */
           gsap.fromTo(
             items,
             {
-              opacity: 0,
-              y: 28,
+              autoAlpha: 0,
+              y: mobile ? 20 : 28,
             },
             {
-              opacity: 1,
+              autoAlpha: 1,
               y: 0,
               duration: 0.85,
               stagger: 0.08,
@@ -100,10 +139,7 @@ export default function Footer() {
         <div className={`${styles.contactBlock} ${styles.email}`}>
           <p className={styles.label}>Email</p>
 
-          <a
-            href="mailto:sales@refinedubai.com"
-            className={styles.value}
-          >
+          <a href="mailto:sales@refinedubai.com" className={styles.value}>
             sales@refinedubai.com
           </a>
         </div>

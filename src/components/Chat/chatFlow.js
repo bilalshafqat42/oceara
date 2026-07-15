@@ -2,17 +2,14 @@ export const LANGUAGES = [
   {
     id: "english",
     label: "English",
-    locale: "en",
   },
   {
     id: "arabic",
     label: "العربية",
-    locale: "ar",
   },
   {
     id: "russian",
     label: "Русский",
-    locale: "ru",
   },
 ];
 

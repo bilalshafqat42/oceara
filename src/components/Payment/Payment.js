@@ -8,22 +8,40 @@ import styles from "./Payment.module.css";
 
 export default function Payment() {
   const sectionRef = useRef(null);
-  const contentRef = useRef(null);
+  const eyebrowRef = useRef(null);
+  const headingRef = useRef(null);
+  const planNumbersRef = useRef(null);
+  const planLabelsRef = useRef(null);
   const imagePanelRef = useRef(null);
   const imageLayerRef = useRef(null);
 
   useGSAP(
     () => {
       const section = sectionRef.current;
-      const content = contentRef.current;
+      const eyebrow = eyebrowRef.current;
+      const heading = headingRef.current;
+      const planNumbers = planNumbersRef.current;
+      const planLabels = planLabelsRef.current;
       const imagePanel = imagePanelRef.current;
       const imageLayer = imageLayerRef.current;
 
-      if (!section || !content || !imagePanel || !imageLayer) {
+      if (
+        !section ||
+        !eyebrow ||
+        !heading ||
+        !planNumbers ||
+        !planLabels ||
+        !imagePanel ||
+        !imageLayer
+      ) {
         return;
       }
 
-      const contentChildren = Array.from(content.children);
+      /*
+       * Reveal order while scrolling down:
+       * "Payment" -> "Plan" -> the 20/80 numbers -> the labels.
+       */
+      const contentReveal = [eyebrow, heading, planNumbers, planLabels];
       const matchMedia = gsap.matchMedia();
 
       matchMedia.add(
@@ -45,7 +63,7 @@ export default function Payment() {
               clearProps: "transform",
             });
 
-            gsap.set(contentChildren, {
+            gsap.set(contentReveal, {
               autoAlpha: 1,
               y: 0,
             });
@@ -59,7 +77,7 @@ export default function Payment() {
            * Only its content starts slightly lower
            * and fades into position.
            */
-          gsap.set(contentChildren, {
+          gsap.set(contentReveal, {
             autoAlpha: 0,
             y: mobile ? 28 : 44,
           });
@@ -133,8 +151,9 @@ export default function Payment() {
           /*
            * Left content entrance.
            *
-           * Heading group appears first,
-           * followed by the payment plan.
+           * Each piece fades up from below and reveals
+           * one at a time, with a small delay between:
+           * eyebrow, heading, plan numbers, then labels.
            */
           const contentTimeline = gsap.timeline({
             scrollTrigger: {
@@ -144,11 +163,11 @@ export default function Payment() {
             },
           });
 
-          contentTimeline.to(contentChildren, {
+          contentTimeline.to(contentReveal, {
             autoAlpha: 1,
             y: 0,
-            duration: mobile ? 0.75 : 0.95,
-            stagger: mobile ? 0.1 : 0.14,
+            duration: mobile ? 0.6 : 0.75,
+            stagger: mobile ? 0.16 : 0.22,
             ease: "power3.out",
           });
 
@@ -177,17 +196,24 @@ export default function Payment() {
     >
       <div className={styles.viewport}>
         <div className={styles.contentPanel}>
-          <div ref={contentRef} className={styles.content}>
+          <div className={styles.content}>
             <div className={styles.headingGroup}>
-              <p className={styles.eyebrow}>Payment</p>
+              <p ref={eyebrowRef} className={styles.eyebrow}>
+                Payment
+              </p>
 
-              <h2 id="payment-title" className={styles.heading}>
+              <h2
+                ref={headingRef}
+                id="payment-title"
+                className={styles.heading}
+              >
                 Plan
               </h2>
             </div>
 
             <div className={styles.plan}>
               <div
+                ref={planNumbersRef}
                 className={styles.planNumbers}
                 aria-label="20 percent during construction and 80 percent after handover"
               >
@@ -200,7 +226,7 @@ export default function Payment() {
                 <span className={styles.planNumber}>80</span>
               </div>
 
-              <div className={styles.planLabels}>
+              <div ref={planLabelsRef} className={styles.planLabels}>
                 <p className={styles.planLabel}>During Construction</p>
 
                 <p className={styles.planLabel}>After Handover</p>
