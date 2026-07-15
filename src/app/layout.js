@@ -1,6 +1,7 @@
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { inter, kinan, minervaModern } from "@/lib/fonts";
+import Loader from "@/components/Loader";
 
 export const metadata = {
   title: "Oceara",
@@ -15,7 +16,10 @@ export default function RootLayout({ children }) {
         " ",
       )}
     >
-      <body>{children}</body>
+      <body>
+        <Loader />
+        {children}
+      </body>
     </html>
   );
 }
