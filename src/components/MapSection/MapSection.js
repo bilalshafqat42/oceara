@@ -12,9 +12,6 @@ const MAPBOX_STYLE_URL =
 /*
  * Mapbox coordinates always use:
  * [longitude, latitude]
- *
- * Replace the project coordinates later with
- * the final approved Oceara Park Views location.
  */
 const projectLocation = {
   id: "project",
@@ -72,6 +69,10 @@ const destinations = [
 
 const allLocations = [projectLocation, ...destinations];
 
+/*
+ * Create one geographic boundary containing
+ * the project and all destinations.
+ */
 const createAllLocationsBounds = () => {
   const bounds = new mapboxgl.LngLatBounds();
 
@@ -82,7 +83,11 @@ const createAllLocationsBounds = () => {
   return bounds;
 };
 
-const createGoogleMapsUrl = (origin = "") => {
+/*
+ * Google Maps uses the visitor's current location
+ * automatically because the origin is omitted.
+ */
+const createGoogleMapsUrl = () => {
   const [longitude, latitude] = projectLocation.coordinates;
 
   const parameters = new URLSearchParams({
@@ -91,10 +96,6 @@ const createGoogleMapsUrl = (origin = "") => {
     travelmode: "driving",
     dir_action: "navigate",
   });
-
-  if (origin) {
-    parameters.set("origin", origin);
-  }
 
   return `https://www.google.com/maps/dir/?${parameters.toString()}`;
 };
@@ -111,36 +112,46 @@ export default function MapSection() {
   const mapItemsRef = useRef([]);
   const resizeTimerRef = useRef(null);
 
-  const [activeLocationId, setActiveLocationId] = useState("");
+  const [activeLocationId, setActiveLocationId] = useState(
+    projectLocation.id,
+  );
+
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState("");
 
   /*
-   * Section animation:
+   * Destination panel entrance animation.
    *
-   * 1. Map remains fully visible all the time.
-   * 2. Beige blurred background reveals left to right.
-   * 3. Travel items fade upward one by one.
-   * 4. See Directions appears after the items.
+   * Desktop:
+   * Beige overlay reveals from left to right.
+   *
+   * Mobile:
+   * Beige gradient reveals from top to bottom.
+   * Destination cards rise and fade in one by one.
    */
   useGSAP(
     () => {
-      const section = sectionRef.current;
       const mapStage = mapStageRef.current;
       const overlayBackground = overlayBackgroundRef.current;
       const travelList = travelListRef.current;
       const directionsLink = directionsRef.current;
 
       if (
-        !section ||
         !mapStage ||
         !overlayBackground ||
         !travelList ||
         !directionsLink
       ) {
-        return;
+        return undefined;
       }
 
-      const travelItems = Array.from(travelList.children);
+      const travelItems = Array.from(
+        travelList.querySelectorAll(`.${styles.travelItem}`),
+      );
+
+      if (travelItems.length === 0) {
+        return undefined;
+      }
 
       const matchMedia = gsap.matchMedia();
 
@@ -151,8 +162,10 @@ export default function MapSection() {
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { mobile = false, reduceMotion = false } =
-            context.conditions ?? {};
+          const {
+            mobile = false,
+            reduceMotion = false,
+          } = context.conditions ?? {};
 
           if (reduceMotion) {
             gsap.set(overlayBackground, {
@@ -164,17 +177,13 @@ export default function MapSection() {
               y: 0,
             });
 
-            return;
+            return undefined;
           }
 
-          /*
-           * Initial state:
-           *
-           * Map remains visible.
-           * Only the beige blurred background is hidden.
-           */
           gsap.set(overlayBackground, {
-            clipPath: "inset(0% 100% 0% 0%)",
+            clipPath: mobile
+              ? "inset(0% 0% 100% 0%)"
+              : "inset(0% 100% 0% 0%)",
           });
 
           gsap.set(travelItems, {
@@ -184,60 +193,54 @@ export default function MapSection() {
 
           gsap.set(directionsLink, {
             autoAlpha: 0,
-            y: mobile ? 20 : 32,
+            y: mobile ? 18 : 32,
           });
 
-          /*
-           * Reveal the beige/blur overlay horizontally.
-           *
-           * The map underneath never disappears.
-           */
-          gsap.to(overlayBackground, {
+          const overlayTween = gsap.to(overlayBackground, {
             clipPath: "inset(0% 0% 0% 0%)",
             ease: "none",
 
             scrollTrigger: {
               trigger: mapStage,
-              start: "top 82%",
-              end: mobile ? "top 42%" : "top 34%",
-              scrub: mobile ? 0.55 : 0.8,
+              start: mobile ? "top 88%" : "top 82%",
+              end: mobile ? "top 56%" : "top 34%",
+              scrub: mobile ? 0.65 : 0.8,
               invalidateOnRefresh: true,
             },
           });
 
-          /*
-           * Travel items appear one by one after
-           * the overlay becomes sufficiently visible.
-           */
-          gsap.to(travelItems, {
+          const itemsTween = gsap.to(travelItems, {
             autoAlpha: 1,
             y: 0,
-            duration: mobile ? 0.68 : 0.82,
-            stagger: mobile ? 0.1 : 0.16,
+            duration: mobile ? 0.62 : 0.82,
+            stagger: mobile ? 0.11 : 0.16,
             ease: "power3.out",
 
             scrollTrigger: {
               trigger: mapStage,
-              start: mobile ? "top 52%" : "top 45%",
+              start: mobile ? "top 68%" : "top 45%",
               once: true,
             },
           });
 
-          /*
-           * See Directions appears after the list.
-           */
-          gsap.to(directionsLink, {
+          const directionsTween = gsap.to(directionsLink, {
             autoAlpha: 1,
             y: 0,
-            duration: 0.8,
+            duration: mobile ? 0.62 : 0.8,
             ease: "power3.out",
 
             scrollTrigger: {
               trigger: mapStage,
-              start: mobile ? "top 40%" : "top 32%",
+              start: mobile ? "top 58%" : "top 32%",
               once: true,
             },
           });
+
+          return () => {
+            overlayTween.kill();
+            itemsTween.kill();
+            directionsTween.kill();
+          };
         },
       );
 
@@ -250,10 +253,16 @@ export default function MapSection() {
     },
   );
 
+  /*
+   * Mapbox initialisation.
+   */
   useEffect(() => {
-    const accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    const accessToken =
+      process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
     if (!accessToken) {
+      setMapLoaded(false);
+
       setMapError(
         "Mapbox token is missing. Add NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN to .env.local and restart the development server.",
       );
@@ -264,6 +273,9 @@ export default function MapSection() {
     if (!mapContainerRef.current || mapRef.current) {
       return undefined;
     }
+
+    setMapLoaded(false);
+    setMapError("");
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
@@ -287,11 +299,8 @@ export default function MapSection() {
     mapRef.current = map;
 
     /*
-     * Disable mouse-wheel, double-click,
-     * keyboard and box zoom.
-     *
-     * Scrolling over the map continues scrolling
-     * the webpage instead of zooming the map.
+     * Prevent mouse scrolling over the map
+     * from zooming the map.
      */
     map.scrollZoom.disable();
     map.boxZoom.disable();
@@ -299,10 +308,13 @@ export default function MapSection() {
     map.keyboard.disable();
 
     /*
-     * Disable map rotation on touch devices.
+     * Touch users can zoom but cannot rotate.
      */
     map.touchZoomRotate.disableRotation();
 
+    /*
+     * Keep required attribution visible.
+     */
     map.addControl(
       new mapboxgl.AttributionControl({
         compact: false,
@@ -310,6 +322,9 @@ export default function MapSection() {
       "bottom-right",
     );
 
+    /*
+     * Create markers and permanent labels.
+     */
     allLocations.forEach((location) => {
       const markerButton = document.createElement("button");
 
@@ -319,16 +334,23 @@ export default function MapSection() {
         ? styles.projectMarker
         : styles.locationMarker;
 
-      markerButton.setAttribute("aria-label", `Focus map on ${location.name}`);
+      markerButton.setAttribute(
+        "aria-label",
+        `Focus map on ${location.name}`,
+      );
 
       markerButton.dataset.locationId = location.id;
-      markerButton.dataset.active = "false";
+
+      markerButton.dataset.active =
+        location.id === projectLocation.id ? "true" : "false";
 
       const markerInner = document.createElement("span");
 
       markerInner.className = location.isProject
         ? styles.projectMarkerInner
         : styles.locationMarkerInner;
+
+      markerInner.setAttribute("aria-hidden", "true");
 
       markerButton.appendChild(markerInner);
 
@@ -345,9 +367,6 @@ export default function MapSection() {
 
       markerButton.addEventListener("click", focusLocation);
 
-      /*
-       * Permanent map label.
-       */
       const labelContent = document.createElement("div");
 
       labelContent.className = location.isProject
@@ -356,7 +375,8 @@ export default function MapSection() {
 
       const labelName = document.createElement("strong");
 
-      labelName.textContent = location.shortName || location.name;
+      labelName.textContent =
+        location.shortName || location.name;
 
       const labelTime = document.createElement("span");
 
@@ -398,19 +418,36 @@ export default function MapSection() {
       });
     });
 
+    /*
+     * Fit all markers into the visible map area.
+     */
     const showAllLocations = ({ duration = 0 } = {}) => {
-      const isMobile = window.matchMedia("(max-width: 767px)").matches;
+      const isMobile = window.matchMedia(
+        "(max-width: 767px)",
+      ).matches;
 
-      const isTablet = window.matchMedia("(max-width: 1100px)").matches;
+      const isTablet = window.matchMedia(
+        "(max-width: 1100px)",
+      ).matches;
 
       let padding;
 
       if (isMobile) {
+        /*
+         * The destination cards overlay the upper map.
+         * Extra top padding keeps the project marker and
+         * destination labels below the card area.
+         */
+        const overlaySpace = Math.min(
+          Math.round(window.innerHeight * 0.38),
+          350,
+        );
+
         padding = {
-          top: 125,
-          right: 65,
-          bottom: 430,
-          left: 65,
+          top: overlaySpace,
+          right: 34,
+          bottom: 54,
+          left: 34,
         };
       } else if (isTablet) {
         padding = {
@@ -430,7 +467,7 @@ export default function MapSection() {
 
       map.fitBounds(createAllLocationsBounds(), {
         padding,
-        maxZoom: isMobile ? 9.3 : 10,
+        maxZoom: isMobile ? 9.15 : 10,
         duration,
         essential: true,
         retainPadding: false,
@@ -446,6 +483,7 @@ export default function MapSection() {
         });
       });
 
+      setMapLoaded(true);
       setMapError("");
     };
 
@@ -464,7 +502,13 @@ export default function MapSection() {
     const handleMapError = (event) => {
       console.error("Mapbox error:", event.error);
 
+      /*
+       * Do not cover a working map because of a
+       * temporary tile, font or image error.
+       */
       if (!map.loaded() && !map.isStyleLoaded()) {
+        setMapLoaded(false);
+
         setMapError(
           "The map could not be loaded. Check the Mapbox token and published custom style.",
         );
@@ -485,8 +529,16 @@ export default function MapSection() {
       map.off("error", handleMapError);
 
       mapItemsRef.current.forEach(
-        ({ marker, popup, element, focusLocation }) => {
-          element.removeEventListener("click", focusLocation);
+        ({
+          marker,
+          popup,
+          element,
+          focusLocation,
+        }) => {
+          element.removeEventListener(
+            "click",
+            focusLocation,
+          );
 
           popup.remove();
           marker.remove();
@@ -500,9 +552,13 @@ export default function MapSection() {
     };
   }, []);
 
+  /*
+   * Synchronise the active marker appearance.
+   */
   useEffect(() => {
     mapItemsRef.current.forEach(({ id, element }) => {
-      element.dataset.active = id === activeLocationId ? "true" : "false";
+      element.dataset.active =
+        id === activeLocationId ? "true" : "false";
     });
   }, [activeLocationId]);
 
@@ -523,45 +579,6 @@ export default function MapSection() {
     });
   };
 
-  const handleDirectionsClick = (event) => {
-    event.preventDefault();
-
-    const newWindow = window.open(
-      "about:blank",
-      "_blank",
-      "noopener,noreferrer",
-    );
-
-    const openDirections = (url) => {
-      if (newWindow) {
-        newWindow.location.href = url;
-      } else {
-        window.location.href = url;
-      }
-    };
-
-    if (!navigator.geolocation) {
-      openDirections(createGoogleMapsUrl());
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const origin = `${position.coords.latitude},${position.coords.longitude}`;
-
-        openDirections(createGoogleMapsUrl(origin));
-      },
-      () => {
-        openDirections(createGoogleMapsUrl());
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 7000,
-        maximumAge: 300000,
-      },
-    );
-  };
-
   return (
     <section
       ref={sectionRef}
@@ -570,32 +587,49 @@ export default function MapSection() {
       aria-labelledby="location-map-title"
     >
       <header className={styles.sectionHeader}>
-        <p className={styles.eyebrow}>Connected To The</p>
+        <p className={styles.eyebrow}>
+          Connected To The
+        </p>
 
-        <h2 id="location-map-title" className={styles.heading}>
+        <h2
+          id="location-map-title"
+          className={styles.heading}
+        >
           City, Grounded By Nature
         </h2>
 
         <p className={styles.description}>
-          Enjoy the tranquillity of island living while remaining effortlessly
-          connected to Dubai&apos;s most important destinations, business
-          districts, lifestyle hubs and leisure experiences.
+          Enjoy the tranquillity of island living while
+          remaining effortlessly connected to Dubai&apos;s
+          most important destinations, business districts,
+          lifestyle hubs and leisure experiences.
         </p>
       </header>
 
-      <div ref={mapStageRef} className={styles.mapStage}>
-        {/* Map is always visible */}
+      <div
+        ref={mapStageRef}
+        className={styles.mapStage}
+      >
         <div
           ref={mapContainerRef}
           className={styles.map}
           aria-label="Interactive map showing Oceara Park Views and nearby Dubai destinations"
         />
 
+        {!mapLoaded && !mapError ? (
+          <div
+            className={styles.mapLoading}
+            aria-live="polite"
+            aria-label="Loading interactive map"
+          >
+            <span>Loading Map</span>
+          </div>
+        ) : null}
+
         <div
           className={styles.travelOverlay}
           aria-label="Travel times from Oceara Park Views"
         >
-          {/* Only this background reveals left to right */}
           <div
             ref={overlayBackgroundRef}
             className={styles.overlayBackground}
@@ -603,31 +637,42 @@ export default function MapSection() {
           />
 
           <div className={styles.travelContent}>
-            <div ref={travelListRef} className={styles.travelList} role="list">
+            <ul
+              ref={travelListRef}
+              className={styles.travelList}
+            >
               {destinations.map((destination) => {
-                const isActive = activeLocationId === destination.id;
+                const isActive =
+                  activeLocationId === destination.id;
 
                 return (
-                  <button
+                  <li
                     key={destination.id}
-                    type="button"
-                    role="listitem"
-                    className={styles.travelItem}
-                    data-active={isActive ? "true" : "false"}
-                    aria-pressed={isActive}
-                    onClick={() => handleDestinationClick(destination)}
+                    className={styles.travelListItem}
                   >
-                    <span className={styles.travelTime}>
-                      {destination.time}
-                    </span>
+                    <button
+                      type="button"
+                      className={styles.travelItem}
+                      data-active={
+                        isActive ? "true" : "false"
+                      }
+                      aria-pressed={isActive}
+                      onClick={() =>
+                        handleDestinationClick(destination)
+                      }
+                    >
+                      <span className={styles.travelTime}>
+                        {destination.time}
+                      </span>
 
-                    <span className={styles.travelName}>
-                      {destination.name}
-                    </span>
-                  </button>
+                      <span className={styles.travelName}>
+                        {destination.name}
+                      </span>
+                    </button>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
 
             <a
               ref={directionsRef}
@@ -635,7 +680,6 @@ export default function MapSection() {
               target="_blank"
               rel="noopener noreferrer"
               className={styles.directionsLink}
-              onClick={handleDirectionsClick}
             >
               See Directions
             </a>
@@ -643,7 +687,10 @@ export default function MapSection() {
         </div>
 
         {mapError ? (
-          <div className={styles.mapError} role="alert">
+          <div
+            className={styles.mapError}
+            role="alert"
+          >
             <p>{mapError}</p>
           </div>
         ) : null}

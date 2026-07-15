@@ -65,6 +65,8 @@ export default function Gallery() {
     startTime: 0,
     moved: false,
     basePositions: [],
+    startCardIndex: null,
+    pointerType: "mouse",
   });
 
   const ignoreClickRef = useRef(false);
@@ -610,6 +612,15 @@ export default function Gallery() {
         };
       });
 
+      // Record which card the pointer actually went down on. Needed
+      // because pointer capture (below) means finishPointerDrag always
+      // fires on the carousel element itself, not on whichever card
+      // was under the cursor, so we can't wait and find out later.
+      const cardElement = event.target.closest("[data-card-index]");
+      const startCardIndex = cardElement
+        ? Number(cardElement.dataset.cardIndex)
+        : null;
+
       dragStateRef.current = {
         isDragging: true,
         pointerId: event.pointerId,
@@ -618,6 +629,8 @@ export default function Gallery() {
         startTime: performance.now(),
         moved: false,
         basePositions,
+        startCardIndex,
+        pointerType: event.pointerType,
       };
 
       ignoreClickRef.current = false;
@@ -643,7 +656,6 @@ export default function Gallery() {
 
     if (Math.abs(rawDistance) > 5) {
       dragState.moved = true;
-      ignoreClickRef.current = true;
     }
 
     dragState.basePositions.forEach(({ card, position, baseX }) => {
@@ -694,8 +706,35 @@ export default function Gallery() {
 
       if (!shouldChangeSlide) {
         resetAfterDrag();
+
+        // Desktop-only: resolve this release as a tap on whichever card
+        // the pointer went down on, instead of waiting for the native
+        // "click" event. Some browsers redirect click's target to the
+        // element that called setPointerCapture (the carousel div)
+        // rather than the card button actually under the cursor, which
+        // silently breaks mouse click-to-select in those browsers.
+        //
+        // Restricted to non-touch input on purpose: touch tapping was
+        // already working correctly through the ordinary click event
+        // below, so it's left completely untouched here.
+        if (
+          dragState.pointerType !== "touch" &&
+          dragState.startCardIndex !== null &&
+          dragState.startCardIndex !== activeIndexRef.current
+        ) {
+          selectSlide(dragState.startCardIndex);
+        }
+
         return;
       }
+
+      // Only suppress the click the browser fires right after
+      // pointerup when a drag actually changed the slide, so that
+      // click doesn't also re-trigger selectSlide for this same
+      // interaction. Small incidental mouse movement that doesn't
+      // cross the threshold above must never set this, or normal
+      // clicks stop working (see finishPointerDrag notes below).
+      ignoreClickRef.current = true;
 
       /*
        * Dragging left reveals the next image.
@@ -711,7 +750,7 @@ export default function Gallery() {
         ignoreClickRef.current = false;
       }, 80);
     },
-    [resetAfterDrag, showNext, showPrevious],
+    [resetAfterDrag, selectSlide, showNext, showPrevious],
   );
 
   const handlePointerCancel = useCallback(
@@ -938,6 +977,7 @@ export default function Gallery() {
               }}
               className={styles.card}
               data-position={initialPosition}
+              data-card-index={index}
               aria-hidden={
                 initialPosition === "hidden" && !isCurrentSlide
                   ? "true"
