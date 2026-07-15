@@ -12,18 +12,6 @@ import {
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./Chat.module.css";
 
-/*
- * Three visual states only, per current scope:
- *
- * CLOSED -> just the round toggle button, bottom right.
- * INTRO  -> "Reach Out To Us" agent card.
- * CHAT   -> full Kai chat panel.
- *
- * Sending messages, WhatsApp handoff, and any real backend
- * wiring are intentionally left as no-ops for now and will be
- * connected once that functionality is scoped.
- */
-
 const WIDGET_STATE = {
   CLOSED: "closed",
   INTRO: "intro",
@@ -36,15 +24,16 @@ export default function Chat() {
   const introRef = useRef(null);
   const chatRef = useRef(null);
   const toggleButtonRef = useRef(null);
+  const toggleVisualRef = useRef(null);
   const textUsButtonRef = useRef(null);
   const messageInputRef = useRef(null);
-  const isFirstRender = useRef(true);
+  const isFirstRenderRef = useRef(true);
 
   const isOpen = widgetState !== WIDGET_STATE.CLOSED;
 
   const handleToggleClick = useCallback(() => {
-    setWidgetState((current) =>
-      current === WIDGET_STATE.CLOSED
+    setWidgetState((currentState) =>
+      currentState === WIDGET_STATE.CLOSED
         ? WIDGET_STATE.INTRO
         : WIDGET_STATE.CLOSED,
     );
@@ -60,51 +49,70 @@ export default function Chat() {
 
   const handleSendPlaceholder = useCallback((event) => {
     event.preventDefault();
-    // Message sending is wired up separately, once that scope is defined.
+
+    /*
+     * Message sending will be connected when
+     * the final chat workflow is approved.
+     */
   }, []);
 
-  // Close on Escape, standard behaviour for any dismissible panel.
+  /*
+   * Close the open widget with Escape.
+   */
   useEffect(() => {
     if (!isOpen) {
       return undefined;
     }
 
-    function handleKeyDown(event) {
+    const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         closeWidget();
       }
-    }
+    };
 
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isOpen, closeWidget]);
 
-  // Move focus into the panel when it opens, and back to the toggle
-  // button when it closes, so keyboard and screen reader users aren't
-  // stranded. Skipped on first mount so the page doesn't steal focus
-  // on load.
+  /*
+   * Move keyboard focus into the active panel
+   * and return it to the toggle when closed.
+   */
   useLayoutEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+
       return;
     }
 
     if (widgetState === WIDGET_STATE.INTRO) {
       textUsButtonRef.current?.focus();
-    } else if (widgetState === WIDGET_STATE.CHAT) {
-      messageInputRef.current?.focus();
-    } else {
-      toggleButtonRef.current?.focus();
+
+      return;
     }
+
+    if (widgetState === WIDGET_STATE.CHAT) {
+      messageInputRef.current?.focus();
+
+      return;
+    }
+
+    toggleButtonRef.current?.focus();
   }, [widgetState]);
 
+  /*
+   * Animate between closed, introduction and chat states.
+   */
   useGSAP(
     () => {
       const intro = introRef.current;
       const chat = chatRef.current;
 
       if (!intro || !chat) {
-        return;
+        return undefined;
       }
 
       const reduceMotion = window.matchMedia(
@@ -114,51 +122,180 @@ export default function Chat() {
       const showIntro = widgetState === WIDGET_STATE.INTRO;
       const showChat = widgetState === WIDGET_STATE.CHAT;
 
+      gsap.killTweensOf([intro, chat]);
+
       if (reduceMotion) {
         gsap.set(intro, {
           display: showIntro ? "flex" : "none",
           autoAlpha: showIntro ? 1 : 0,
+          y: 0,
+          scale: 1,
         });
+
         gsap.set(chat, {
           display: showChat ? "flex" : "none",
           autoAlpha: showChat ? 1 : 0,
+          y: 0,
+          scale: 1,
         });
-        return;
+
+        return undefined;
       }
 
       const timeline = gsap.timeline({
-        defaults: { ease: "power3.out", duration: 0.4 },
+        defaults: {
+          ease: "power3.out",
+        },
       });
 
       if (showIntro) {
-        gsap.set(chat, { display: "none" });
-        gsap.set(intro, { display: "flex" });
+        gsap.set(chat, {
+          display: "none",
+          autoAlpha: 0,
+        });
+
+        gsap.set(intro, {
+          display: "flex",
+        });
+
         timeline.fromTo(
           intro,
-          { autoAlpha: 0, y: 24, scale: 0.96 },
-          { autoAlpha: 1, y: 0, scale: 1 },
+          {
+            autoAlpha: 0,
+            y: 24,
+            scale: 0.96,
+          },
+          {
+            autoAlpha: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.42,
+          },
         );
-      } else if (showChat) {
-        gsap.set(intro, { display: "none" });
-        gsap.set(chat, { display: "flex" });
+
+        return () => {
+          timeline.kill();
+        };
+      }
+
+      if (showChat) {
+        gsap.set(intro, {
+          display: "none",
+          autoAlpha: 0,
+        });
+
+        gsap.set(chat, {
+          display: "flex",
+        });
+
         timeline.fromTo(
           chat,
-          { autoAlpha: 0, y: 24, scale: 0.96 },
-          { autoAlpha: 1, y: 0, scale: 1 },
-        );
-      } else {
-        timeline
-          .to([intro, chat], {
+          {
             autoAlpha: 0,
-            y: 16,
+            y: 24,
             scale: 0.96,
-            duration: 0.3,
-          })
-          .set([intro, chat], { display: "none" });
+          },
+          {
+            autoAlpha: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.42,
+          },
+        );
+
+        return () => {
+          timeline.kill();
+        };
       }
+
+      timeline
+        .to([intro, chat], {
+          autoAlpha: 0,
+          y: 16,
+          scale: 0.96,
+          duration: 0.3,
+          ease: "power2.in",
+        })
+        .set([intro, chat], {
+          display: "none",
+        });
+
+      return () => {
+        timeline.kill();
+      };
     },
-    { dependencies: [widgetState] },
+    {
+      dependencies: [widgetState],
+    },
   );
+
+  /*
+   * Keep the current subtle floating-button movement.
+   * SVG swapping itself is handled entirely by CSS.
+   */
+  const handleToggleMouseEnter = useCallback(() => {
+    const button = toggleButtonRef.current;
+    const visual = toggleVisualRef.current;
+
+    if (!button || !visual) {
+      return;
+    }
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (reduceMotion) {
+      return;
+    }
+
+    gsap.to(button, {
+      y: -4,
+      scale: 1.04,
+      duration: 0.35,
+      ease: "power3.out",
+      overwrite: true,
+    });
+
+    gsap.to(visual, {
+      y: -2,
+      duration: 0.35,
+      ease: "power3.out",
+      overwrite: true,
+    });
+  }, []);
+
+  const handleToggleMouseLeave = useCallback(() => {
+    const button = toggleButtonRef.current;
+    const visual = toggleVisualRef.current;
+
+    if (!button || !visual) {
+      return;
+    }
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (reduceMotion) {
+      return;
+    }
+
+    gsap.to(button, {
+      y: 0,
+      scale: 1,
+      duration: 0.4,
+      ease: "power3.out",
+      overwrite: true,
+    });
+
+    gsap.to(visual, {
+      y: 0,
+      duration: 0.4,
+      ease: "power3.out",
+      overwrite: true,
+    });
+  }, []);
 
   return (
     <div className={styles.widget}>
@@ -180,11 +317,13 @@ export default function Chat() {
             sizes="320px"
             className={styles.introPhoto}
           />
+
           <div className={styles.introPhotoOverlay} aria-hidden="true" />
         </div>
 
         <div className={styles.introContent}>
           <p className={styles.introTitle}>Reach Out To Us</p>
+
           <p className={styles.introSubtitle}>
             Let Us Know How We Can Help You
           </p>
@@ -205,6 +344,7 @@ export default function Chat() {
         ref={chatRef}
         className={styles.chatPanel}
         role="dialog"
+        aria-modal="false"
         aria-label="Chat with Kai"
         aria-hidden={widgetState !== WIDGET_STATE.CHAT}
       >
@@ -222,6 +362,7 @@ export default function Chat() {
 
             <span className={styles.headerText}>
               <span className={styles.agentName}>Kai</span>
+
               <span className={styles.agentStatus}>
                 Always Happy To Support
               </span>
@@ -249,8 +390,10 @@ export default function Chat() {
         <div className={styles.messageList}>
           <div className={styles.messageBubble}>
             <p>Hi, there</p>
+
             <p>I&apos;m Kai, how can I help?</p>
           </div>
+
           <span className={styles.messageMeta}>
             Kai &bull; Refine &bull; Just Now
           </span>
@@ -291,35 +434,42 @@ export default function Chat() {
         ref={toggleButtonRef}
         type="button"
         className={styles.toggleButton}
+        data-open={isOpen ? "true" : "false"}
         onClick={handleToggleClick}
+        onMouseEnter={handleToggleMouseEnter}
+        onMouseLeave={handleToggleMouseLeave}
         aria-label={isOpen ? "Minimise chat" : "Open chat"}
         aria-expanded={isOpen}
       >
-        <span className={styles.toggleIcon}>
+        <span
+          ref={toggleVisualRef}
+          className={styles.toggleVisual}
+          aria-hidden="true"
+        >
           {isOpen ? (
-            <svg
-              viewBox="0 0 24 24"
-              width="100%"
-              height="100%"
-              aria-hidden="true"
-            >
-              <path
-                d="M6 9l6 6 6-6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-            </svg>
+            <span className={styles.openIcon}>
+              <svg
+                viewBox="0 0 24 24"
+                width="100%"
+                height="100%"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 9l6 6 6-6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </svg>
+            </span>
           ) : (
-            // Custom brand icon, saved at public/images/agent/chat-icon.svg.
-            // Applied as a CSS mask (see .toggleIconImage) instead of an
-            // <img src>, so it always picks up currentColor and stays
-            // visible whether the button is charcoal, navy, or the cream
-            // hover state, regardless of what colour the SVG was exported
-            // in originally.
-            <span className={styles.toggleIconImage} aria-hidden="true" />
+            <span className={styles.closedIcons}>
+              <span className={styles.darkIcon} />
+
+              <span className={styles.lightIcon} />
+            </span>
           )}
         </span>
       </button>

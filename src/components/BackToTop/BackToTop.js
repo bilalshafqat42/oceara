@@ -9,17 +9,21 @@ const SHOW_AFTER = 600;
 
 export default function BackToTop() {
   const buttonRef = useRef(null);
-  const arrowRef = useRef(null);
+  const iconRef = useRef(null);
 
   const [isVisible, setIsVisible] = useState(false);
 
   /*
-   * Show the button only after the user
-   * has scrolled away from the Hero.
+   * Show the button only after the visitor
+   * has moved away from the Hero section.
    */
   useEffect(() => {
     const handleScroll = () => {
-      setIsVisible(window.scrollY > SHOW_AFTER);
+      const shouldShow = window.scrollY > SHOW_AFTER;
+
+      setIsVisible((currentValue) =>
+        currentValue === shouldShow ? currentValue : shouldShow,
+      );
     };
 
     handleScroll();
@@ -34,22 +38,22 @@ export default function BackToTop() {
   }, []);
 
   /*
-   * Visibility animation.
+   * Button visibility animation.
    */
   useGSAP(
     () => {
       const button = buttonRef.current;
-      const arrow = arrowRef.current;
+      const icon = iconRef.current;
 
-      if (!button || !arrow) {
-        return;
+      if (!button || !icon) {
+        return undefined;
       }
 
       const reduceMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      gsap.killTweensOf([button, arrow]);
+      gsap.killTweensOf([button, icon]);
 
       if (reduceMotion) {
         gsap.set(button, {
@@ -59,11 +63,11 @@ export default function BackToTop() {
           pointerEvents: isVisible ? "auto" : "none",
         });
 
-        gsap.set(arrow, {
+        gsap.set(icon, {
           y: 0,
         });
 
-        return;
+        return undefined;
       }
 
       if (isVisible) {
@@ -80,7 +84,7 @@ export default function BackToTop() {
             overwrite: true,
           })
           .fromTo(
-            arrow,
+            icon,
             {
               y: 3,
             },
@@ -88,11 +92,14 @@ export default function BackToTop() {
               y: 0,
               duration: 0.4,
               ease: "power3.out",
+              overwrite: true,
             },
             "-=0.25",
           );
 
-        return;
+        return () => {
+          timeline.kill();
+        };
       }
 
       gsap.to(button, {
@@ -104,6 +111,8 @@ export default function BackToTop() {
         pointerEvents: "none",
         overwrite: true,
       });
+
+      return undefined;
     },
     {
       dependencies: [isVisible],
@@ -111,11 +120,17 @@ export default function BackToTop() {
     },
   );
 
+  /*
+   * Premium hover movement.
+   *
+   * The dark/light SVG swap is handled by CSS,
+   * while GSAP controls only the physical movement.
+   */
   const handleMouseEnter = useCallback(() => {
     const button = buttonRef.current;
-    const arrow = arrowRef.current;
+    const icon = iconRef.current;
 
-    if (!button || !arrow) {
+    if (!button || !icon) {
       return;
     }
 
@@ -135,7 +150,7 @@ export default function BackToTop() {
       overwrite: true,
     });
 
-    gsap.to(arrow, {
+    gsap.to(icon, {
       y: -3,
       duration: 0.35,
       ease: "power3.out",
@@ -145,9 +160,9 @@ export default function BackToTop() {
 
   const handleMouseLeave = useCallback(() => {
     const button = buttonRef.current;
-    const arrow = arrowRef.current;
+    const icon = iconRef.current;
 
-    if (!button || !arrow) {
+    if (!button || !icon) {
       return;
     }
 
@@ -167,7 +182,7 @@ export default function BackToTop() {
       overwrite: true,
     });
 
-    gsap.to(arrow, {
+    gsap.to(icon, {
       y: 0,
       duration: 0.4,
       ease: "power3.out",
@@ -197,7 +212,10 @@ export default function BackToTop() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <span ref={arrowRef} className={styles.arrow} aria-hidden="true" />
+      <span ref={iconRef} className={styles.icon} aria-hidden="true">
+        <span className={styles.darkIcon} />
+        <span className={styles.lightIcon} />
+      </span>
     </button>
   );
 }

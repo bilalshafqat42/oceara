@@ -1,25 +1,24 @@
 /*
- * Position is kept in sync with the Chat toggle button
- * (components/Chat/Chat.module.css), so the two float side by
- * side instead of stacking on top of each other:
+ * Floating position stays aligned with the Chat button.
  *
- * Chat:      right 24px / bottom 24px  (mobile: right 16px / bottom 16px)
- * BackToTop: right 96px / bottom 24px  (mobile: right 78px / bottom 16px)
+ * Desktop:
+ * Chat:       right 24px, width 56px
+ * BackToTop:  right 96px
  *
- * BackToTop's right offset = Chat's right (24) + Chat's width (56)
- * + a 16px gap = 96px. On mobile: Chat's right (16) + Chat's width
- * (50) + a 12px gap = 78px. Bottom always matches Chat's bottom
- * exactly, so they're level with each other.
+ * 24px + 56px + 16px gap = 96px
  *
- * If Chat's position, width, or gap ever change, recalculate
- * BackToTop's right offset using that same formula.
+ * Small mobile:
+ * Chat:       right 16px, width 50px
+ * BackToTop:  right 78px
+ *
+ * 16px + 50px + 12px gap = 78px
  */
 
 .backToTop {
   position: fixed;
   right: 96px;
   bottom: 24px;
-  z-index: 90;
+  z-index: 999;
 
   display: grid;
   place-items: center;
@@ -30,17 +29,15 @@
   margin: 0;
   padding: 0;
 
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 0;
   border-radius: 50%;
-
   outline: 0;
 
-  background: #3d3d3d;
-  color: #ffffff;
-
-  box-shadow:
-    0 8px 20px rgba(24, 25, 27, 0.18),
-    0 2px 6px rgba(24, 25, 27, 0.08);
+  /*
+   * The SVG contains the complete visual button,
+   * so no additional CSS circle is placed behind it.
+   */
+  background: transparent;
 
   opacity: 0;
   visibility: hidden;
@@ -51,54 +48,107 @@
   transform: translateY(14px) scale(0.92);
   transform-origin: center center;
 
+  -webkit-tap-highlight-color: transparent;
+
   will-change: transform, opacity;
-
-  transition:
-    background-color 400ms cubic-bezier(0.16, 1, 0.3, 1),
-    color 400ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 400ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/*
- * Hover colour:
- *
- * Dark charcoal changes to the Oceara blue.
- */
-.backToTop:hover,
-.backToTop:focus-visible {
-  background: #f2ede5;
-  color: #090909;
+/* =========================================================
+   SVG icon wrapper
+   ========================================================= */
 
-  border-color: rgba(0, 0, 0, 0.85);
+.icon {
+  position: relative;
 
-  box-shadow:
-    0 12px 28px rgba(7, 61, 97, 0.28),
-    0 3px 8px rgba(24, 25, 27, 0.1);
-}
-
-.backToTop:active {
-  background: #052f4b;
-}
-
-/*
- * Sharp CSS chevron.
- *
- * No SVG, image scaling, masking or blur.
- */
-.arrow {
   display: block;
 
-  width: 13px;
-  height: 13px;
+  width: 100%;
+  height: 100%;
 
-  border-top: 1.5px solid currentColor;
-  border-left: 1.5px solid currentColor;
+  border-radius: 50%;
 
-  transform: translateY(3px) rotate(45deg);
+  /*
+   * A restrained shadow is applied to the complete
+   * vector artwork. It does not affect SVG sharpness.
+   */
+  filter: drop-shadow(0 8px 10px rgba(24, 25, 27, 0.14))
+    drop-shadow(0 2px 3px rgba(24, 25, 27, 0.08));
+
   transform-origin: center center;
 
   will-change: transform;
+}
+
+/*
+ * Both SVG files occupy the exact same area.
+ *
+ * Because they remain SVG background images,
+ * they retain vector quality at every screen density.
+ */
+.darkIcon,
+.lightIcon {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  border-radius: 50%;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  transition:
+    opacity 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  pointer-events: none;
+}
+
+.darkIcon {
+  z-index: 2;
+
+  background-image: url("/icons/top-dark.svg");
+
+  opacity: 1;
+  transform: scale(1);
+}
+
+.lightIcon {
+  z-index: 3;
+
+  background-image: url("/icons/top-light.svg");
+
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+/* =========================================================
+   Hover and keyboard focus
+   ========================================================= */
+
+.backToTop:hover .darkIcon,
+.backToTop:focus-visible .darkIcon {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.backToTop:hover .lightIcon,
+.backToTop:focus-visible .lightIcon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.backToTop:hover .icon,
+.backToTop:focus-visible .icon {
+  filter: drop-shadow(0 12px 16px rgba(7, 61, 97, 0.18))
+    drop-shadow(0 3px 5px rgba(24, 25, 27, 0.08));
 }
 
 .backToTop:focus-visible {
@@ -107,52 +157,63 @@
 }
 
 /*
- * Tablet.
- *
- * Only the button shrinks here. Position is intentionally left
- * alone (inherits right: 96px / bottom: 24px from the base rule)
- * because Chat doesn't change size until 480px either, so both
- * buttons must stay level and side by side all the way down to
- * that breakpoint.
+ * Tactile pressed state.
  */
+.backToTop:active .icon {
+  transform: scale(0.96);
+}
+
+/* =========================================================
+   Tablet
+   ========================================================= */
+
 @media (max-width: 767px) {
   .backToTop {
     width: 50px;
     height: 50px;
   }
-
-  .arrow {
-    width: 12px;
-    height: 12px;
-  }
 }
 
-/* Small mobile */
+/* =========================================================
+   Small mobile
+   ========================================================= */
 
 @media (max-width: 480px) {
   .backToTop {
     right: 78px;
+
     bottom: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
 
-    width: 46px;
-    height: 46px;
-  }
-
-  .arrow {
-    width: 11px;
-    height: 11px;
+    width: 50px;
+    height: 50px;
   }
 }
 
-/* Reduced motion */
+/* =========================================================
+   Reduced motion
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .backToTop,
-  .arrow {
+  .icon,
+  .darkIcon,
+  .lightIcon {
     transform: none !important;
   }
 
-  .backToTop {
+  .darkIcon,
+  .lightIcon {
     transition: none;
+  }
+
+  .backToTop:hover .darkIcon,
+  .backToTop:focus-visible .darkIcon {
+    opacity: 0;
+  }
+
+  .backToTop:hover .lightIcon,
+  .backToTop:focus-visible .lightIcon {
+    opacity: 1;
   }
 }
