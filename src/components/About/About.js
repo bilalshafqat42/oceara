@@ -25,7 +25,7 @@ const About = forwardRef(function About({ className = "" }, ref) {
 
       <div className={styles.rightPanel} data-about-right data-about-media>
         <Image
-          src="/images/about/green.jpg"
+          src="/images/about/green.avif"
           alt=""
           fill
           quality={90}

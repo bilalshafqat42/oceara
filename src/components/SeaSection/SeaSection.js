@@ -193,7 +193,7 @@ export default function SeaSection() {
               className={`${styles.imageCanvas} ${styles.leftImageCanvas}`}
             >
               <Image
-                src="/images/sections/sea-view.jpg"
+                src="/images/sea/sea.avif"
                 alt="Luxury yacht above the sea with divers exploring underwater"
                 fill
                 quality={90}
@@ -213,7 +213,7 @@ export default function SeaSection() {
               className={`${styles.imageCanvas} ${styles.rightImageCanvas}`}
             >
               <Image
-                src="/images/sections/sea-view.jpg"
+                src="/images/sea/sea.avif"
                 alt=""
                 fill
                 quality={90}

@@ -228,16 +228,18 @@ export default function Hero() {
       aria-labelledby="hero-title"
     >
       <div ref={imageRef} className={styles.imageWrapper}>
-        <Image
-          src="/images/hero/hero.avif"
-          alt="Oceara coastal residences surrounded by sea and nature"
-          fill
-          priority
-          quality={100}
-          sizes="100vw"
-          fetchPriority="high"
-          className={styles.image}
-        />
+        <div ref={imageRef} className={styles.imageWrapper}>
+          <Image
+            src="/images/hero/hero.avif"
+            alt="Oceara coastal residences surrounded by sea and nature"
+            fill
+            quality={90}
+            sizes="100vw"
+            loading="eager"
+            fetchPriority="high"
+            className={styles.image}
+          />
+        </div>
       </div>
 
       <div className={styles.imageOverlay} aria-hidden="true" />

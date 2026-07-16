@@ -378,7 +378,7 @@ export default function Amenities() {
       <div ref={stickyRef} className={styles.stickyViewport}>
         <div ref={imagePanelRef} className={styles.imagePanel}>
           <Image
-            src="/images/amenities/curtan.jpg"
+            src="/images/amenities/curtain.avif"
             alt="Curtains overlooking a serene natural landscape"
             fill
             quality={90}
