@@ -1,3 +1,41 @@
+/*
+ * Reserve scrollbar space on desktop only.
+ *
+ * Applying scrollbar-gutter globally was creating the visible
+ * empty strip in Chrome mobile emulation.
+ */
+@media (min-width: 901px) {
+  :global(html) {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+
+  :global(html[data-mega-menu-open="true"]) {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+}
+
+/*
+ * Mobile and tablet use overlay-style scrolling and must not
+ * reserve a desktop scrollbar column.
+ */
+@media (max-width: 900px) {
+  :global(html) {
+    overflow-y: auto;
+    scrollbar-gutter: auto;
+  }
+
+  :global(html[data-mega-menu-open="true"]) {
+    overflow-y: auto;
+    scrollbar-gutter: auto;
+  }
+}
+
+/* =========================================================
+   Fixed header
+   ========================================================= */
+
 .header {
   --header-background: rgba(255, 255, 255, 0);
   --header-foreground: #ffffff;
@@ -10,10 +48,13 @@
 
   width: 100%;
 
+  box-sizing: border-box;
+
   background: var(--header-background);
   color: var(--header-foreground);
 
   backdrop-filter: var(--header-blur);
+  -webkit-backdrop-filter: var(--header-blur);
 
   box-shadow: none;
 
@@ -21,21 +62,18 @@
     background-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
     color 600ms cubic-bezier(0.16, 1, 0.3, 1),
     backdrop-filter 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    -webkit-backdrop-filter 600ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 600ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/*
- * Genuine glassmorphism state.
- *
- * A low-opacity background allows the content beneath
- * the header to remain visible, while backdrop-filter
- * blurs that content.
- */
-.header[data-scrolled="true"] {
-  --header-background: rgba(247, 247, 243, 0.42);
-  --header-foreground: #18191b;
-  --header-divider: rgba(24, 25, 27, 0.12);
-  --header-blur: blur(32px) saturate(165%) contrast(102%);
+/* Glass background layer */
+
+.header::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 
   background: linear-gradient(
     180deg,
@@ -44,11 +82,33 @@
     rgba(242, 243, 239, 0.22) 100%
   );
 
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* =========================================================
+   Glassmorphism state
+   ========================================================= */
+
+.header[data-scrolled="true"] {
+  --header-background: rgba(247, 247, 243, 0.18);
+  --header-foreground: #18191b;
+  --header-divider: rgba(24, 25, 27, 0.12);
+  --header-blur: blur(32px) saturate(165%) contrast(102%);
+
   backdrop-filter: var(--header-blur);
+  -webkit-backdrop-filter: var(--header-blur);
 
   box-shadow:
     0 1px 0 rgba(24, 25, 27, 0.05),
     0 10px 34px rgba(24, 25, 27, 0.04);
+}
+
+.header[data-scrolled="true"]::before {
+  opacity: 1;
 }
 
 /* =========================================================
@@ -67,10 +127,12 @@
   height: 90px;
 
   padding-inline: clamp(28px, 3.1vw, 60px);
+
+  box-sizing: border-box;
 }
 
 /* =========================================================
-   Left menu control
+   Menu control
    ========================================================= */
 
 .menuControl {
@@ -83,17 +145,24 @@
 
   min-height: 42px;
 
+  margin: 0;
   padding: 0;
+
   border: 0;
 
   background: transparent;
   color: inherit;
 
+  font: inherit;
+
   cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
 }
 
 .menuIcon {
   display: block;
+  flex-shrink: 0;
 
   width: 48px;
   height: 8px;
@@ -125,7 +194,7 @@
 }
 
 /* =========================================================
-   Centred header logo
+   Centre logo
    ========================================================= */
 
 .logo {
@@ -137,6 +206,9 @@
   justify-content: center;
 
   color: inherit;
+  text-decoration: none;
+
+  -webkit-tap-highlight-color: transparent;
 }
 
 .logoMark {
@@ -172,6 +244,7 @@
 
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
 
   font-family: var(--font-body);
   font-size: 10px;
@@ -180,10 +253,13 @@
 
   letter-spacing: 0.3em;
   text-transform: uppercase;
+  text-align: right;
   white-space: nowrap;
 
   color: inherit;
   text-decoration: none;
+
+  -webkit-tap-highlight-color: transparent;
 }
 
 .callback::after {
@@ -211,7 +287,7 @@
 }
 
 /* =========================================================
-   Full-width divider
+   Divider
    ========================================================= */
 
 .divider {
@@ -236,13 +312,14 @@
 .callback:focus-visible,
 .closeButton:focus-visible,
 .menuLogo:focus-visible,
-.menuLink:focus-visible {
+.menuLink:focus-visible,
+.menuImagePanel:focus-visible {
   outline: 1px solid currentColor;
   outline-offset: 6px;
 }
 
 /* =========================================================
-   Full-screen menu overlay
+   Full-screen menu
    ========================================================= */
 
 .menuOverlay {
@@ -251,10 +328,9 @@
   z-index: 1000;
 
   display: grid;
-  grid-template-columns: 50vw 50vw;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 
-  width: 100vw;
-
+  width: 100%;
   height: 100vh;
   height: 100dvh;
 
@@ -275,7 +351,7 @@
 }
 
 /* =========================================================
-   Left gradient menu panel
+   Blue panel
    ========================================================= */
 
 .menuBluePanel {
@@ -284,7 +360,7 @@
   display: flex;
   flex-direction: column;
 
-  width: 50vw;
+  width: 100%;
   min-width: 0;
   height: 100%;
 
@@ -293,33 +369,49 @@
   padding: clamp(32px, 4vw, 64px) clamp(40px, 7vw, 110px)
     clamp(60px, 7vw, 110px);
 
+  box-sizing: border-box;
+
   background: linear-gradient(180deg, #0d78a6 0%, #073d61 100%);
 
   overflow: hidden;
 }
 
 /* =========================================================
-   Right menu image
+   Image close panel
    ========================================================= */
 
 .menuImagePanel {
   position: relative;
 
-  width: 50vw;
+  display: block;
+
+  width: 100%;
   min-width: 0;
   height: 100%;
 
   margin: 0;
   padding: 0;
 
+  border: 0;
+  border-radius: 0;
+
+  background-color: #073d61;
   background-image: url("/images/sea.jpg");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
 
+  font: inherit;
+  text-align: initial;
+
+  appearance: none;
+  -webkit-appearance: none;
+
   cursor: pointer;
 
   overflow: hidden;
+
+  -webkit-tap-highlight-color: transparent;
 }
 
 .menuImagePanel::after {
@@ -331,10 +423,22 @@
   background: linear-gradient(90deg, rgba(7, 61, 97, 0.1) 0%, transparent 20%);
 
   pointer-events: none;
+
+  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menuImagePanel:hover::after,
+.menuImagePanel:focus-visible::after {
+  background: linear-gradient(
+    90deg,
+    rgba(7, 61, 97, 0.16) 0%,
+    rgba(7, 61, 97, 0.02) 32%,
+    transparent 65%
+  );
 }
 
 /* =========================================================
-   Close control
+   Close button
    ========================================================= */
 
 .closeButton {
@@ -349,13 +453,17 @@
   width: 48px;
   height: 48px;
 
+  margin: 0;
   padding: 0;
+
   border: 0;
 
   background: transparent;
   color: #ffffff;
 
   cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
 }
 
 .closeIcon {
@@ -387,7 +495,7 @@
 }
 
 /* =========================================================
-   Menu logo
+   Overlay logo
    ========================================================= */
 
 .menuLogo {
@@ -401,8 +509,11 @@
   justify-content: center;
 
   color: #ffffff;
+  text-decoration: none;
 
   transform: translateX(-50%);
+
+  -webkit-tap-highlight-color: transparent;
 }
 
 .menuLogoMark {
@@ -427,7 +538,7 @@
 }
 
 /* =========================================================
-   Menu navigation
+   Navigation
    ========================================================= */
 
 .menuNavigation {
@@ -496,40 +607,38 @@
 }
 
 .menuLink:hover,
-.menuLink:focus-visible,
-.menuLinkActive {
+.menuLink:focus-visible {
   color: #ffffff;
 
   transform: translateX(8px);
 }
 
 .menuLink:hover::before,
-.menuLink:focus-visible::before,
-.menuLinkActive::before {
+.menuLink:focus-visible::before {
   opacity: 1;
 
   transform: translateY(-50%) scaleX(1);
 }
 
 /* =========================================================
-   Tablet and mobile full-screen menu
+   Tablet and mobile menu
    ========================================================= */
 
 @media (max-width: 900px) {
   .menuOverlay {
     display: block;
 
-    width: 100vw;
+    width: 100%;
     height: 100dvh;
 
     background: #073d61;
   }
 
   .menuBluePanel {
-    width: 100vw;
+    width: 100%;
     height: 100dvh;
 
-    padding: 28px 24px 56px;
+    padding: 28px 24px max(56px, env(safe-area-inset-bottom));
 
     background: linear-gradient(180deg, #0d78a6 0%, #073d61 100%);
   }
@@ -539,8 +648,8 @@
   }
 
   .closeButton {
-    top: 20px;
-    left: 18px;
+    top: max(20px, env(safe-area-inset-top));
+    left: max(18px, env(safe-area-inset-left));
   }
 
   .closeIcon {
@@ -549,11 +658,11 @@
   }
 
   .menuLogo {
-    top: 24px;
+    top: max(24px, env(safe-area-inset-top));
   }
 
   .menuLogoMark {
-    width: 96px;
+    width: 100px;
   }
 
   .menuNavigation {
@@ -571,43 +680,60 @@
 }
 
 /* =========================================================
-   Header tablet/mobile
+   Mobile header
    ========================================================= */
 
 @media (max-width: 767px) {
   .inner {
-    height: 68px;
-    padding-inline: 20px;
+    height: 90px;
+
+    padding-right: max(20px, env(safe-area-inset-right));
+
+    padding-left: max(20px, env(safe-area-inset-left));
   }
 
   .menuControl {
-    gap: 8px;
+    gap: 9px;
+    min-height: 44px;
   }
 
   .menuIcon {
-    width: 25px;
+    width: 30px;
     height: 10px;
   }
 
   .menuText {
-    font-size: 7px;
-    letter-spacing: 0.2em;
+    display: inline;
+
+    font-size: 9px;
+    line-height: 1.2;
+    letter-spacing: 0.16em;
   }
 
   .logoMark {
-    width: 86px;
+    width: 100px;
     height: auto;
 
     aspect-ratio: 147 / 40;
   }
 
   .callback {
-    font-size: 7px;
-    letter-spacing: 0.18em;
+    max-width: 102px;
+
+    font-size: 9px;
+    line-height: 1.25;
+    letter-spacing: 0.1em;
+
+    text-align: right;
+    white-space: normal;
+  }
+
+  .callback::after {
+    bottom: -5px;
   }
 
   .header[data-scrolled="true"] {
-    --header-background: rgba(247, 247, 243, 0.46);
+    --header-background: rgba(247, 247, 243, 0.2);
     --header-blur: blur(26px) saturate(160%) contrast(102%);
   }
 }
@@ -617,33 +743,95 @@
    ========================================================= */
 
 @media (max-width: 480px) {
+  .inner {
+    height: 90px;
+    padding-inline: 16px;
+  }
+
+  .menuControl {
+    gap: 7px;
+  }
+
+  .menuIcon {
+    width: 30px;
+    height: 10px;
+  }
+
   .menuText {
-    display: none;
-  }
+    display: inline;
 
-  .logoMark {
-    width: 78px;
-  }
-
-  .callback {
-    font-size: 6px;
+    font-size: 9px;
+    line-height: 1.2;
     letter-spacing: 0.12em;
   }
 
+  .logoMark {
+    width: 100px;
+  }
+
+  .callback {
+    max-width: 92px;
+
+    font-size: 9px;
+    line-height: 1.2;
+    letter-spacing: 0.07em;
+  }
+
   .menuLogoMark {
-    width: 88px;
+    width: 100px;
   }
 }
 
 /* =========================================================
-   Browser fallback
+   Very narrow devices
    ========================================================= */
 
-@supports not (backdrop-filter: blur(1px)) {
+@media (max-width: 360px) {
+  .inner {
+    padding-inline: 12px;
+  }
+
+  .menuControl {
+    gap: 5px;
+  }
+
+  .menuIcon {
+    width: 27px;
+  }
+
+  .menuText {
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .logoMark {
+    width: 90px;
+  }
+
+  .callback {
+    max-width: 78px;
+
+    font-size: 8px;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+  }
+}
+
+/* =========================================================
+   Glass fallback
+   ========================================================= */
+
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
   .header[data-scrolled="true"] {
     --header-background: rgba(247, 248, 246, 0.92);
 
     background: rgba(247, 248, 246, 0.92);
+  }
+
+  .header[data-scrolled="true"]::before {
+    opacity: 0;
   }
 }
 
@@ -653,11 +841,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .header,
+  .header::before,
   .divider,
   .callback::after,
   .closeIcon,
   .menuLink,
-  .menuLink::before {
+  .menuLink::before,
+  .menuImagePanel::after {
     transition-duration: 0.01ms !important;
   }
 }

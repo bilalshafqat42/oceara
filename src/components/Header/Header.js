@@ -29,16 +29,27 @@ const menuItems = [
   },
 ];
 
-/*
- * Shared Hero/About animation stages:
- *
- * 0.00 = Hero
- * 0.50 = Beige About panel
- * 1.00 = Complete About section
- *
- * The glass header activates near the final stage.
- */
 const HEADER_CHANGE_PROGRESS = 0.66;
+const DESKTOP_MEDIA_QUERY = "(min-width: 901px)";
+
+const FOCUSABLE_SELECTOR = [
+  "a[href]:not([tabindex='-1'])",
+  "button:not([disabled]):not([tabindex='-1'])",
+  "input:not([disabled]):not([tabindex='-1'])",
+  "select:not([disabled]):not([tabindex='-1'])",
+  "textarea:not([disabled]):not([tabindex='-1'])",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
+
+const BLOCKED_SCROLL_KEYS = [
+  "ArrowUp",
+  "ArrowDown",
+  "PageUp",
+  "PageDown",
+  "Home",
+  "End",
+  " ",
+];
 
 export default function Header() {
   const headerRef = useRef(null);
@@ -47,50 +58,180 @@ export default function Header() {
   const closeButtonRef = useRef(null);
 
   const menuTimelineRef = useRef(null);
-  const previousOverflowRef = useRef("");
   const pendingNavigationRef = useRef("");
+
+  const scrollPositionRef = useRef(0);
+  const scrollLockedRef = useRef(false);
+  const desktopScrollLockRef = useRef(false);
+
+  const previousStylesRef = useRef({
+    bodyOverflow: "",
+    bodyPosition: "",
+    bodyTop: "",
+    bodyLeft: "",
+    bodyRight: "",
+    bodyWidth: "",
+    bodyPaddingRight: "",
+    htmlOverflow: "",
+    htmlOverflowY: "",
+    htmlScrollbarGutter: "",
+  });
 
   const [menuOpen, setMenuOpen] = useState(false);
 
-  /*
-   * Smoothly navigate to a section while accounting
-   * for the fixed header.
-   *
-   * The Hero always returns to the absolute page top.
-   */
-  const scrollToSection = useCallback((href) => {
-    if (!href) {
-      return;
-    }
-
-    if (href === "#home") {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-
-      return;
-    }
-
-    const target = document.querySelector(href);
-
-    if (!target) {
-      return;
-    }
-
-    const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
-
-    const targetTop =
-      target.getBoundingClientRect().top + window.scrollY - headerHeight;
-
-    window.scrollTo({
-      top: Math.max(0, targetTop),
-      behavior: "smooth",
-    });
+  const prefersReducedMotion = useCallback(() => {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
 
   /*
-   * Header entrance and scroll appearance.
+   * Desktop:
+   * Keep the real scrollbar visible so the layout width
+   * remains unchanged.
+   *
+   * Mobile:
+   * Do not reserve a desktop scrollbar gutter. Use a fixed
+   * body lock for reliable Safari/iOS background locking.
+   */
+  const lockPageScroll = useCallback(() => {
+    if (scrollLockedRef.current) {
+      return;
+    }
+
+    const body = document.body;
+    const html = document.documentElement;
+
+    const isDesktop = window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+
+    scrollPositionRef.current = window.scrollY;
+
+    previousStylesRef.current = {
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyLeft: body.style.left,
+      bodyRight: body.style.right,
+      bodyWidth: body.style.width,
+      bodyPaddingRight: body.style.paddingRight,
+      htmlOverflow: html.style.overflow,
+      htmlOverflowY: html.style.overflowY,
+      htmlScrollbarGutter: html.style.scrollbarGutter,
+    };
+
+    if (isDesktop) {
+      html.style.scrollbarGutter = "stable";
+      html.style.overflowY = "scroll";
+      html.dataset.megaMenuOpen = "true";
+
+      desktopScrollLockRef.current = true;
+      scrollLockedRef.current = true;
+
+      return;
+    }
+
+    /*
+     * Mobile must not reserve a desktop scrollbar column.
+     */
+    html.style.scrollbarGutter = "auto";
+    html.style.overflowY = "auto";
+
+    body.style.position = "fixed";
+    body.style.top = `-${scrollPositionRef.current}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+    body.style.paddingRight = "0";
+
+    desktopScrollLockRef.current = false;
+    scrollLockedRef.current = true;
+  }, []);
+
+  const unlockPageScroll = useCallback(() => {
+    if (!scrollLockedRef.current) {
+      return;
+    }
+
+    const body = document.body;
+    const html = document.documentElement;
+
+    const previousStyles = previousStylesRef.current;
+    const savedScrollY = scrollPositionRef.current;
+    const wasDesktopLocked = desktopScrollLockRef.current;
+
+    delete html.dataset.megaMenuOpen;
+
+    body.style.overflow = previousStyles.bodyOverflow;
+    body.style.position = previousStyles.bodyPosition;
+    body.style.top = previousStyles.bodyTop;
+    body.style.left = previousStyles.bodyLeft;
+    body.style.right = previousStyles.bodyRight;
+    body.style.width = previousStyles.bodyWidth;
+    body.style.paddingRight = previousStyles.bodyPaddingRight;
+
+    html.style.overflow = previousStyles.htmlOverflow;
+    html.style.overflowY = previousStyles.htmlOverflowY;
+    html.style.scrollbarGutter = previousStyles.htmlScrollbarGutter;
+
+    scrollLockedRef.current = false;
+    desktopScrollLockRef.current = false;
+
+    /*
+     * Desktop never changes body positioning.
+     */
+    if (wasDesktopLocked) {
+      return;
+    }
+
+    /*
+     * Restore the exact mobile scroll position after
+     * removing the fixed-body lock.
+     */
+    window.scrollTo({
+      top: savedScrollY,
+      left: 0,
+      behavior: "auto",
+    });
+  }, []);
+
+  const scrollToSection = useCallback(
+    (href) => {
+      if (!href) {
+        return;
+      }
+
+      const behavior = prefersReducedMotion() ? "auto" : "smooth";
+
+      if (href === "#home") {
+        window.scrollTo({
+          top: 0,
+          behavior,
+        });
+
+        return;
+      }
+
+      const target = document.querySelector(href);
+
+      if (!target) {
+        return;
+      }
+
+      const headerHeight =
+        headerRef.current?.getBoundingClientRect().height ?? 0;
+
+      const targetTop =
+        target.getBoundingClientRect().top + window.scrollY - headerHeight;
+
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior,
+      });
+    },
+    [prefersReducedMotion],
+  );
+
+  /*
+   * Header entrance and glassmorphism state.
    */
   useGSAP(
     () => {
@@ -100,9 +241,7 @@ export default function Header() {
         return undefined;
       }
 
-      const reduceMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
+      const reduceMotion = prefersReducedMotion();
 
       let introTimeline;
 
@@ -146,6 +285,19 @@ export default function Header() {
             },
             "-=0.55",
           );
+      } else {
+        gsap.set(
+          [
+            `.${styles.menuControl}`,
+            `.${styles.logo}`,
+            `.${styles.callback}`,
+            `.${styles.divider}`,
+          ],
+          {
+            clearProps: "all",
+            autoAlpha: 1,
+          },
+        );
       }
 
       const heroScene = document.getElementById("hero-about-scene");
@@ -182,10 +334,6 @@ export default function Header() {
           },
         });
       } else {
-        /*
-         * Development fallback if the shared
-         * Hero/About scene is temporarily unavailable.
-         */
         headerScrollTrigger = ScrollTrigger.create({
           start: 80,
           end: "max",
@@ -203,17 +351,12 @@ export default function Header() {
     },
     {
       scope: headerRef,
+      dependencies: [prefersReducedMotion],
     },
   );
 
   /*
-   * Full-screen menu animation.
-   *
-   * Open:
-   * left to right.
-   *
-   * Close:
-   * reverse from right to left.
+   * Full-screen navigation reveal.
    */
   useGSAP(
     () => {
@@ -223,9 +366,7 @@ export default function Header() {
         return undefined;
       }
 
-      const reduceMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
+      const reduceMotion = prefersReducedMotion();
 
       gsap.set(menu, {
         clipPath: "inset(0 100% 0 0)",
@@ -247,9 +388,6 @@ export default function Header() {
         },
 
         onComplete: () => {
-          /*
-           * Move keyboard focus into the open menu.
-           */
           window.requestAnimationFrame(() => {
             closeButtonRef.current?.focus({
               preventScroll: true,
@@ -262,8 +400,7 @@ export default function Header() {
             pointerEvents: "none",
           });
 
-          document.body.style.overflow = previousOverflowRef.current;
-
+          unlockPageScroll();
           setMenuOpen(false);
 
           const pendingHref = pendingNavigationRef.current;
@@ -271,29 +408,23 @@ export default function Header() {
           pendingNavigationRef.current = "";
 
           if (pendingHref) {
-            /*
-             * Wait until the overlay has completely closed
-             * before smoothly moving to the selected section.
-             */
             window.requestAnimationFrame(() => {
               scrollToSection(pendingHref);
             });
-          } else {
-            /*
-             * Return keyboard focus to the control
-             * that originally opened the menu.
-             */
-            window.requestAnimationFrame(() => {
-              menuButtonRef.current?.focus({
-                preventScroll: true,
-              });
-            });
+
+            return;
           }
+
+          window.requestAnimationFrame(() => {
+            menuButtonRef.current?.focus({
+              preventScroll: true,
+            });
+          });
         },
       });
 
       const openDuration = reduceMotion ? 0.01 : 1.15;
-      const elementDuration = reduceMotion ? 0.01 : 0.7;
+      const itemDuration = reduceMotion ? 0.01 : 0.7;
 
       timeline
         .to(menu, {
@@ -315,7 +446,7 @@ export default function Header() {
           {
             autoAlpha: 0,
             y: reduceMotion ? 0 : -16,
-            duration: elementDuration,
+            duration: itemDuration,
             ease: reduceMotion ? "none" : "power3.out",
           },
           reduceMotion ? 0 : 0.45,
@@ -325,7 +456,7 @@ export default function Header() {
           {
             autoAlpha: 0,
             x: reduceMotion ? 0 : -28,
-            duration: elementDuration,
+            duration: itemDuration,
             stagger: reduceMotion ? 0 : 0.07,
             ease: reduceMotion ? "none" : "power3.out",
           },
@@ -341,6 +472,7 @@ export default function Header() {
     },
     {
       scope: menuRef,
+      dependencies: [prefersReducedMotion, scrollToSection, unlockPageScroll],
     },
   );
 
@@ -349,60 +481,69 @@ export default function Header() {
       return;
     }
 
-    previousOverflowRef.current = document.body.style.overflow;
-
-    document.body.style.overflow = "hidden";
-
     pendingNavigationRef.current = "";
 
+    lockPageScroll();
     setMenuOpen(true);
 
-    /*
-     * Restart instead of play so repeated openings
-     * always begin from the correct closed state.
-     */
-    menuTimelineRef.current?.restart();
-  }, [menuOpen]);
+    const timeline = menuTimelineRef.current;
 
-  const closeMenu = useCallback(() => {
-    pendingNavigationRef.current = "";
-
-    if (!menuTimelineRef.current) {
-      document.body.style.overflow = previousOverflowRef.current;
-
+    if (!timeline) {
+      unlockPageScroll();
       setMenuOpen(false);
       return;
     }
 
-    menuTimelineRef.current.reverse();
-  }, []);
+    timeline.restart();
+  }, [lockPageScroll, menuOpen, unlockPageScroll]);
 
-  /*
-   * Logo and standard header navigation.
-   */
+  const closeMenu = useCallback(() => {
+    pendingNavigationRef.current = "";
+
+    const timeline = menuTimelineRef.current;
+
+    if (!timeline) {
+      unlockPageScroll();
+      setMenuOpen(false);
+      return;
+    }
+
+    timeline.reverse();
+  }, [unlockPageScroll]);
+
   const handleHeaderNavigation = useCallback(
     (event, href) => {
       event.preventDefault();
-
       scrollToSection(href);
     },
     [scrollToSection],
   );
 
+  const handleMenuNavigation = useCallback(
+    (event, href) => {
+      event.preventDefault();
+
+      pendingNavigationRef.current = href;
+
+      const timeline = menuTimelineRef.current;
+
+      if (!timeline) {
+        pendingNavigationRef.current = "";
+
+        unlockPageScroll();
+        setMenuOpen(false);
+        scrollToSection(href);
+
+        return;
+      }
+
+      timeline.reverse();
+    },
+    [scrollToSection, unlockPageScroll],
+  );
+
   /*
-   * Menu navigation first closes the overlay,
-   * then smoothly scrolls to the selected section.
-   */
-  const handleMenuNavigation = useCallback((event, href) => {
-    event.preventDefault();
-
-    pendingNavigationRef.current = href;
-
-    menuTimelineRef.current?.reverse();
-  }, []);
-
-  /*
-   * Escape-key support.
+   * Escape closes the open menu.
    */
   useEffect(() => {
     const handleEscape = (event) => {
@@ -420,14 +561,130 @@ export default function Header() {
   }, [menuOpen, closeMenu]);
 
   /*
-   * Ensure scrolling is restored if Header unmounts
-   * while the menu is open.
+   * Desktop background-scroll prevention.
+   *
+   * The scrollbar remains visible, but wheel, trackpad,
+   * touch and keyboard scrolling are blocked.
+   */
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
+    }
+
+    const isDesktop = window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+
+    if (!isDesktop) {
+      return undefined;
+    }
+
+    const preventScroll = (event) => {
+      event.preventDefault();
+    };
+
+    const preventScrollKeys = (event) => {
+      const activeElement = document.activeElement;
+
+      const isEditable =
+        activeElement instanceof HTMLElement &&
+        (activeElement.matches("input, textarea, select") ||
+          activeElement.isContentEditable);
+
+      if (isEditable) {
+        return;
+      }
+
+      if (BLOCKED_SCROLL_KEYS.includes(event.key)) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("wheel", preventScroll, {
+      passive: false,
+    });
+
+    window.addEventListener("touchmove", preventScroll, {
+      passive: false,
+    });
+
+    window.addEventListener("keydown", preventScrollKeys);
+
+    return () => {
+      window.removeEventListener("wheel", preventScroll);
+
+      window.removeEventListener("touchmove", preventScroll);
+
+      window.removeEventListener("keydown", preventScrollKeys);
+    };
+  }, [menuOpen]);
+
+  /*
+   * Keyboard focus trap.
+   */
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
+    }
+
+    const menu = menuRef.current;
+
+    if (!menu) {
+      return undefined;
+    }
+
+    const handleFocusTrap = (event) => {
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const focusableElements = Array.from(
+        menu.querySelectorAll(FOCUSABLE_SELECTOR),
+      ).filter((element) => {
+        return (
+          element instanceof HTMLElement &&
+          !element.hasAttribute("disabled") &&
+          element.getAttribute("aria-hidden") !== "true"
+        );
+      });
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        closeButtonRef.current?.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+        return;
+      }
+
+      if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleFocusTrap);
+
+    return () => {
+      document.removeEventListener("keydown", handleFocusTrap);
+    };
+  }, [menuOpen]);
+
+  /*
+   * Cleanup if the component unmounts while locked.
    */
   useEffect(() => {
     return () => {
-      document.body.style.overflow = previousOverflowRef.current;
+      if (scrollLockedRef.current) {
+        unlockPageScroll();
+      }
     };
-  }, []);
+  }, [unlockPageScroll]);
 
   return (
     <>
@@ -469,6 +726,7 @@ export default function Header() {
         id="oceara-menu"
         className={styles.menuOverlay}
         aria-hidden={!menuOpen}
+        inert={!menuOpen}
       >
         <div className={styles.menuBluePanel}>
           <button
@@ -477,6 +735,7 @@ export default function Header() {
             className={styles.closeButton}
             aria-label="Close navigation menu"
             onClick={closeMenu}
+            tabIndex={menuOpen ? 0 : -1}
           >
             <span className={styles.closeIcon} aria-hidden="true" />
           </button>
@@ -486,6 +745,7 @@ export default function Header() {
             className={styles.menuLogo}
             aria-label="Return to the Oceara Hero section"
             onClick={(event) => handleMenuNavigation(event, "#home")}
+            tabIndex={menuOpen ? 0 : -1}
           >
             <span className={styles.menuLogoMark} aria-hidden="true" />
           </a>
@@ -498,6 +758,7 @@ export default function Header() {
                     href={item.href}
                     className={styles.menuLink}
                     onClick={(event) => handleMenuNavigation(event, item.href)}
+                    tabIndex={menuOpen ? 0 : -1}
                   >
                     {item.label}
                   </a>
@@ -507,18 +768,12 @@ export default function Header() {
           </nav>
         </div>
 
-        {/*
-         * Manager request: clicking the image also closes the
-         * menu, same as the close button. Kept aria-hidden and
-         * without button semantics on purpose, it's a decorative
-         * panel and a supplementary mouse/touch convenience; the
-         * close button and Escape key remain the accessible ways
-         * to close this for keyboard and screen reader users.
-         */}
-        <div
+        <button
+          type="button"
           className={styles.menuImagePanel}
-          aria-hidden="true"
+          aria-label="Close navigation menu"
           onClick={closeMenu}
+          tabIndex={menuOpen ? 0 : -1}
         />
       </div>
     </>
