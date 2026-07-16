@@ -105,7 +105,7 @@ export default function Hero() {
             .fromTo(
               image,
               {
-                scale: mobile ? 1.025 : 1.035,
+                scale: mobile ? 1.01 : 1.015,
               },
               {
                 scale: 1,
@@ -229,12 +229,13 @@ export default function Hero() {
     >
       <div ref={imageRef} className={styles.imageWrapper}>
         <Image
-          src="/images/hero/hero-bg.jpg"
+          src="/images/hero/hero.avif"
           alt="Oceara coastal residences surrounded by sea and nature"
           fill
           priority
           quality={100}
           sizes="100vw"
+          fetchPriority="high"
           className={styles.image}
         />
       </div>
