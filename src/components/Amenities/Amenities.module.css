@@ -226,6 +226,7 @@
   right: clamp(30px, 4vw, 70px);
   bottom: clamp(70px, 8vh, 110px);
 
+  display: none;
   display: flex;
   align-items: center;
   gap: 7px;

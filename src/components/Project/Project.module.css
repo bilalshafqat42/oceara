@@ -415,7 +415,7 @@
   bottom: clamp(28px, 4vh, 52px);
   z-index: 8;
 
-  display: flex;
+  display: none;
   align-items: center;
   gap: 7px;
 
