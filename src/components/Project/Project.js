@@ -31,9 +31,6 @@ export default function Project() {
   const sectionRef = useRef(null);
   const stickyRef = useRef(null);
 
-  /*
-   * Desktop scene refs.
-   */
   const imageSceneRef = useRef(null);
   const imageRef = useRef(null);
   const overlayRef = useRef(null);
@@ -44,9 +41,6 @@ export default function Project() {
   const descriptionOneRef = useRef(null);
   const descriptionTwoRef = useRef(null);
 
-  /*
-   * Mobile-only scene refs.
-   */
   const mobileSceneRef = useRef(null);
   const mobileImageRevealRef = useRef(null);
   const mobileImageRef = useRef(null);
@@ -105,14 +99,10 @@ export default function Project() {
                 return;
               }
 
-              line.dataset.active =
-                index === activeIndex ? "true" : "false";
+              line.dataset.active = index === activeIndex ? "true" : "false";
             });
           };
 
-          /*
-           * Reduced-motion fallback.
-           */
           if (reduceMotion) {
             gsap.set(sticky, {
               clipPath: "none",
@@ -176,13 +166,10 @@ export default function Project() {
             return undefined;
           }
 
-          /*
-           * =====================================================
-           * DESKTOP
-           *
-           * Existing desktop behaviour remains unchanged.
-           * =====================================================
-           */
+          /* =====================================================
+             DESKTOP
+             ===================================================== */
+
           if (desktop) {
             if (
               !imageScene ||
@@ -322,9 +309,7 @@ export default function Project() {
                       return;
                     }
 
-                    const distance = Math.abs(
-                      currentTime - labelTime,
-                    );
+                    const distance = Math.abs(currentTime - labelTime);
 
                     if (distance < nearestDistance) {
                       nearestDistance = distance;
@@ -428,15 +413,10 @@ export default function Project() {
             };
           }
 
-          /*
-           * =====================================================
-           * MOBILE
-           *
-           * Beige section stays fixed.
-           * Image reveals from left to right and remains visible.
-           * Text changes in the bottom panel.
-           * =====================================================
-           */
+          /* =====================================================
+             MOBILE — unchanged
+             ===================================================== */
+
           if (mobile) {
             if (
               !mobileScene ||
@@ -453,25 +433,14 @@ export default function Project() {
               clipPath: "none",
             });
 
-            /*
-             * Keep the whole mobile scene visible immediately.
-             */
             gsap.set(mobileScene, {
               autoAlpha: 1,
             });
 
-            /*
-             * Image is already positioned in its final place.
-             * The clip-path creates a left-to-right rolling reveal.
-             */
             gsap.set(mobileImageReveal, {
               clipPath: "inset(0% 100% 0% 0%)",
             });
 
-            /*
-             * Very small parallax preparation.
-             * The image remains sharp because the scale is subtle.
-             */
             gsap.set(mobileImage, {
               xPercent: -5,
               scale: 1.035,
@@ -486,9 +455,6 @@ export default function Project() {
               autoAlpha: 1,
             });
 
-            /*
-             * Only the first story item begins visible.
-             */
             mobileItems.forEach((item, index) => {
               gsap.set(item, {
                 autoAlpha: index === 0 ? 1 : 0,
@@ -498,9 +464,7 @@ export default function Project() {
               });
             });
 
-            const firstItemChildren = Array.from(
-              mobileItems[0].children,
-            );
+            const firstItemChildren = Array.from(mobileItems[0].children);
 
             gsap.set(firstItemChildren, {
               autoAlpha: 0,
@@ -509,9 +473,6 @@ export default function Project() {
 
             setActiveProgress(0);
 
-            /*
-             * Initial horizontal image reveal.
-             */
             const mobileRevealTimeline = gsap.timeline({
               defaults: {
                 ease: "none",
@@ -521,7 +482,6 @@ export default function Project() {
                 trigger: section,
                 start: "top bottom",
                 end: "top top",
-
                 scrub: 0.7,
                 invalidateOnRefresh: true,
               },
@@ -556,12 +516,6 @@ export default function Project() {
 
             let activeProgressIndex = 0;
 
-            /*
-             * Mobile story sequence.
-             *
-             * The image remains completely fixed.
-             * Only the beige-panel content changes.
-             */
             const mobileStoryTimeline = gsap.timeline({
               scrollTrigger: {
                 trigger: section,
@@ -591,16 +545,13 @@ export default function Project() {
                   let nearestDistance = Number.POSITIVE_INFINITY;
 
                   progressLabels.forEach((label, index) => {
-                    const labelTime =
-                      mobileStoryTimeline.labels[label];
+                    const labelTime = mobileStoryTimeline.labels[label];
 
                     if (typeof labelTime !== "number") {
                       return;
                     }
 
-                    const distance = Math.abs(
-                      currentTime - labelTime,
-                    );
+                    const distance = Math.abs(currentTime - labelTime);
 
                     if (distance < nearestDistance) {
                       nearestDistance = distance;
@@ -616,9 +567,6 @@ export default function Project() {
               },
             });
 
-            /*
-             * First text content enters one element at a time.
-             */
             mobileStoryTimeline
               .to(firstItemChildren, {
                 autoAlpha: 1,
@@ -634,10 +582,6 @@ export default function Project() {
                   duration: 0.68,
                 },
               )
-
-              /*
-               * Intro exits upward.
-               */
               .to(mobileItems[0], {
                 autoAlpha: 0,
                 y: -38,
@@ -645,10 +589,6 @@ export default function Project() {
                 duration: 0.42,
                 ease: "power2.inOut",
               })
-
-              /*
-               * Second text appears.
-               */
               .fromTo(
                 mobileItems[1],
                 {
@@ -671,10 +611,6 @@ export default function Project() {
                   duration: 0.82,
                 },
               )
-
-              /*
-               * Second text exits upward.
-               */
               .to(mobileItems[1], {
                 autoAlpha: 0,
                 y: -38,
@@ -682,10 +618,6 @@ export default function Project() {
                 duration: 0.42,
                 ease: "power2.inOut",
               })
-
-              /*
-               * Third text appears.
-               */
               .fromTo(
                 mobileItems[2],
                 {
@@ -736,21 +668,11 @@ export default function Project() {
       aria-labelledby="project-section-title"
     >
       <div ref={stickyRef} className={styles.stickyViewport}>
-        <h2
-          id="project-section-title"
-          className={styles.visuallyHidden}
-        >
+        <h2 id="project-section-title" className={styles.visuallyHidden}>
           Oceara Park Views project
         </h2>
 
-        {/* =====================================================
-            Desktop scene
-            ===================================================== */}
-
-        <div
-          ref={imageSceneRef}
-          className={styles.imageScene}
-        >
+        <div ref={imageSceneRef} className={styles.imageScene}>
           <div className={styles.background}>
             <Image
               ref={imageRef}
@@ -774,18 +696,11 @@ export default function Project() {
             className={styles.introCard}
             aria-label="Oceara residential retreat"
           >
-            <div
-              ref={introContentRef}
-              className={styles.introContent}
-            >
+            <div ref={introContentRef} className={styles.introContent}>
               <div>
-                <p className={styles.eyebrow}>
-                  {projectContent.intro.eyebrow}
-                </p>
+                <p className={styles.eyebrow}>{projectContent.intro.eyebrow}</p>
 
-                <h3 className={styles.title}>
-                  {projectContent.intro.title}
-                </h3>
+                <h3 className={styles.title}>{projectContent.intro.title}</h3>
               </div>
 
               <a
@@ -799,37 +714,50 @@ export default function Project() {
           </article>
         </div>
 
-        <div
-          ref={beigeSceneRef}
-          className={styles.beigeScene}
-        >
+        <div ref={beigeSceneRef} className={styles.beigeScene}>
           <article
             ref={descriptionOneRef}
             className={`${styles.descriptionBlock} ${styles.descriptionRight}`}
           >
-            <p>{projectContent.description}</p>
+            <div className={styles.editorialImage}>
+              <Image
+                src="/images/amenities/curtain.avif"
+                alt="Curtains overlooking the natural landscape"
+                fill
+                quality={90}
+                sizes="(max-width: 1100px) 290px, 340px"
+                className={styles.editorialImageMedia}
+              />
+            </div>
+
+            <div className={styles.editorialText}>
+              <p>{projectContent.description}</p>
+            </div>
           </article>
 
           <article
             ref={descriptionTwoRef}
             className={`${styles.descriptionBlock} ${styles.descriptionLeft}`}
           >
-            <p>{projectContent.location}</p>
+            <div className={styles.editorialText}>
+              <p>{projectContent.location}</p>
+            </div>
+
+            <div className={styles.editorialImage}>
+              <Image
+                src="/images/amenities/curtain.avif"
+                alt="Curtains framing a calm coastal landscape"
+                fill
+                quality={90}
+                sizes="(max-width: 1100px) 290px, 340px"
+                className={styles.editorialImageMedia}
+              />
+            </div>
           </article>
         </div>
 
-        {/* =====================================================
-            Mobile-only scene
-            ===================================================== */}
-
-        <div
-          ref={mobileSceneRef}
-          className={styles.mobileScene}
-        >
-          <div
-            ref={mobileImageRevealRef}
-            className={styles.mobileImageReveal}
-          >
+        <div ref={mobileSceneRef} className={styles.mobileScene}>
+          <div ref={mobileImageRevealRef} className={styles.mobileImageReveal}>
             <Image
               ref={mobileImageRef}
               src="/images/project/building.jpg"
@@ -847,10 +775,7 @@ export default function Project() {
             />
           </div>
 
-          <div
-            ref={mobileStoryPanelRef}
-            className={styles.mobileStoryPanel}
-          >
+          <div ref={mobileStoryPanelRef} className={styles.mobileStoryPanel}>
             <div className={styles.mobileStoryItems}>
               <article
                 ref={(element) => {
@@ -900,10 +825,7 @@ export default function Project() {
           </div>
         </div>
 
-        <div
-          className={styles.progress}
-          aria-hidden="true"
-        >
+        <div className={styles.progress} aria-hidden="true">
           {progressLabels.map((label, index) => (
             <span
               key={label}

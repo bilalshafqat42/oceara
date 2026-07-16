@@ -3,9 +3,6 @@
 
   width: 100%;
 
-  /*
-   * Desktop scroll stages remain unchanged.
-   */
   height: 500vh;
   height: 500svh;
 
@@ -244,18 +241,37 @@
   will-change: transform;
 }
 
+/*
+ * The editorial layout uses the same outer horizontal
+ * alignment as the intro-card content.
+ *
+ * Twelve equal columns create a true 50% centre division:
+ * columns 1–6 form the left half;
+ * columns 7–12 form the right half.
+ */
 .descriptionBlock {
+  --project-editorial-gutter: clamp(52px, 8vw, 125px);
+
   position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
 
-  width: min(34vw, 510px);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: center;
+
+  width: 100%;
+
   margin: 0;
+  padding-right: var(--project-editorial-gutter);
+  padding-left: var(--project-editorial-gutter);
 
-  font-family: var(--font-body);
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 1.62;
+  box-sizing: border-box;
 
   color: #18191b;
+
+  transform: translateY(-50%);
 
   will-change: transform, opacity;
 }
@@ -264,20 +280,125 @@
   margin: 0;
 }
 
-.descriptionRight {
-  top: 50%;
-  right: clamp(80px, 12vw, 190px);
+/* =========================================================
+   Editorial curtain images
+   ========================================================= */
 
-  transform: translateY(-25%);
+.editorialImage {
+  position: relative;
+
+  width: 100%;
+  max-width: 340px;
+
+  aspect-ratio: 340 / 383;
+
+  overflow: hidden;
+
+  background: #d8d0c6;
 }
 
-.descriptionLeft {
-  bottom: clamp(70px, 12vh, 150px);
-  left: clamp(80px, 13vw, 210px);
+.editorialImageMedia {
+  object-fit: cover;
+  object-position: center center;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.descriptionBlock:hover .editorialImageMedia {
+  transform: scale(1.015);
 }
 
 /* =========================================================
-   Mobile scene is hidden on desktop
+   Editorial text
+   ========================================================= */
+
+.editorialText {
+  width: 100%;
+  max-width: 340px;
+
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.58;
+  letter-spacing: 0;
+
+  color: #18191b;
+}
+
+/* =========================================================
+   First editorial state
+   Image left / text right
+   ========================================================= */
+
+/*
+ * Image:
+ * begins at the same left gutter used by the intro text
+ * and brochure button.
+ *
+ * Text:
+ * begins at column seven, the exact 50% centre line.
+ */
+.descriptionRight {
+  top: 50%;
+  right: 0;
+  bottom: auto;
+  left: 0;
+
+  transform: translateY(-50%);
+}
+
+.descriptionRight .editorialImage {
+  grid-column: 1 / span 3;
+
+  justify-self: start;
+}
+
+.descriptionRight .editorialText {
+  grid-column: 7 / span 3;
+
+  justify-self: start;
+}
+
+/* =========================================================
+   Second editorial state
+   Text left / image right
+   ========================================================= */
+
+/*
+ * Text:
+ * occupies columns three through six and therefore finishes
+ * at the exact 50% centre division.
+ *
+ * Image:
+ * occupies the final three columns and aligns to the same
+ * right-side outer grid line.
+ */
+.descriptionLeft {
+  top: 50%;
+  right: 0;
+  bottom: auto;
+  left: 0;
+
+  transform: translateY(-50%);
+}
+
+.descriptionLeft .editorialText {
+  grid-column: 3 / span 4;
+
+  justify-self: end;
+}
+
+.descriptionLeft .editorialImage {
+  grid-column: 10 / span 3;
+
+  justify-self: end;
+}
+
+/* =========================================================
+   Mobile scene hidden on desktop
    ========================================================= */
 
 .mobileScene {
@@ -346,7 +467,7 @@
 }
 
 /* =========================================================
-   Tablet
+   Tablet desktop layout
    ========================================================= */
 
 @media (max-width: 1100px) and (min-width: 768px) {
@@ -364,29 +485,53 @@
   }
 
   .descriptionBlock {
-    width: min(42vw, 470px);
+    --project-editorial-gutter: 54px;
 
-    font-size: 17px;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
-  .descriptionRight {
-    right: 70px;
+  .editorialImage {
+    max-width: 290px;
   }
 
-  .descriptionLeft {
-    left: 70px;
+  .editorialText {
+    max-width: 300px;
+
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .descriptionRight .editorialImage {
+    grid-column: 1 / span 4;
+
+    justify-self: start;
+  }
+
+  .descriptionRight .editorialText {
+    grid-column: 7 / span 5;
+
+    justify-self: start;
+  }
+
+  .descriptionLeft .editorialText {
+    grid-column: 1 / span 6;
+
+    justify-self: end;
+  }
+
+  .descriptionLeft .editorialImage {
+    grid-column: 9 / span 4;
+
+    justify-self: end;
   }
 }
 
 /* =========================================================
-   Mobile-only layout and animation scene
+   Mobile-only layout — unchanged
    ========================================================= */
 
 @media (max-width: 767px) {
   .project {
-    /*
-     * Three readable mobile story states.
-     */
     height: 410svh;
 
     background: #f2ede5;
@@ -398,9 +543,6 @@
     clip-path: none;
   }
 
-  /*
-   * Desktop scenes are removed only on mobile.
-   */
   .imageScene,
   .beigeScene {
     display: none;
@@ -423,12 +565,6 @@
     color: #18191b;
   }
 
-  /*
-   * Full-width mobile building image.
-   *
-   * The wrapper occupies the complete first grid row.
-   * GSAP still reveals it from left to right using clip-path.
-   */
   .mobileImageReveal {
     position: relative;
 
@@ -446,9 +582,6 @@
     will-change: clip-path;
   }
 
-  /*
-   * Updated focal position requested for mobile.
-   */
   .mobileImage {
     object-fit: cover;
     object-position: 44% center;
@@ -474,17 +607,13 @@
     will-change: opacity;
   }
 
-  /*
-   * Permanent beige text area.
-   * It does not move while the text content changes.
-   */
   .mobileStoryPanel {
     position: relative;
 
     width: 100%;
     height: 100%;
 
-    padding: 54px 28px 54px;
+    padding: 54px 28px;
 
     overflow: hidden;
 
@@ -500,10 +629,6 @@
     min-height: 230px;
   }
 
-  /*
-   * Each mobile story item occupies the same position.
-   * GSAP controls opacity and vertical movement.
-   */
   .mobileStoryItem {
     position: absolute;
     inset: 0;
@@ -590,7 +715,7 @@
 }
 
 /* =========================================================
-   Small mobile
+   Small mobile — unchanged
    ========================================================= */
 
 @media (max-width: 480px) {
@@ -598,10 +723,6 @@
     grid-template-rows: 60% 40%;
   }
 
-  /*
-   * Keep the building image full width
-   * on smaller mobile devices as well.
-   */
   .mobileImageReveal {
     width: 100%;
     height: 100%;
@@ -614,7 +735,7 @@
   }
 
   .mobileStoryPanel {
-    padding: 46px 22px 46px;
+    padding: 46px 22px;
   }
 
   .mobileEyebrow {
@@ -673,12 +794,15 @@
 
   .requestLink::after,
   .mobileBrochureLink::after,
-  .progressLine {
+  .progressLine,
+  .editorialImageMedia {
     transition: none;
   }
 }
 
-/* Reduced-motion desktop */
+/* =========================================================
+   Reduced-motion desktop
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) and (min-width: 768px) {
   .imageScene,
@@ -700,35 +824,30 @@
 
   .beigeScene {
     display: grid;
-    gap: 80px;
+    gap: 100px;
 
     min-height: auto;
 
-    padding: 120px 24px;
+    padding: 120px clamp(24px, 7vw, 120px);
   }
 
   .descriptionBlock {
     position: relative;
     inset: auto;
 
-    width: min(100%, 510px);
+    width: 100%;
     margin: 0;
+    padding-inline: 0;
 
     opacity: 1 !important;
     visibility: visible !important;
     transform: none !important;
   }
-
-  .descriptionRight {
-    margin-left: auto;
-  }
-
-  .descriptionLeft {
-    margin-right: auto;
-  }
 }
 
-/* Reduced-motion mobile */
+/* =========================================================
+   Reduced-motion mobile
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) and (max-width: 767px) {
   .mobileScene {
