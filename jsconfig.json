@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
@@ -9,5 +8,6 @@
       "@/data/*": ["./src/data/*"],
       "@/hooks/*": ["./src/hooks/*"]
     }
-  }
+  },
+  "exclude": ["node_modules", ".next"]
 }
