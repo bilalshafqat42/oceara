@@ -33,10 +33,6 @@
   border-radius: 50%;
   outline: 0;
 
-  /*
-   * The SVG contains the complete visual button,
-   * so no additional CSS circle is placed behind it.
-   */
   background: transparent;
 
   opacity: 0;
@@ -68,22 +64,24 @@
   border-radius: 50%;
 
   /*
-   * A restrained shadow is applied to the complete
-   * vector artwork. It does not affect SVG sharpness.
+   * The SVG files contain a little internal spacing.
+   * This scale adjustment makes the visible circle
+   * match the Chat button more closely.
    */
-  filter: drop-shadow(0 8px 10px rgba(24, 25, 27, 0.14))
-    drop-shadow(0 2px 3px rgba(24, 25, 27, 0.08));
-
+  transform: scale(1.1);
   transform-origin: center center;
+
+  /*
+   * No drop-shadow or box-shadow.
+   */
+  filter: none;
 
   will-change: transform;
 }
 
 /*
  * Both SVG files occupy the exact same area.
- *
- * Because they remain SVG background images,
- * they retain vector quality at every screen density.
+ * They remain vector sharp on all screen densities.
  */
 .darkIcon,
 .lightIcon {
@@ -99,7 +97,7 @@
 
   background-repeat: no-repeat;
   background-position: center;
-  background-size: contain;
+  background-size: 100% 100%;
 
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -145,10 +143,12 @@
   transform: scale(1);
 }
 
+/*
+ * Keep the icon completely flat on hover.
+ */
 .backToTop:hover .icon,
 .backToTop:focus-visible .icon {
-  filter: drop-shadow(0 12px 16px rgba(7, 61, 97, 0.18))
-    drop-shadow(0 3px 5px rgba(24, 25, 27, 0.08));
+  filter: none;
 }
 
 .backToTop:focus-visible {
@@ -156,11 +156,12 @@
   outline-offset: 5px;
 }
 
-/*
- * Tactile pressed state.
- */
+/* =========================================================
+   Pressed state
+   ========================================================= */
+
 .backToTop:active .icon {
-  transform: scale(0.96);
+  transform: scale(1.04);
 }
 
 /* =========================================================
@@ -195,11 +196,13 @@
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .backToTop,
-  .icon,
-  .darkIcon,
-  .lightIcon {
+  .backToTop {
     transform: none !important;
+  }
+
+  .icon {
+    transform: scale(1.1) !important;
+    filter: none !important;
   }
 
   .darkIcon,
@@ -210,10 +213,16 @@
   .backToTop:hover .darkIcon,
   .backToTop:focus-visible .darkIcon {
     opacity: 0;
+    transform: scale(1);
   }
 
   .backToTop:hover .lightIcon,
   .backToTop:focus-visible .lightIcon {
     opacity: 1;
+    transform: scale(1);
+  }
+
+  .backToTop:active .icon {
+    transform: scale(1.1) !important;
   }
 }

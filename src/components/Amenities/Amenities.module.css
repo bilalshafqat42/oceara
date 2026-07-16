@@ -235,7 +235,7 @@
 }
 
 .progressLine {
-  display: block;
+  display: none;
 
   width: 18px;
   height: 1px;
