@@ -233,10 +233,9 @@ export default function Hero() {
             src="/images/hero/hero.avif"
             alt="Oceara coastal residences surrounded by sea and nature"
             fill
-            quality={90}
+            quality={75}
             sizes="100vw"
-            loading="eager"
-            fetchPriority="high"
+            priority
             className={styles.image}
           />
         </div>

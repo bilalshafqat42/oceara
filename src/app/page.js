@@ -1,26 +1,47 @@
 "use client";
 
 import { useRef } from "react";
+import dynamic from "next/dynamic";
 
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Amenities from "@/components/Amenities";
 import Project from "@/components/Project";
-import MapSection from "@/components/MapSection/MapSection";
 import Location from "@/components/Location";
 import SeaSection from "@/components/SeaSection";
 import Gallery from "@/components/Gallery";
 import Payment from "@/components/Payment";
-import Contact from "@/components/Contact";
 import Footer from "@/components/Footer/Footer";
-import ContactPopup from "@/components/ContactPopup";
 import BackToTop from "@/components/BackToTop/BackToTop";
 import Chat from "@/components/Chat/Chat";
 
 import { gsap, useGSAP } from "@/lib/gsap";
 
 import styles from "./page.module.css";
+
+/*
+ * MapSection pulls in mapbox-gl, a large mapping library that is only
+ * needed once a visitor scrolls to the map. Loading it via next/dynamic
+ * keeps it out of the initial JS bundle (and off the mobile main thread)
+ * so it downloads only when this section is actually rendered.
+ */
+const MapSection = dynamic(
+  () => import("@/components/MapSection/MapSection"),
+  { ssr: false },
+);
+
+/*
+ * Contact and ContactPopup both pull in react-phone-number-input and
+ * libphonenumber-js/max (full phone metadata for every country), one of
+ * the heaviest pieces of JS on this page. Both are still server-rendered
+ * (no ssr:false) so the form content stays in the initial HTML for SEO
+ * and there's no layout shift, but next/dynamic moves the phone-validation
+ * code into its own chunk instead of the main bundle every visitor has to
+ * parse before the page becomes interactive.
+ */
+const Contact = dynamic(() => import("@/components/Contact"));
+const ContactPopup = dynamic(() => import("@/components/ContactPopup"));
 
 export default function Home() {
   const sceneRef = useRef(null);

@@ -1,5 +1,4 @@
 import "./globals.css";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { inter, kinan, minervaModern } from "@/lib/fonts";
 import Loader from "@/components/Loader";
 
