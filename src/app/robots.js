@@ -1,5 +1,5 @@
 /*
- * Site-wide crawling is fully blocked for now.
+ * Search engine and AI crawling is blocked for now.
  *
  * Reason: the final domain and hosting for Oceara haven't been decided
  * yet, so whatever URL this is temporarily reachable at (a Vercel
@@ -8,14 +8,33 @@
  * duplicate content once the real domain goes live and could hurt
  * search visibility for the real site.
  *
- * To switch this on once the real domain and hosting are confirmed:
- * change `disallow: "/"` to `allow: "/"` below.
+ * Link-preview bots (WhatsApp, Facebook, Slack, etc.) are explicitly
+ * allowed through below. They only fetch a page once to build a share
+ * card, they don't index it or feed any search engine, so letting them
+ * through doesn't conflict with the block above.
+ *
+ * To switch off the block once the real domain and hosting are
+ * confirmed: change the first rule's `disallow: "/"` to `allow: "/"`.
  */
 export default function robots() {
   return {
-    rules: {
-      userAgent: "*",
-      disallow: "/",
-    },
+    rules: [
+      {
+        userAgent: "*",
+        disallow: "/",
+      },
+      {
+        userAgent: [
+          "facebookexternalhit",
+          "WhatsApp",
+          "Twitterbot",
+          "LinkedInBot",
+          "Slackbot",
+          "TelegramBot",
+          "Discordbot",
+        ],
+        allow: "/",
+      },
+    ],
   };
 }
