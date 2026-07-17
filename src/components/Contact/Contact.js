@@ -486,9 +486,9 @@ export default function Contact() {
                     I&apos;m a
                   </option>
 
-                  <option value="broker-agent">Broker / Agent</option>
+                  <option value="broker-agent">Broker</option>
 
-                  <option value="buyer-investor">Buyer / Investor</option>
+                  <option value="buyer-investor">Buyer</option>
                 </select>
               </div>
             </div>
@@ -594,6 +594,23 @@ export default function Contact() {
           >
             <span>{isSubmitting ? "Submitting..." : "Submit A Request"}</span>
           </button>
+
+          <p className={styles.consent}>
+            By submitting this form, you agree to our{" "}
+            <a href="/terms-of-use" className={styles.consentLink}>
+              Terms of Use
+            </a>{" "}
+            and{" "}
+            <a href="/privacy-policy" className={styles.consentLink}>
+              Privacy Policy
+            </a>
+            .
+          </p>
+
+          <p className={styles.consent}>
+            You consent to Refine contacting you about Oceara and future
+            opportunities by phone, email, or WhatsApp.
+          </p>
 
           <p
             className={styles.status}

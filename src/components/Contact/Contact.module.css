@@ -5,7 +5,7 @@
 
   overflow: hidden;
 
-  background: #073d61;
+  background: #0D78A6;
   color: #ffffff;
 }
 
@@ -14,8 +14,8 @@
 
   display: grid;
   grid-template-columns:
-    minmax(320px, 470px)
-    minmax(460px, 600px);
+    minmax(320px, 600px)
+    minmax(460px, 800px);
 
   justify-content: space-between;
   align-items: stretch;
@@ -48,7 +48,7 @@
 
 .description {
   width: 100%;
-  max-width: 470px;
+  max-width: 600px;
   margin: 0;
 
   font-family: var(--font-body);
@@ -69,7 +69,7 @@
   align-self: center;
 
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   margin: 0;
 }
 
@@ -245,6 +245,7 @@
   color: #ffffff;
 
   font-family: Arial, sans-serif;
+  font-size: 16px;
 }
 
 /* =========================================================
@@ -440,22 +441,50 @@
   outline-offset: 5px;
 }
 
+.submitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* =========================================================
+   Terms / privacy consent lines
+   ========================================================= */
+
+.consent {
+  margin: 14px 0 0;
+
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.5;
+
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.consentLink {
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.consentLink:hover,
+.consentLink:focus-visible {
+  color: #ffffff;
+}
+
 /* =========================================================
    Form submission status
    ========================================================= */
 
 .status {
-  position: absolute;
-  top: calc(100% + 12px);
-  left: 0;
-
-  margin: 0;
+  margin: 10px 0 0;
 
   font-family: var(--font-body);
   font-size: 13px;
   line-height: 1.4;
 
   color: rgba(255, 255, 255, 0.94);
+
+  min-height: 18px;
 }
 
 .status[data-status="error"] {
@@ -593,9 +622,6 @@
   }
 
   .status {
-    position: relative;
-    top: auto;
-
     min-height: 20px;
     margin-top: 14px;
   }
@@ -662,6 +688,13 @@
   box-shadow: 0 0 0 1000px transparent inset;
 
   transition: background-color 9999s ease-out;
+}
+
+.input:autofill,
+.phoneInput :global(.PhoneInputInput:autofill) {
+  -webkit-text-fill-color: #ffffff;
+  caret-color: #ffffff;
+  box-shadow: 0 0 0 1000px transparent inset;
 }
 
 /* =========================================================
