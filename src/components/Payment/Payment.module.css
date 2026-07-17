@@ -137,7 +137,6 @@
 .planLabel:last-child {
   text-align: left;
   margin-left: 15px;
-  
 }
 
 /* =========================================================
@@ -299,6 +298,10 @@
 
     width: 108%;
     height: 108%;
+  }
+  .planLabel:last-child {
+    text-align: left;
+    margin-left: 45px;
   }
 }
 

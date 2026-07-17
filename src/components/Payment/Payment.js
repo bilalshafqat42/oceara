@@ -238,7 +238,7 @@ export default function Payment() {
         <div ref={imagePanelRef} className={styles.imagePanel}>
           <div ref={imageLayerRef} className={styles.imageLayer}>
             <Image
-              src="/images/payment/swim.jpg"
+              src="/images/payment/payment.avif"
               alt="Oceara beachfront lifestyle at sunset"
               fill
               quality={90}
