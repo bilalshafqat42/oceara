@@ -34,6 +34,27 @@ export const metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Residence",
+  name: "Oceara",
+  description:
+    "A life shaped by sea and serenity. A Refine waterfront development in Dubai.",
+  url: "https://oceara.com", // ← same real domain as above
+  image: "https://oceara.com/images/og/og.jpg", // ← full URL here, not relative
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "[community/area name]", // ← fill this in
+    addressRegion: "Dubai",
+    addressCountry: "AE",
+  },
+  containedInPlace: {
+    "@type": "Organization",
+    name: "Refine",
+    url: "https://www.refinedubai.com",
+  },
+};
+
 export default function RootLayout({ children }) {
   return (
     <html
@@ -43,6 +64,10 @@ export default function RootLayout({ children }) {
       )}
     >
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <Loader />
         {children}
       </body>
