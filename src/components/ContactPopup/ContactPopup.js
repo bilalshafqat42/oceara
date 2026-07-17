@@ -824,18 +824,17 @@ export default function ContactPopup() {
             By submitting this form, you agree to our{" "}
             <a href="/terms-of-use" className={styles.consentLink}>
               Terms of Use
-            </a>{" "}
-            and{" "}
-            <a href="/privacy-policy" className={styles.consentLink}>
-              Privacy Policy
-            </a>
+            </a> and <a href="/privacy-policy" className={styles.consentLink}>
+              Privacy Policy.</a> You consent to Refine contacting you about Oceara and future
+            opportunities by phone, email, or WhatsApp.
+            
             .
           </p>
 
-          <p className={styles.consent}>
+          {/* <p className={styles.consent}>
             You consent to Refine contacting you about Oceara and future
             opportunities by phone, email, or WhatsApp.
-          </p>
+          </p> */}
 
           <p
             className={styles.status}
