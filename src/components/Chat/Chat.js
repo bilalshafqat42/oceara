@@ -1118,7 +1118,7 @@ export default function Chat() {
 
         <div className={styles.introPhotoWrapper}>
           <Image
-            src="/images/agent/agen-full-img.jpg"
+            src="/images/agent/avatar.avif"
             alt="Kai, Refine support agent"
             fill
             sizes="320px"
@@ -1159,7 +1159,7 @@ export default function Chat() {
           <div className={styles.chatHeaderInfo}>
             <span className={styles.avatarWrapper}>
               <Image
-                src="/images/agent/agent-round.png"
+                src="/images/agent/avatar-square.avif"
                 alt="Kai"
                 fill
                 sizes="40px"
