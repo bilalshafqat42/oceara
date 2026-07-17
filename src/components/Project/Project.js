@@ -41,6 +41,18 @@ export default function Project() {
   const descriptionOneRef = useRef(null);
   const descriptionTwoRef = useRef(null);
 
+  /*
+   * Desktop editorial image reveal elements.
+   *
+   * Landscape:
+   * opens horizontally from left to right.
+   *
+   * Portrait:
+   * opens vertically from top to bottom.
+   */
+  const landscapeImageRef = useRef(null);
+  const portraitImageRef = useRef(null);
+
   const mobileSceneRef = useRef(null);
   const mobileImageRevealRef = useRef(null);
   const mobileImageRef = useRef(null);
@@ -64,6 +76,9 @@ export default function Project() {
       const beigeScene = beigeSceneRef.current;
       const descriptionOne = descriptionOneRef.current;
       const descriptionTwo = descriptionTwoRef.current;
+
+      const landscapeImage = landscapeImageRef.current;
+      const portraitImage = portraitImageRef.current;
 
       const mobileScene = mobileSceneRef.current;
       const mobileImageReveal = mobileImageRevealRef.current;
@@ -123,6 +138,8 @@ export default function Project() {
                   beigeScene,
                   descriptionOne,
                   descriptionTwo,
+                  landscapeImage,
+                  portraitImage,
                 ].filter(Boolean),
                 {
                   clearProps: "all",
@@ -131,6 +148,7 @@ export default function Project() {
                   y: 0,
                   xPercent: 0,
                   yPercent: 0,
+                  clipPath: "none",
                 },
               );
             }
@@ -179,7 +197,9 @@ export default function Project() {
               !introContent ||
               !beigeScene ||
               !descriptionOne ||
-              !descriptionTwo
+              !descriptionTwo ||
+              !landscapeImage ||
+              !portraitImage
             ) {
               return undefined;
             }
@@ -223,6 +243,22 @@ export default function Project() {
               autoAlpha: 0,
               y: 58,
               pointerEvents: "none",
+            });
+
+            /*
+             * First image begins completely hidden from
+             * the right side, creating a left-to-right reveal.
+             */
+            gsap.set(landscapeImage, {
+              clipPath: "inset(0% 100% 0% 0%)",
+            });
+
+            /*
+             * Second image begins completely hidden from
+             * the bottom, creating a top-to-bottom reveal.
+             */
+            gsap.set(portraitImage, {
+              clipPath: "inset(100% 0% 0% 0%)",
             });
 
             setActiveProgress(0);
@@ -279,6 +315,7 @@ export default function Project() {
                 trigger: section,
                 start: "top top",
                 end: "bottom bottom",
+
                 scrub: 0.95,
                 invalidateOnRefresh: true,
 
@@ -318,6 +355,7 @@ export default function Project() {
 
                   if (nearestIndex !== activeProgressIndex) {
                     activeProgressIndex = nearestIndex;
+
                     setActiveProgress(nearestIndex);
                   }
                 },
@@ -350,6 +388,11 @@ export default function Project() {
                   duration: 0.66,
                 },
               )
+
+              /*
+               * Move from the building scene into the
+               * beige editorial scene.
+               */
               .to(imageScene, {
                 yPercent: -101,
                 duration: 1.1,
@@ -364,6 +407,10 @@ export default function Project() {
                 },
                 "<",
               )
+
+              /*
+               * First editorial state.
+               */
               .to(descriptionOne, {
                 autoAlpha: 1,
                 y: 0,
@@ -371,6 +418,15 @@ export default function Project() {
                 duration: 0.55,
                 ease: "power3.out",
               })
+              .to(
+                landscapeImage,
+                {
+                  clipPath: "inset(0% 0% 0% 0%)",
+                  duration: 0.78,
+                  ease: "power3.inOut",
+                },
+                "<",
+              )
               .addLabel("project-description")
               .to(
                 {},
@@ -378,6 +434,10 @@ export default function Project() {
                   duration: 0.82,
                 },
               )
+
+              /*
+               * First editorial state exits.
+               */
               .to(descriptionOne, {
                 autoAlpha: 0,
                 y: -52,
@@ -391,6 +451,10 @@ export default function Project() {
                   duration: 0.12,
                 },
               )
+
+              /*
+               * Second editorial state.
+               */
               .to(descriptionTwo, {
                 autoAlpha: 1,
                 y: 0,
@@ -398,6 +462,15 @@ export default function Project() {
                 duration: 0.55,
                 ease: "power3.out",
               })
+              .to(
+                portraitImage,
+                {
+                  clipPath: "inset(0% 0% 0% 0%)",
+                  duration: 0.82,
+                  ease: "power3.inOut",
+                },
+                "<",
+              )
               .addLabel("project-location")
               .to(
                 {},
@@ -520,6 +593,7 @@ export default function Project() {
                 trigger: section,
                 start: "top top",
                 end: "bottom bottom",
+
                 scrub: 0.75,
                 invalidateOnRefresh: true,
 
@@ -553,12 +627,14 @@ export default function Project() {
 
                     if (distance < nearestDistance) {
                       nearestDistance = distance;
+
                       nearestIndex = index;
                     }
                   });
 
                   if (nearestIndex !== activeProgressIndex) {
                     activeProgressIndex = nearestIndex;
+
                     setActiveProgress(nearestIndex);
                   }
                 },
@@ -718,6 +794,7 @@ export default function Project() {
             className={`${styles.descriptionBlock} ${styles.descriptionRight}`}
           >
             <div
+              ref={landscapeImageRef}
               className={`${styles.editorialImage} ${styles.editorialImageLandscape}`}
             >
               <Image
@@ -744,6 +821,7 @@ export default function Project() {
             </div>
 
             <div
+              ref={portraitImageRef}
               className={`${styles.editorialImage} ${styles.editorialImagePortrait}`}
             >
               <Image
@@ -751,7 +829,7 @@ export default function Project() {
                 alt="Curtains framing a calm coastal landscape"
                 fill
                 quality={90}
-                sizes="50vw"
+                sizes="40vw"
                 className={styles.editorialImageMedia}
               />
             </div>

@@ -145,7 +145,7 @@
 }
 
 /* =========================================================
-   Download brochure link
+   Download brochure
    ========================================================= */
 
 .requestLink,
@@ -222,7 +222,7 @@
 }
 
 /* =========================================================
-   Desktop beige editorial scene
+   Editorial scene
    ========================================================= */
 
 .beigeScene {
@@ -241,10 +241,6 @@
   will-change: transform;
 }
 
-/*
- * Each editorial state occupies the complete sticky viewport.
- * The design is divided into an exact 50% / 50% layout.
- */
 .descriptionBlock {
   position: absolute;
   inset: 0;
@@ -271,7 +267,7 @@
 }
 
 /* =========================================================
-   Shared editorial image styling
+   Shared image styling
    ========================================================= */
 
 .editorialImage {
@@ -282,11 +278,18 @@
   overflow: hidden;
 
   background: #d8d0c6;
+
+  /*
+   * GSAP animates this property.
+   */
+  will-change: clip-path;
 }
 
 .editorialImageMedia {
   object-fit: cover;
   object-position: center center;
+
+  transform-origin: center center;
 
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -299,14 +302,12 @@
 }
 
 /* =========================================================
-   First curtain image — horizontal
+   Horizontal image
    ========================================================= */
 
-/*
- * The image fills the complete width of the left 50% panel.
- * Its controlled landscape height creates the horizontal look.
- */
 .editorialImageLandscape {
+  grid-column: 1;
+
   align-self: center;
   justify-self: stretch;
 
@@ -318,28 +319,30 @@
   aspect-ratio: auto;
 }
 
-/*
- * The source photograph is portrait, so object-fit cover crops
- * its top and bottom to create the approved landscape treatment.
- */
 .editorialImageLandscape .editorialImageMedia {
   object-position: center 53%;
 }
 
 /* =========================================================
-   Second curtain image — vertical
+   Vertical image
    ========================================================= */
 
 /*
- * The image fills the complete right 50% panel and the full
- * available height, producing a strong vertical composition.
+ * The right half still begins at the centre of the page,
+ * but the image itself is only 40vw wide.
+ *
+ * It therefore ends at approximately 90% of the viewport,
+ * leaving intentional breathing space on its right.
  */
 .editorialImagePortrait {
-  align-self: stretch;
-  justify-self: stretch;
+  grid-column: 2;
+  grid-row: 1;
 
-  width: 100%;
-  max-width: none;
+  align-self: stretch;
+  justify-self: start;
+
+  width: 40vw;
+  max-width: 40vw;
   height: 100%;
 
   aspect-ratio: auto;
@@ -354,7 +357,7 @@
    ========================================================= */
 
 .editorialText {
-  width: min(100% - clamp(80px, 12vw, 210px), 410px);
+  width: min(calc(100% - clamp(80px, 12vw, 210px)), 410px);
 
   max-width: 410px;
 
@@ -368,8 +371,7 @@
 }
 
 /* =========================================================
-   First editorial state
-   Horizontal image left / description right
+   First state
    ========================================================= */
 
 .descriptionRight .editorialImageLandscape {
@@ -381,13 +383,13 @@
 
   justify-self: start;
 
-  margin-left: clamp(52px, 8vw, 125px);
   margin-right: clamp(52px, 7vw, 110px);
+
+  margin-left: clamp(52px, 8vw, 125px);
 }
 
 /* =========================================================
-   Second editorial state
-   Location text left / vertical image right
+   Second state
    ========================================================= */
 
 .descriptionLeft .editorialText {
@@ -397,6 +399,7 @@
   justify-self: end;
 
   margin-right: clamp(52px, 8vw, 125px);
+
   margin-left: clamp(52px, 7vw, 110px);
 }
 
@@ -406,7 +409,7 @@
 }
 
 /* =========================================================
-   Mobile scene hidden on desktop
+   Mobile hidden on desktop
    ========================================================= */
 
 .mobileScene {
@@ -414,19 +417,16 @@
 }
 
 /* =========================================================
-   Progress — hidden by design
+   Progress hidden
    ========================================================= */
 
-.progress {
-  display: none;
-}
-
+.progress,
 .progressLine {
   display: none;
 }
 
 /* =========================================================
-   Accessible hidden heading
+   Accessible heading
    ========================================================= */
 
 .visuallyHidden {
@@ -449,7 +449,7 @@
 }
 
 /* =========================================================
-   Tablet desktop layout
+   Tablet
    ========================================================= */
 
 @media (max-width: 1100px) and (min-width: 768px) {
@@ -470,8 +470,18 @@
     height: clamp(280px, 42vh, 410px);
   }
 
+  /*
+   * Maintains the narrower portrait shape
+   * on tablet-sized desktop layouts.
+   */
+  .editorialImagePortrait {
+    width: 40vw;
+    max-width: 40vw;
+  }
+
   .editorialText {
     width: min(calc(100% - 88px), 320px);
+
     max-width: 320px;
 
     font-size: 14px;
@@ -490,7 +500,7 @@
 }
 
 /* =========================================================
-   Mobile-only layout — unchanged
+   Mobile — unchanged
    ========================================================= */
 
 @media (max-width: 767px) {
@@ -777,6 +787,11 @@
     opacity: 1 !important;
     visibility: visible !important;
     transform: none !important;
+  }
+
+  .editorialImageLandscape,
+  .editorialImagePortrait {
+    clip-path: none !important;
   }
 }
 
