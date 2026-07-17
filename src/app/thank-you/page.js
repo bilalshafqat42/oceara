@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import AutoRedirect from "./AutoRedirect";
 import styles from "./thank-you.module.css";
 
 export const metadata = {
@@ -15,9 +16,7 @@ export const metadata = {
 export default function ThankYouPage() {
   return (
     <main className={styles.page}>
-      <div className={styles.background} aria-hidden="true" />
-
-      <div className={styles.overlay} aria-hidden="true" />
+      <AutoRedirect href="/" delay={15000} />
 
       <section className={styles.content} aria-labelledby="thank-you-title">
         <p className={styles.eyebrow}>Thank You</p>
