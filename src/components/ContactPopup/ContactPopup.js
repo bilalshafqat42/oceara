@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import PhoneInput from "react-phone-number-input";
+import { parsePhoneNumberFromString } from "libphonenumber-js/max";
 
 import "react-phone-number-input/style.css";
 
@@ -11,6 +12,8 @@ import styles from "./ContactPopup.module.css";
 
 const TRACKING_STORAGE_KEY = "oceara_campaign_tracking";
 const SUBMISSION_STORAGE_KEY = "oceara_form_submitted";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const initialForm = {
   firstName: "",
@@ -46,6 +49,30 @@ const parseStoredTrackingData = (storedValue) => {
   }
 };
 
+function FieldError({ id, message }) {
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <div id={id} className={styles.fieldError} role="alert">
+      <svg
+        className={styles.fieldErrorIcon}
+        width="16"
+        height="16"
+        viewBox="0 0 20 20"
+        aria-hidden="true"
+      >
+        <circle cx="10" cy="10" r="9" fill="#B3541E" />
+        <rect x="9" y="5" width="2" height="6" rx="1" fill="#ffffff" />
+        <rect x="9" y="13" width="2" height="2" rx="1" fill="#ffffff" />
+      </svg>
+
+      <span>{message}</span>
+    </div>
+  );
+}
+
 export default function ContactPopup() {
   const router = useRouter();
 
@@ -62,6 +89,7 @@ export default function ContactPopup() {
 
   const [trackingData, setTrackingData] = useState(initialTrackingData);
 
+  const [fieldError, setFieldError] = useState({ field: null, message: "" });
   const [status, setStatus] = useState("");
   const [statusType, setStatusType] = useState("");
 
@@ -246,6 +274,16 @@ export default function ContactPopup() {
     setStatusType("");
   }, []);
 
+  const clearFieldError = useCallback((field) => {
+    setFieldError((current) =>
+      current.field === field ? { field: null, message: "" } : current,
+    );
+  }, []);
+
+  const showFieldError = useCallback((field, message) => {
+    setFieldError({ field, message });
+  }, []);
+
   const openPopup = useCallback(() => {
     if (isOpen) {
       return;
@@ -256,6 +294,7 @@ export default function ContactPopup() {
     document.body.style.overflow = "hidden";
 
     clearStatus();
+    setFieldError({ field: null, message: "" });
     setIsSubmitting(false);
     setIsOpen(true);
 
@@ -351,6 +390,7 @@ export default function ContactPopup() {
       [name]: value,
     }));
 
+    clearFieldError(name);
     clearStatus();
   };
 
@@ -360,7 +400,25 @@ export default function ContactPopup() {
       phone: value || "",
     }));
 
+    clearFieldError("phone");
     clearStatus();
+  };
+
+  const isMobileNumber = (phone) => {
+    const parsed = parsePhoneNumberFromString(phone || "");
+
+    if (!parsed || !parsed.isValid()) {
+      return false;
+    }
+
+    const numberType = parsed.getType();
+
+    /*
+     * Some countries' numbering plans don't let libphonenumber
+     * distinguish mobile from landline with certainty. Allow that
+     * ambiguous case too, rather than rejecting valid numbers.
+     */
+    return numberType === "MOBILE" || numberType === "FIXED_LINE_OR_MOBILE";
   };
 
   const handleSubmit = async (event) => {
@@ -370,11 +428,30 @@ export default function ContactPopup() {
       return;
     }
 
-    if (!formData.phone || !isValidPhoneNumber(formData.phone)) {
-      setStatus("Please enter a valid mobile phone number.");
+    setFieldError({ field: null, message: "" });
 
-      setStatusType("error");
+    if (!formData.firstName.trim()) {
+      showFieldError("firstName", "Please enter your first name.");
+      return;
+    }
 
+    if (!formData.lastName.trim()) {
+      showFieldError("lastName", "Please enter your last name.");
+      return;
+    }
+
+    if (!formData.userType) {
+      showFieldError("userType", "Please select an option.");
+      return;
+    }
+
+    if (!formData.phone || !isMobileNumber(formData.phone)) {
+      showFieldError("phone", "Please enter a valid mobile phone number.");
+      return;
+    }
+
+    if (!EMAIL_PATTERN.test(formData.email.trim())) {
+      showFieldError("email", "Please enter a valid email address.");
       return;
     }
 
@@ -421,13 +498,15 @@ export default function ContactPopup() {
       setIsSubmitting(true);
       clearStatus();
 
-      /*
-       * Temporary development verification.
-       *
-       * Replace this console statement with the
-       * approved API or Salesforce request later.
-       */
-      console.log("Popup contact form submission:", submissionData);
+      const response = await fetch("/api/oceara-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Lead submission failed");
+      }
 
       /*
        * Record a basic submission confirmation.
@@ -520,8 +599,21 @@ export default function ContactPopup() {
                 className={styles.input}
                 placeholder="First Name"
                 autoComplete="given-name"
+                aria-invalid={fieldError.field === "firstName"}
+                aria-describedby={
+                  fieldError.field === "firstName"
+                    ? "popup-first-name-error"
+                    : undefined
+                }
                 required
               />
+
+              {fieldError.field === "firstName" && (
+                <FieldError
+                  id="popup-first-name-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
 
             <div className={styles.field}>
@@ -541,8 +633,21 @@ export default function ContactPopup() {
                 className={styles.input}
                 placeholder="Last Name"
                 autoComplete="family-name"
+                aria-invalid={fieldError.field === "lastName"}
+                aria-describedby={
+                  fieldError.field === "lastName"
+                    ? "popup-last-name-error"
+                    : undefined
+                }
                 required
               />
+
+              {fieldError.field === "lastName" && (
+                <FieldError
+                  id="popup-last-name-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
           </div>
 
@@ -563,17 +668,30 @@ export default function ContactPopup() {
                   value={formData.userType}
                   onChange={handleChange}
                   className={styles.select}
+                  aria-invalid={fieldError.field === "userType"}
+                  aria-describedby={
+                    fieldError.field === "userType"
+                      ? "popup-user-type-error"
+                      : undefined
+                  }
                   required
                 >
                   <option value="" disabled>
                     I&apos;m a
                   </option>
 
-                  <option value="broker-agent">Broker / Agent</option>
+                  <option value="broker-agent">Broker</option>
 
-                  <option value="buyer-investor">Buyer / Investor</option>
+                  <option value="buyer-investor">Buyer</option>
                 </select>
               </div>
+
+              {fieldError.field === "userType" && (
+                <FieldError
+                  id="popup-user-type-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
           </div>
 
@@ -595,8 +713,19 @@ export default function ContactPopup() {
                 countryCallingCodeEditable={false}
                 placeholder="Mobile Phone"
                 autoComplete="tel"
+                aria-invalid={fieldError.field === "phone"}
+                aria-describedby={
+                  fieldError.field === "phone" ? "popup-phone-error" : undefined
+                }
                 required
               />
+
+              {fieldError.field === "phone" && (
+                <FieldError
+                  id="popup-phone-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
           </div>
 
@@ -617,8 +746,19 @@ export default function ContactPopup() {
                 placeholder="Email"
                 autoComplete="email"
                 inputMode="email"
+                aria-invalid={fieldError.field === "email"}
+                aria-describedby={
+                  fieldError.field === "email" ? "popup-email-error" : undefined
+                }
                 required
               />
+
+              {fieldError.field === "email" && (
+                <FieldError
+                  id="popup-email-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
           </div>
 
@@ -679,6 +819,23 @@ export default function ContactPopup() {
           >
             <span>{isSubmitting ? "Submitting..." : "Submit A Request"}</span>
           </button>
+
+          <p className={styles.consent}>
+            By submitting this form, you agree to our{" "}
+            <a href="/terms-of-use" className={styles.consentLink}>
+              Terms of Use
+            </a>{" "}
+            and{" "}
+            <a href="/privacy-policy" className={styles.consentLink}>
+              Privacy Policy
+            </a>
+            .
+          </p>
+
+          <p className={styles.consent}>
+            You consent to Refine contacting you about Oceara and future
+            opportunities by phone, email, or WhatsApp.
+          </p>
 
           <p
             className={styles.status}

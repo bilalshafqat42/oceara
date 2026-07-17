@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import PhoneInput from "react-phone-number-input";
+import { parsePhoneNumberFromString } from "libphonenumber-js/max";
 
 import "react-phone-number-input/style.css";
 
@@ -11,6 +12,8 @@ import styles from "./Contact.module.css";
 
 const TRACKING_STORAGE_KEY = "oceara_campaign_tracking";
 const SUBMISSION_STORAGE_KEY = "oceara_form_submitted";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const initialForm = {
   firstName: "",
@@ -46,6 +49,30 @@ const parseStoredTrackingData = (storedValue) => {
   }
 };
 
+function FieldError({ id, message }) {
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <div id={id} className={styles.fieldError} role="alert">
+      <svg
+        className={styles.fieldErrorIcon}
+        width="16"
+        height="16"
+        viewBox="0 0 20 20"
+        aria-hidden="true"
+      >
+        <circle cx="10" cy="10" r="9" fill="#B3541E" />
+        <rect x="9" y="5" width="2" height="6" rx="1" fill="#ffffff" />
+        <rect x="9" y="13" width="2" height="2" rx="1" fill="#ffffff" />
+      </svg>
+
+      <span>{message}</span>
+    </div>
+  );
+}
+
 export default function Contact() {
   const router = useRouter();
 
@@ -57,6 +84,7 @@ export default function Contact() {
   const [formData, setFormData] = useState(initialForm);
   const [trackingData, setTrackingData] = useState(initialTrackingData);
 
+  const [fieldError, setFieldError] = useState({ field: null, message: "" });
   const [status, setStatus] = useState("");
   const [statusType, setStatusType] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -283,6 +311,16 @@ export default function Contact() {
     setStatusType("");
   };
 
+  const clearFieldError = (field) => {
+    setFieldError((current) =>
+      current.field === field ? { field: null, message: "" } : current,
+    );
+  };
+
+  const showFieldError = (field, message) => {
+    setFieldError({ field, message });
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -291,6 +329,7 @@ export default function Contact() {
       [name]: value,
     }));
 
+    clearFieldError(name);
     clearStatus();
   };
 
@@ -300,7 +339,25 @@ export default function Contact() {
       phone: value || "",
     }));
 
+    clearFieldError("phone");
     clearStatus();
+  };
+
+  const isMobileNumber = (phone) => {
+    const parsed = parsePhoneNumberFromString(phone || "");
+
+    if (!parsed || !parsed.isValid()) {
+      return false;
+    }
+
+    const numberType = parsed.getType();
+
+    /*
+     * Some countries' numbering plans don't let libphonenumber
+     * distinguish mobile from landline with certainty. Allow that
+     * ambiguous case too, rather than rejecting valid numbers.
+     */
+    return numberType === "MOBILE" || numberType === "FIXED_LINE_OR_MOBILE";
   };
 
   const handleSubmit = async (event) => {
@@ -310,10 +367,30 @@ export default function Contact() {
       return;
     }
 
-    if (!formData.phone || !isValidPhoneNumber(formData.phone)) {
-      setStatus("Please enter a valid mobile phone number.");
-      setStatusType("error");
+    setFieldError({ field: null, message: "" });
 
+    if (!formData.firstName.trim()) {
+      showFieldError("firstName", "Please enter your first name.");
+      return;
+    }
+
+    if (!formData.lastName.trim()) {
+      showFieldError("lastName", "Please enter your last name.");
+      return;
+    }
+
+    if (!formData.userType) {
+      showFieldError("userType", "Please select an option.");
+      return;
+    }
+
+    if (!formData.phone || !isMobileNumber(formData.phone)) {
+      showFieldError("phone", "Please enter a valid mobile phone number.");
+      return;
+    }
+
+    if (!EMAIL_PATTERN.test(formData.email.trim())) {
+      showFieldError("email", "Please enter a valid email address.");
       return;
     }
 
@@ -356,13 +433,6 @@ export default function Contact() {
       setStatus("");
       setStatusType("");
 
-      /*
-       * Development testing only.
-       *
-       * Replace this console statement later with
-       * your approved API, Salesforce or CRM request.
-       */
-      // console.log("Contact form submission:", submissionData);
       const response = await fetch("/api/oceara-lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -418,7 +488,12 @@ export default function Contact() {
           </p>
         </div>
 
-        <form ref={formRef} className={styles.form} onSubmit={handleSubmit}>
+        <form
+          ref={formRef}
+          className={styles.form}
+          onSubmit={handleSubmit}
+          noValidate
+        >
           <header className={styles.headingGroup}>
             <p className={styles.eyebrow}>Reach Out</p>
 
@@ -446,8 +521,21 @@ export default function Contact() {
                 className={styles.input}
                 placeholder="First Name"
                 autoComplete="given-name"
+                aria-invalid={fieldError.field === "firstName"}
+                aria-describedby={
+                  fieldError.field === "firstName"
+                    ? "contact-first-name-error"
+                    : undefined
+                }
                 required
               />
+
+              {fieldError.field === "firstName" && (
+                <FieldError
+                  id="contact-first-name-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
 
             <div className={styles.field}>
@@ -467,8 +555,21 @@ export default function Contact() {
                 className={styles.input}
                 placeholder="Last Name"
                 autoComplete="family-name"
+                aria-invalid={fieldError.field === "lastName"}
+                aria-describedby={
+                  fieldError.field === "lastName"
+                    ? "contact-last-name-error"
+                    : undefined
+                }
                 required
               />
+
+              {fieldError.field === "lastName" && (
+                <FieldError
+                  id="contact-last-name-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
           </div>
 
@@ -489,6 +590,12 @@ export default function Contact() {
                   value={formData.userType}
                   onChange={handleChange}
                   className={styles.select}
+                  aria-invalid={fieldError.field === "userType"}
+                  aria-describedby={
+                    fieldError.field === "userType"
+                      ? "contact-user-type-error"
+                      : undefined
+                  }
                   required
                 >
                   <option value="" disabled>
@@ -500,6 +607,13 @@ export default function Contact() {
                   <option value="buyer-investor">Buyer</option>
                 </select>
               </div>
+
+              {fieldError.field === "userType" && (
+                <FieldError
+                  id="contact-user-type-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
           </div>
 
@@ -521,8 +635,21 @@ export default function Contact() {
                 countryCallingCodeEditable={false}
                 placeholder="Mobile Phone"
                 autoComplete="tel"
+                aria-invalid={fieldError.field === "phone"}
+                aria-describedby={
+                  fieldError.field === "phone"
+                    ? "contact-phone-error"
+                    : undefined
+                }
                 required
               />
+
+              {fieldError.field === "phone" && (
+                <FieldError
+                  id="contact-phone-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
           </div>
 
@@ -543,8 +670,21 @@ export default function Contact() {
                 placeholder="Email"
                 autoComplete="email"
                 inputMode="email"
+                aria-invalid={fieldError.field === "email"}
+                aria-describedby={
+                  fieldError.field === "email"
+                    ? "contact-email-error"
+                    : undefined
+                }
                 required
               />
+
+              {fieldError.field === "email" && (
+                <FieldError
+                  id="contact-email-error"
+                  message={fieldError.message}
+                />
+              )}
             </div>
           </div>
 

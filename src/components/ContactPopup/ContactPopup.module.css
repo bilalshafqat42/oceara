@@ -268,6 +268,99 @@
 }
 
 /* =========================================================
+   Field-level validation popup
+   ========================================================= */
+
+.fieldError {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 5;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  max-width: min(320px, 100%);
+  padding: 10px 14px;
+
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+
+  color: #1a1a1a;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.4;
+
+  animation: fieldErrorIn 150ms ease-out;
+}
+
+.fieldError::before {
+  content: "";
+
+  position: absolute;
+  top: -6px;
+  left: 18px;
+
+  width: 12px;
+  height: 12px;
+
+  background: #ffffff;
+  transform: rotate(45deg);
+}
+
+.fieldErrorIcon {
+  flex-shrink: 0;
+
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes fieldErrorIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   Terms / privacy consent lines
+   ========================================================= */
+
+.consent {
+  margin: 14px 0 0;
+
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.5;
+
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.consentLink {
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.consentLink:hover,
+.consentLink:focus-visible {
+  color: #ffffff;
+}
+
+@media (max-width: 480px) {
+  .fieldError {
+    font-size: 12.5px;
+  }
+}
+
+/* =========================================================
    User-type select
    ========================================================= */
 
