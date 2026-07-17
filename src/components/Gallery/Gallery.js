@@ -8,28 +8,28 @@ import styles from "./Gallery.module.css";
 
 const galleryItems = [
   {
-    image: "/images/gallery/gall1.jpg",
+    image: "/images/gallery/stone.avif",
     alt: "Hot stone wellness treatment",
     title: "Wellness Resort",
     description:
       "Born from the fluidity of nature, Oceara is designed around restorative experiences and everyday wellbeing.",
   },
   {
-    image: "/images/gallery/gall2.jpg",
+    image: "/images/gallery/boy.avif",
     alt: "Woman enjoying an active outdoor lifestyle",
     title: "Active Living",
     description:
       "Thoughtfully planned spaces encourage movement, recreation and a more balanced way of living.",
   },
   {
-    image: "/images/gallery/gall3.jpg",
+    image: "/images/gallery/game.avif",
     alt: "Landscaped outdoor community retreat",
     title: "Nature Retreat",
     description:
       "Immersive landscaped spaces create quiet moments for reflection, connection and relaxation.",
   },
   {
-    image: "/images/gallery/gall4.jpg",
+    image: "/images/gallery/yacht.avif",
     alt: "Resort-inspired outdoor lifestyle",
     title: "Resort Moments",
     description:
