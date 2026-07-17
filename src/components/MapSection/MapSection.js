@@ -115,6 +115,7 @@ export default function MapSection() {
   const mapStageRef = useRef(null);
   const overlayBackgroundRef = useRef(null);
   const travelListRef = useRef(null);
+  const resetRef = useRef(null);
   const directionsRef = useRef(null);
 
   const mapContainerRef = useRef(null);
@@ -254,6 +255,7 @@ export default function MapSection() {
       const mapStage = mapStageRef.current;
       const overlayBackground = overlayBackgroundRef.current;
       const travelList = travelListRef.current;
+      const resetButton = resetRef.current;
       const directionsLink = directionsRef.current;
 
       if (
@@ -264,6 +266,7 @@ export default function MapSection() {
         !mapStage ||
         !overlayBackground ||
         !travelList ||
+        !resetButton ||
         !directionsLink
       ) {
         return undefined;
@@ -308,7 +311,7 @@ export default function MapSection() {
               clipPath: "inset(0% 0% 0% 0%)",
             });
 
-            gsap.set([...travelItems, directionsLink], {
+            gsap.set([...travelItems, resetButton, directionsLink], {
               autoAlpha: 1,
               y: 0,
               clearProps: "transform",
@@ -393,6 +396,11 @@ export default function MapSection() {
             y: 42,
           });
 
+          gsap.set(resetButton, {
+            autoAlpha: 0,
+            y: 22,
+          });
+
           gsap.set(directionsLink, {
             autoAlpha: 0,
             y: 26,
@@ -445,7 +453,23 @@ export default function MapSection() {
           });
 
           /*
-           * See Directions enters after the final destination.
+           * Reset View belongs to the destination group and
+           * appears directly after the final destination item.
+           */
+          itemsTimeline.to(
+            resetButton,
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.66,
+              ease: "power3.out",
+            },
+            travelItems.length * destinationStagger + 0.08,
+          );
+
+          /*
+           * See Directions remains a separate secondary action
+           * lower in the overlay, preserving the approved layout.
            */
           itemsTimeline.to(
             directionsLink,
@@ -455,7 +479,7 @@ export default function MapSection() {
               duration: 0.7,
               ease: "power3.out",
             },
-            travelItems.length * destinationStagger + 0.12,
+            travelItems.length * destinationStagger + 0.18,
           );
 
           return () => {
@@ -495,7 +519,7 @@ export default function MapSection() {
               clipPath: "inset(0% 0% 0% 0%)",
             });
 
-            gsap.set([...travelItems, directionsLink], {
+            gsap.set([...travelItems, resetButton, directionsLink], {
               autoAlpha: 1,
               y: 0,
               clearProps: "transform",
@@ -522,6 +546,11 @@ export default function MapSection() {
           gsap.set(travelItems, {
             autoAlpha: 0,
             y: 24,
+          });
+
+          gsap.set(resetButton, {
+            autoAlpha: 0,
+            y: 16,
           });
 
           gsap.set(directionsLink, {
@@ -564,6 +593,20 @@ export default function MapSection() {
             },
           });
 
+          const mobileResetTween = gsap.to(resetButton, {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.58,
+            ease: "power3.out",
+
+            scrollTrigger: {
+              trigger: mapStage,
+              start: "top 60%",
+              toggleActions: "play none none none",
+              invalidateOnRefresh: true,
+            },
+          });
+
           const mobileDirectionsTween = gsap.to(directionsLink, {
             autoAlpha: 1,
             y: 0,
@@ -581,6 +624,7 @@ export default function MapSection() {
           return () => {
             mobileOverlayTween.kill();
             mobileItemsTween.kill();
+            mobileResetTween.kill();
             mobileDirectionsTween.kill();
           };
         },
@@ -1045,26 +1089,31 @@ export default function MapSection() {
                 })}
               </ul>
 
-              <div ref={directionsRef} className={styles.actionLinks}>
-                <a
-                  href={createGoogleMapsUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.directionsLink}
-                >
-                  <span>See Directions</span>
-                  <span className={styles.linkIcon}>→</span>
-                </a>
+              <button
+                ref={resetRef}
+                type="button"
+                onClick={handleResetView}
+                className={styles.resetButton}
+                aria-label="Reset map to show all locations"
+              >
+                <span>Reset View</span>{" "}
+                <span className={styles.linkIcon} aria-hidden="true">
+                  ↻
+                </span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={handleResetView}
-                  className={styles.resetButton}
-                >
-                  <span className={styles.linkIcon}>↻</span>
-                  <span>Reset View</span>
-                </button>
-              </div>
+              <a
+                ref={directionsRef}
+                href={createGoogleMapsUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.directionsLink}
+              >
+                <span>See Directions</span>
+                <span className={styles.linkIcon} aria-hidden="true">
+                  →
+                </span>
+              </a>
             </div>
           </div>
 

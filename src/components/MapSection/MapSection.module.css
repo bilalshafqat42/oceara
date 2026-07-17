@@ -1,4 +1,6 @@
-.mapSection {
+/* MAPSECTION.MODULE.CSS
+  ============================================================ */
+  .mapSection {
   position: relative;
 
   width: 100%;
@@ -333,90 +335,22 @@
 }
 
 /* =========================================================
-   See Directions
+   Reset View — part of the destination group
    ========================================================= */
 
-.directionsLink {
+.resetButton {
   position: relative;
 
-  display: inline-block;
-
-  margin-top: clamp(90px, 14vh, 200px);
-  padding: 0 0 7px;
-
-  font-family: var(--font-body);
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1;
-
-  color: #18191b;
-  text-decoration: none;
-
-  pointer-events: auto;
-}
-
-.directionsLink::before,
-.directionsLink::after {
-  content: "";
-
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-
-  height: 1px;
-}
-
-.directionsLink::before {
-  background: rgba(24, 25, 27, 0.3);
-}
-
-.directionsLink::after {
-  background: #18191b;
-
-  transform: scaleX(0);
-  transform-origin: right center;
-
-  transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.directionsLink:hover::after,
-.directionsLink:focus-visible::after {
-  transform: scaleX(1);
-  transform-origin: left center;
-}
-
-.directionsLink:focus-visible {
-  outline: 1px solid currentColor;
-  outline-offset: 6px;
-}
-/* ==========================================
-   Action buttons row
-   ========================================== */
-
-.actionLinks {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-
-  margin-top: clamp(90px, 14vh, 200px);
-
-  pointer-events: auto;
-}
-
-/* ==========================================
-   Shared styling
-   ========================================== */
-
-.directionsLink,
-.resetButton {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 
+  margin: clamp(28px, 3.5vh, 42px) 0 0;
   padding: 0 0 7px;
 
   border: 0;
+  border-radius: 0;
+  outline: 0;
 
   background: transparent;
 
@@ -426,26 +360,58 @@
   line-height: 1;
 
   color: #18191b;
-  text-decoration: none;
+  white-space: nowrap;
 
-  cursor: pointer;
-
-  position: relative;
-}
-
-.resetButton {
   appearance: none;
   -webkit-appearance: none;
+
+  cursor: pointer;
+  pointer-events: auto;
+
+  -webkit-tap-highlight-color: transparent;
+
+  will-change: transform, opacity;
 }
 
-/* ==========================================
-   Underline animation
-   ========================================== */
+/* =========================================================
+   See Directions — separate secondary action
+   ========================================================= */
 
-.directionsLink::before,
-.directionsLink::after,
+.directionsLink {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  /*
+   * Intentionally separated from the destination group.
+   */
+  margin-top: clamp(78px, 11vh, 150px);
+  padding: 0 0 7px;
+
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+
+  color: #18191b;
+  text-decoration: none;
+  white-space: nowrap;
+
+  pointer-events: auto;
+
+  will-change: transform, opacity;
+}
+
+/* =========================================================
+   Shared underline animation
+   ========================================================= */
+
 .resetButton::before,
-.resetButton::after {
+.resetButton::after,
+.directionsLink::before,
+.directionsLink::after {
   content: "";
 
   position: absolute;
@@ -456,13 +422,13 @@
   height: 1px;
 }
 
-.directionsLink::before,
-.resetButton::before {
+.resetButton::before,
+.directionsLink::before {
   background: rgba(24, 25, 27, 0.3);
 }
 
-.directionsLink::after,
-.resetButton::after {
+.resetButton::after,
+.directionsLink::after {
   background: #18191b;
 
   transform: scaleX(0);
@@ -471,31 +437,51 @@
   transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.directionsLink:hover::after,
-.directionsLink:focus-visible::after,
 .resetButton:hover::after,
-.resetButton:focus-visible::after {
+.resetButton:focus-visible::after,
+.directionsLink:hover::after,
+.directionsLink:focus-visible::after {
   transform: scaleX(1);
   transform-origin: left center;
 }
 
-/* ==========================================
-   Icons
-   ========================================== */
+/* =========================================================
+   Action icons
+   ========================================================= */
 
 .linkIcon {
-  font-size: 18px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  width: 17px;
+  height: 17px;
+
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 17px;
+  font-weight: 400;
   line-height: 1;
 
-  transition: transform 0.35s ease;
+  transform-origin: center;
+
+  transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.directionsLink:hover .linkIcon {
+.resetButton:hover .linkIcon,
+.resetButton:focus-visible .linkIcon {
+  transform: rotate(-180deg);
+}
+
+.directionsLink:hover .linkIcon,
+.directionsLink:focus-visible .linkIcon {
   transform: translateX(4px);
 }
 
-.resetButton:hover .linkIcon {
-  transform: rotate(180deg);
+.resetButton:focus-visible,
+.directionsLink:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 6px;
 }
 
 /* =========================================================
@@ -786,8 +772,12 @@
     font-size: 16px;
   }
 
+  .resetButton {
+    margin-top: 30px;
+  }
+
   .directionsLink {
-    margin-top: clamp(90px, 12vh, 160px);
+    margin-top: clamp(72px, 10vh, 125px);
   }
 }
 
@@ -1043,15 +1033,29 @@
     -webkit-line-clamp: 2;
   }
 
-  .directionsLink {
+  .resetButton {
     align-self: flex-start;
 
-    margin-top: 16px;
+    margin-top: 14px;
     padding-bottom: 6px;
 
     font-size: 12px;
+  }
 
-    pointer-events: auto;
+  .directionsLink {
+    align-self: flex-start;
+
+    margin-top: 42px;
+    padding-bottom: 6px;
+
+    font-size: 12px;
+  }
+
+  .linkIcon {
+    width: 14px;
+    height: 14px;
+
+    font-size: 15px;
   }
 
   .projectMarker {
@@ -1175,10 +1179,23 @@
     font-size: 9px;
   }
 
-  .directionsLink {
-    margin-top: 50px;
+  .resetButton {
+    margin-top: 12px;
 
     font-size: 11px;
+  }
+
+  .directionsLink {
+    margin-top: 38px;
+
+    font-size: 11px;
+  }
+
+  .linkIcon {
+    width: 13px;
+    height: 13px;
+
+    font-size: 14px;
   }
 }
 
@@ -1244,8 +1261,12 @@
     font-size: 18px;
   }
 
+  .resetButton {
+    margin-top: 8px;
+  }
+
   .directionsLink {
-    margin-top: 10px;
+    margin-top: 28px;
   }
 }
 
@@ -1268,6 +1289,7 @@
   .heading,
   .description,
   .travelItem,
+  .resetButton,
   .directionsLink {
     opacity: 1 !important;
     visibility: visible !important;
@@ -1276,6 +1298,7 @@
 
   .travelItem,
   .travelItem::before,
+  .resetButton::after,
   .directionsLink::after,
   .projectMarkerInner,
   .locationMarkerInner {
