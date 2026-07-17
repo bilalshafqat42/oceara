@@ -135,7 +135,9 @@
 }
 
 .planLabel:last-child {
-  text-align: right;
+  text-align: left;
+  margin-left: 15px;
+  
 }
 
 /* =========================================================
