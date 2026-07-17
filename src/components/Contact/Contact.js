@@ -362,7 +362,16 @@ export default function Contact() {
        * Replace this console statement later with
        * your approved API, Salesforce or CRM request.
        */
-      console.log("Contact form submission:", submissionData);
+      // console.log("Contact form submission:", submissionData);
+      const response = await fetch("/api/oceara-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Lead submission failed");
+      }
 
       /*
        * Store only non-sensitive confirmation data.

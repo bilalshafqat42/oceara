@@ -3,9 +3,30 @@ export async function POST(request) {
     const body = await request.json();
 
     console.log("====================================");
-    console.log("NEW OCEARA CHATBOT LEAD");
+    console.log("NEW OCEARA LEAD");
     console.log(body);
     console.log("====================================");
+
+    const webhookUrl = process.env.ZAPIER_OCEARA_LEAD_WEBHOOK;
+
+    if (webhookUrl) {
+      const zapierResponse = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!zapierResponse.ok) {
+        console.error(
+          "Zapier webhook responded with status:",
+          zapierResponse.status,
+        );
+      }
+    } else {
+      console.warn(
+        "ZAPIER_OCEARA_LEAD_WEBHOOK is not set — lead was not forwarded.",
+      );
+    }
 
     return Response.json(
       {
