@@ -390,6 +390,113 @@
   outline: 1px solid currentColor;
   outline-offset: 6px;
 }
+/* ==========================================
+   Action buttons row
+   ========================================== */
+
+.actionLinks {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+
+  margin-top: clamp(90px, 14vh, 200px);
+
+  pointer-events: auto;
+}
+
+/* ==========================================
+   Shared styling
+   ========================================== */
+
+.directionsLink,
+.resetButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0 0 7px;
+
+  border: 0;
+
+  background: transparent;
+
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+
+  color: #18191b;
+  text-decoration: none;
+
+  cursor: pointer;
+
+  position: relative;
+}
+
+.resetButton {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* ==========================================
+   Underline animation
+   ========================================== */
+
+.directionsLink::before,
+.directionsLink::after,
+.resetButton::before,
+.resetButton::after {
+  content: "";
+
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  height: 1px;
+}
+
+.directionsLink::before,
+.resetButton::before {
+  background: rgba(24, 25, 27, 0.3);
+}
+
+.directionsLink::after,
+.resetButton::after {
+  background: #18191b;
+
+  transform: scaleX(0);
+  transform-origin: right center;
+
+  transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.directionsLink:hover::after,
+.directionsLink:focus-visible::after,
+.resetButton:hover::after,
+.resetButton:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* ==========================================
+   Icons
+   ========================================== */
+
+.linkIcon {
+  font-size: 18px;
+  line-height: 1;
+
+  transition: transform 0.35s ease;
+}
+
+.directionsLink:hover .linkIcon {
+  transform: translateX(4px);
+}
+
+.resetButton:hover .linkIcon {
+  transform: rotate(180deg);
+}
 
 /* =========================================================
    Project marker

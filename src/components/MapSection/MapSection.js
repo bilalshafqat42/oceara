@@ -917,7 +917,51 @@ export default function MapSection() {
       essential: true,
     });
   };
+  const handleResetView = () => {
+    const map = mapRef.current;
 
+    if (!map) return;
+
+    setActiveLocationId(projectLocation.id);
+
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const isTablet = window.matchMedia("(max-width: 1100px)").matches;
+
+    let padding;
+
+    if (isMobile) {
+      const overlaySpace = Math.min(Math.round(window.innerHeight * 0.38), 350);
+
+      padding = {
+        top: overlaySpace,
+        right: 34,
+        bottom: 54,
+        left: 34,
+      };
+    } else if (isTablet) {
+      padding = {
+        top: 100,
+        right: 90,
+        bottom: 100,
+        left: 390,
+      };
+    } else {
+      padding = {
+        top: 115,
+        right: 120,
+        bottom: 115,
+        left: 530,
+      };
+    }
+
+    map.fitBounds(createAllLocationsBounds(), {
+      padding,
+      maxZoom: isMobile ? 9.15 : 10,
+      duration: 1200,
+      essential: true,
+      retainPadding: false,
+    });
+  };
   return (
     <section
       ref={sectionRef}
@@ -1001,15 +1045,26 @@ export default function MapSection() {
                 })}
               </ul>
 
-              <a
-                ref={directionsRef}
-                href={createGoogleMapsUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.directionsLink}
-              >
-                See Directions
-              </a>
+              <div ref={directionsRef} className={styles.actionLinks}>
+                <a
+                  href={createGoogleMapsUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.directionsLink}
+                >
+                  <span>See Directions</span>
+                  <span className={styles.linkIcon}>→</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={handleResetView}
+                  className={styles.resetButton}
+                >
+                  <span className={styles.linkIcon}>↻</span>
+                  <span>Reset View</span>
+                </button>
+              </div>
             </div>
           </div>
 
