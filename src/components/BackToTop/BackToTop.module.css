@@ -7,7 +7,7 @@
  *
  * 24px + 56px + 16px gap = 96px
  *
- * Small mobile:
+ * Mobile:
  * Chat:       right 16px, width 50px
  * BackToTop:  right 78px
  *
@@ -44,13 +44,16 @@
   transform: translateY(14px) scale(0.92);
   transform-origin: center center;
 
+  appearance: none;
+  -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
 
   will-change: transform, opacity;
 }
 
 /* =========================================================
-   SVG icon wrapper
+   SVG visual wrapper
+   Matches the Chat toggleVisual structure
    ========================================================= */
 
 .icon {
@@ -64,25 +67,22 @@
   border-radius: 50%;
 
   /*
-   * The SVG files contain a little internal spacing.
-   * This scale adjustment makes the visible circle
-   * match the Chat button more closely.
+   * Same visual treatment used by the Chat button.
+   * No extra scale correction is applied.
    */
-  transform: scale(1.1);
-  transform-origin: center center;
+  filter: drop-shadow(0 8px 10px rgba(24, 25, 27, 0.14))
+    drop-shadow(0 2px 3px rgba(24, 25, 27, 0.08));
 
-  /*
-   * No drop-shadow or box-shadow.
-   */
-  filter: none;
+  transform: none;
+  transform-origin: center center;
 
   will-change: transform;
 }
 
-/*
- * Both SVG files occupy the exact same area.
- * They remain vector sharp on all screen densities.
- */
+/* =========================================================
+   SVG artwork
+   ========================================================= */
+
 .darkIcon,
 .lightIcon {
   position: absolute;
@@ -97,20 +97,22 @@
 
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 100% 100%;
+  background-size: contain;
+
+  opacity: 0;
 
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 
+  pointer-events: none;
+
   transition:
     opacity 420ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
-
-  pointer-events: none;
 }
 
 .darkIcon {
-  z-index: 2;
+  z-index: 1;
 
   background-image: url("/icons/top-dark.svg");
 
@@ -119,7 +121,7 @@
 }
 
 .lightIcon {
-  z-index: 3;
+  z-index: 2;
 
   background-image: url("/icons/top-light.svg");
 
@@ -144,11 +146,12 @@
 }
 
 /*
- * Keep the icon completely flat on hover.
+ * Same hover shadow used by the Chat button.
  */
 .backToTop:hover .icon,
 .backToTop:focus-visible .icon {
-  filter: none;
+  filter: drop-shadow(0 12px 16px rgba(7, 61, 97, 0.18))
+    drop-shadow(0 3px 5px rgba(24, 25, 27, 0.08));
 }
 
 .backToTop:focus-visible {
@@ -161,22 +164,12 @@
    ========================================================= */
 
 .backToTop:active .icon {
-  transform: scale(1.04);
+  transform: scale(0.96);
 }
 
 /* =========================================================
-   Tablet
-   ========================================================= */
-
-@media (max-width: 767px) {
-  .backToTop {
-    width: 50px;
-    height: 50px;
-  }
-}
-
-/* =========================================================
-   Small mobile
+   Tablet and mobile
+   Chat remains 56px until 480px, so Back To Top does too.
    ========================================================= */
 
 @media (max-width: 480px) {
@@ -196,13 +189,11 @@
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .backToTop {
+  .backToTop,
+  .icon,
+  .darkIcon,
+  .lightIcon {
     transform: none !important;
-  }
-
-  .icon {
-    transform: scale(1.1) !important;
-    filter: none !important;
   }
 
   .darkIcon,
@@ -213,16 +204,10 @@
   .backToTop:hover .darkIcon,
   .backToTop:focus-visible .darkIcon {
     opacity: 0;
-    transform: scale(1);
   }
 
   .backToTop:hover .lightIcon,
   .backToTop:focus-visible .lightIcon {
     opacity: 1;
-    transform: scale(1);
-  }
-
-  .backToTop:active .icon {
-    transform: scale(1.1) !important;
   }
 }
