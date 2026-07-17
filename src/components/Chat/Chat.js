@@ -1111,11 +1111,6 @@ export default function Chat() {
         className={styles.introCard}
         aria-hidden={widgetState !== WIDGET_STATE.INTRO}
       >
-        <span className={styles.onlineBadge}>
-          <span className={styles.onlineDot} aria-hidden="true" />
-          We Are Online
-        </span>
-
         <div className={styles.introPhotoWrapper}>
           <Image
             src="/images/agent/avatar.avif"
@@ -1126,24 +1121,29 @@ export default function Chat() {
           />
 
           <div className={styles.introPhotoOverlay} aria-hidden="true" />
-        </div>
 
-        <div className={styles.introContent}>
-          <p className={styles.introTitle}>Reach Out To Us</p>
+          <span className={styles.onlineBadge}>
+            <span className={styles.onlineDot} aria-hidden="true" />
+            We Are Online
+          </span>
 
-          <p className={styles.introSubtitle}>
-            Let Us Know How We Can Help You
-          </p>
+          <div className={styles.introContent}>
+            <p className={styles.introTitle}>Reach Out To Us</p>
 
-          <button
-            ref={textUsButtonRef}
-            type="button"
-            className={styles.textUsButton}
-            onClick={openChat}
-            tabIndex={widgetState === WIDGET_STATE.INTRO ? 0 : -1}
-          >
-            Text Us
-          </button>
+            <p className={styles.introSubtitle}>
+              Let Us Know How We Can Help You
+            </p>
+
+            <button
+              ref={textUsButtonRef}
+              type="button"
+              className={styles.textUsButton}
+              onClick={openChat}
+              tabIndex={widgetState === WIDGET_STATE.INTRO ? 0 : -1}
+            >
+              Text Us
+            </button>
+          </div>
         </div>
       </div>
 
