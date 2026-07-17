@@ -314,7 +314,7 @@
   width: 100%;
   max-width: none;
 
-  height: clamp(300px, 44vh, 470px);
+  height: clamp(300px, 55vh, 470px);
 
   aspect-ratio: auto;
 }
@@ -338,12 +338,13 @@
   grid-column: 2;
   grid-row: 1;
 
-  align-self: stretch;
-  justify-self: start;
+  /* align-self: stretch; */
+  align-self: inherit;
+  /* justify-self: start; */
 
   width: 40vw;
   max-width: 40vw;
-  height: 100%;
+  height: 80%;
 
   aspect-ratio: auto;
 }
