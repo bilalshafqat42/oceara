@@ -16,11 +16,16 @@ export async function POST(request) {
         body: JSON.stringify(body),
       });
 
+      const zapierResult = await zapierResponse.json().catch(() => null);
+
       if (!zapierResponse.ok) {
         console.error(
           "Zapier webhook responded with status:",
           zapierResponse.status,
+          zapierResult,
         );
+      } else {
+        console.log("Zapier webhook accepted the lead:", zapierResult);
       }
     } else {
       console.warn(
