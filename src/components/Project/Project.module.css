@@ -242,36 +242,26 @@
 }
 
 /*
- * The editorial layout uses the same outer horizontal
- * alignment as the intro-card content.
- *
- * Twelve equal columns create a true 50% centre division:
- * columns 1–6 form the left half;
- * columns 7–12 form the right half.
+ * Each editorial state occupies the complete sticky viewport.
+ * The design is divided into an exact 50% / 50% layout.
  */
 .descriptionBlock {
-  --project-editorial-gutter: clamp(52px, 8vw, 125px);
-
   position: absolute;
-  top: 50%;
-  right: 0;
-  left: 0;
+  inset: 0;
 
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
   align-items: center;
 
   width: 100%;
+  height: 100%;
 
   margin: 0;
-  padding-right: var(--project-editorial-gutter);
-  padding-left: var(--project-editorial-gutter);
-
-  box-sizing: border-box;
+  padding: 0;
 
   color: #18191b;
-
-  transform: translateY(-50%);
 
   will-change: transform, opacity;
 }
@@ -281,16 +271,13 @@
 }
 
 /* =========================================================
-   Editorial curtain images
+   Shared editorial image styling
    ========================================================= */
 
 .editorialImage {
   position: relative;
 
   width: 100%;
-  max-width: 340px;
-
-  aspect-ratio: 340 / 383;
 
   overflow: hidden;
 
@@ -312,12 +299,64 @@
 }
 
 /* =========================================================
+   First curtain image — horizontal
+   ========================================================= */
+
+/*
+ * The image fills the complete width of the left 50% panel.
+ * Its controlled landscape height creates the horizontal look.
+ */
+.editorialImageLandscape {
+  align-self: center;
+  justify-self: stretch;
+
+  width: 100%;
+  max-width: none;
+
+  height: clamp(300px, 44vh, 470px);
+
+  aspect-ratio: auto;
+}
+
+/*
+ * The source photograph is portrait, so object-fit cover crops
+ * its top and bottom to create the approved landscape treatment.
+ */
+.editorialImageLandscape .editorialImageMedia {
+  object-position: center 53%;
+}
+
+/* =========================================================
+   Second curtain image — vertical
+   ========================================================= */
+
+/*
+ * The image fills the complete right 50% panel and the full
+ * available height, producing a strong vertical composition.
+ */
+.editorialImagePortrait {
+  align-self: stretch;
+  justify-self: stretch;
+
+  width: 100%;
+  max-width: none;
+  height: 100%;
+
+  aspect-ratio: auto;
+}
+
+.editorialImagePortrait .editorialImageMedia {
+  object-position: center center;
+}
+
+/* =========================================================
    Editorial text
    ========================================================= */
 
 .editorialText {
-  width: 100%;
-  max-width: 340px;
+  width: min(100% - clamp(80px, 12vw, 210px), 410px);
+
+  max-width: 410px;
 
   font-family: var(--font-body);
   font-size: 15px;
@@ -330,71 +369,40 @@
 
 /* =========================================================
    First editorial state
-   Image left / text right
+   Horizontal image left / description right
    ========================================================= */
 
-/*
- * Image:
- * begins at the same left gutter used by the intro text
- * and brochure button.
- *
- * Text:
- * begins at column seven, the exact 50% centre line.
- */
-.descriptionRight {
-  top: 50%;
-  right: 0;
-  bottom: auto;
-  left: 0;
-
-  transform: translateY(-50%);
-}
-
-.descriptionRight .editorialImage {
-  grid-column: 1 / span 3;
-
-  justify-self: start;
+.descriptionRight .editorialImageLandscape {
+  grid-column: 1;
 }
 
 .descriptionRight .editorialText {
-  grid-column: 7 / span 3;
+  grid-column: 2;
 
   justify-self: start;
+
+  margin-left: clamp(52px, 8vw, 125px);
+  margin-right: clamp(52px, 7vw, 110px);
 }
 
 /* =========================================================
    Second editorial state
-   Text left / image right
+   Location text left / vertical image right
    ========================================================= */
 
-/*
- * Text:
- * occupies columns three through six and therefore finishes
- * at the exact 50% centre division.
- *
- * Image:
- * occupies the final three columns and aligns to the same
- * right-side outer grid line.
- */
-.descriptionLeft {
-  top: 50%;
-  right: 0;
-  bottom: auto;
-  left: 0;
-
-  transform: translateY(-50%);
-}
-
 .descriptionLeft .editorialText {
-  grid-column: 3 / span 4;
+  grid-column: 1;
+  grid-row: 1;
 
   justify-self: end;
+
+  margin-right: clamp(52px, 8vw, 125px);
+  margin-left: clamp(52px, 7vw, 110px);
 }
 
-.descriptionLeft .editorialImage {
-  grid-column: 10 / span 3;
-
-  justify-self: end;
+.descriptionLeft .editorialImagePortrait {
+  grid-column: 2;
+  grid-row: 1;
 }
 
 /* =========================================================
@@ -406,41 +414,15 @@
 }
 
 /* =========================================================
-   Progress
+   Progress — hidden by design
    ========================================================= */
 
 .progress {
-  position: absolute;
-  right: clamp(28px, 4vw, 64px);
-  bottom: clamp(28px, 4vh, 52px);
-  z-index: 8;
-
   display: none;
-  align-items: center;
-  gap: 7px;
-
-  pointer-events: none;
 }
 
 .progressLine {
-  display: block;
-
-  width: 20px;
-  height: 1px;
-
-  background: rgba(24, 25, 27, 0.24);
-
-  transform-origin: center center;
-
-  transition:
-    width 450ms cubic-bezier(0.16, 1, 0.3, 1),
-    background-color 450ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.progressLine[data-active="true"] {
-  width: 38px;
-
-  background: #18191b;
+  display: none;
 }
 
 /* =========================================================
@@ -484,45 +466,26 @@
     padding: 70px 54px 58px;
   }
 
-  .descriptionBlock {
-    --project-editorial-gutter: 54px;
-
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-  }
-
-  .editorialImage {
-    max-width: 290px;
+  .editorialImageLandscape {
+    height: clamp(280px, 42vh, 410px);
   }
 
   .editorialText {
-    max-width: 300px;
+    width: min(calc(100% - 88px), 320px);
+    max-width: 320px;
 
     font-size: 14px;
     line-height: 1.55;
   }
 
-  .descriptionRight .editorialImage {
-    grid-column: 1 / span 4;
-
-    justify-self: start;
-  }
-
   .descriptionRight .editorialText {
-    grid-column: 7 / span 5;
-
-    justify-self: start;
+    margin-right: 40px;
+    margin-left: 44px;
   }
 
   .descriptionLeft .editorialText {
-    grid-column: 1 / span 6;
-
-    justify-self: end;
-  }
-
-  .descriptionLeft .editorialImage {
-    grid-column: 9 / span 4;
-
-    justify-self: end;
+    margin-right: 44px;
+    margin-left: 40px;
   }
 }
 
@@ -696,22 +659,6 @@
 
     font-size: 15px;
   }
-
-  .progress {
-    right: 20px;
-    bottom: 20px;
-    z-index: 10;
-
-    gap: 5px;
-  }
-
-  .progressLine {
-    width: 14px;
-  }
-
-  .progressLine[data-active="true"] {
-    width: 27px;
-  }
 }
 
 /* =========================================================
@@ -752,19 +699,6 @@
     font-size: 14px;
     line-height: 1.6;
   }
-
-  .progress {
-    right: 16px;
-    bottom: 16px;
-  }
-
-  .progressLine {
-    width: 12px;
-  }
-
-  .progressLine[data-active="true"] {
-    width: 23px;
-  }
 }
 
 /* =========================================================
@@ -794,7 +728,6 @@
 
   .requestLink::after,
   .mobileBrochureLink::after,
-  .progressLine,
   .editorialImageMedia {
     transition: none;
   }
@@ -824,11 +757,11 @@
 
   .beigeScene {
     display: grid;
-    gap: 100px;
+    gap: 0;
 
     min-height: auto;
 
-    padding: 120px clamp(24px, 7vw, 120px);
+    padding: 0;
   }
 
   .descriptionBlock {
@@ -836,8 +769,10 @@
     inset: auto;
 
     width: 100%;
+    min-height: 100svh;
+
     margin: 0;
-    padding-inline: 0;
+    padding: 0;
 
     opacity: 1 !important;
     visibility: visible !important;

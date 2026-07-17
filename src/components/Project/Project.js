@@ -279,7 +279,6 @@ export default function Project() {
                 trigger: section,
                 start: "top top",
                 end: "bottom bottom",
-
                 scrub: 0.95,
                 invalidateOnRefresh: true,
 
@@ -521,7 +520,6 @@ export default function Project() {
                 trigger: section,
                 start: "top top",
                 end: "bottom bottom",
-
                 scrub: 0.75,
                 invalidateOnRefresh: true,
 
@@ -719,13 +717,15 @@ export default function Project() {
             ref={descriptionOneRef}
             className={`${styles.descriptionBlock} ${styles.descriptionRight}`}
           >
-            <div className={styles.editorialImage}>
+            <div
+              className={`${styles.editorialImage} ${styles.editorialImageLandscape}`}
+            >
               <Image
                 src="/images/amenities/curtain.avif"
                 alt="Curtains overlooking the natural landscape"
                 fill
                 quality={90}
-                sizes="(max-width: 1100px) 290px, 340px"
+                sizes="50vw"
                 className={styles.editorialImageMedia}
               />
             </div>
@@ -743,13 +743,15 @@ export default function Project() {
               <p>{projectContent.location}</p>
             </div>
 
-            <div className={styles.editorialImage}>
+            <div
+              className={`${styles.editorialImage} ${styles.editorialImagePortrait}`}
+            >
               <Image
                 src="/images/amenities/curtain.avif"
                 alt="Curtains framing a calm coastal landscape"
                 fill
                 quality={90}
-                sizes="(max-width: 1100px) 290px, 340px"
+                sizes="50vw"
                 className={styles.editorialImageMedia}
               />
             </div>
